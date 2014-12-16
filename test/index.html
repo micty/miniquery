@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>MiniQuery 模块单元测试工具</title>
+    <link href="qunit/qunit-1.14.0.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+
+    <!--用于测试模板提取 $.String.getTemplates-->
+    <textarea id="txtTemplates" style="display:none;">
+
+        #--detail.headTable.begin--#
+        <table class="detail">
+            #--tr.begin--#
+            <tr>
+                <td>{name}</td>
+                <td>{value}</td>
+                <td>
+                    <ul>
+                        #--li.begin--#
+                            <li>{count}</li>
+                        #--li.end--#
+                    </ul>
+                </td>
+            </tr>
+            #--tr.end--#
+        </table>
+        #--detail.headTable.end--#
+    
+        #--detail.bodyTable.begin--#
+        <table class="detail">
+            #--tr.begin--#
+            <tr>
+                <td>{name}111111111</td>
+                <td>{value}222222222</td>
+                <td>
+                    <ul>
+                        #--li.begin--#
+                            <li>{count}3333333</li>
+                        #--li.end--#
+                    </ul>
+                </td>
+            </tr>
+            #--tr.end--#
+        </table>
+        #--detail.bodyTable.end--#
+    </textarea>
+    
+
+
+    <script src="../sdk/miniquery.debug.js"></script>
+    <script src="qunit/qunit-1.14.0.js"></script>
+
+    <script>
+
+        MiniQuery.use('$');
+
+        $.test = function (moduleName, methods) {
+
+            var isPrototype = moduleName.slice(-1) == '#';
+            if (isPrototype) {
+                moduleName = moduleName.slice(0, -1);
+            }
+
+            if (!(moduleName in $)) {
+                throw new Error($.String.format('MiniQuery 中不存在名为 {0} 的模块', moduleName));
+            }
+
+            var M = $[moduleName];
+           
+
+            module( moduleName);
+
+            MiniQuery.Object.each(methods, function (key, value) {
+
+                if (isPrototype) {
+                    if (!(key in M.prototype)) {
+                        throw new Error($.String.format('MiniQuery.{0}.prototype 中不存在名为 {1} 的方法', moduleName, key));
+                    }
+                    test(key, value);
+                    return;
+                }
+
+
+                if (!(key in M)) {
+                    throw new Error($.String.format('MiniQuery.{0} 中不存在名为 {1} 的方法', moduleName, key));
+                }
+
+
+                var fn = M[key];
+                test(key, function () {
+                    value.call(M, fn, M);
+                });
+
+            });
+
+        };
+
+    </script>
+    <script src="../src/excore/States.js"></script>
+    <script src="tests.js"></script>
+    <script src="test_Array.js"></script>
+    <script src="test_Cookie.js"></script>
+    <script src="test_Date.js"></script>
+    <script src="test_Guid.js"></script>
+    <script src="test_Url.js"></script>
+    <script src="test_States.js"></script>
+    <script src="test_Callbacks.js"></script>
+</body>
+</html>

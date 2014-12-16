@@ -1,0 +1,128 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	span{font-family: Courier;}
+	.KEYW {color: blue;}
+	.COMM {color: green; }
+	.NUMB {color: red;}
+	.STRN {color: #A31515;}
+	.REGX {color: #339;}
+	.PUNC {color: #800080;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="TOKN">﻿</span><span class="WHIT">
+<span class='line'>  2</span> 
+<span class='line'>  3</span> 
+<span class='line'>  4</span> </span><span class="COMM">/**
+<span class='line'>  5</span> * 当前运行窗口的 Url 工具类
+<span class='line'>  6</span> * @namespace
+<span class='line'>  7</span> */</span><span class="WHIT">
+<span class='line'>  8</span> </span><span class="NAME">MiniQuery.Url.Current</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">Url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">window</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">location</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>  9</span> 
+<span class='line'> 10</span> 
+<span class='line'> 11</span> 
+<span class='line'> 12</span> </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">  </span><span class="COMM">/**@lends MiniQuery.Url.Current */</span><span class="WHIT">
+<span class='line'> 13</span> 
+<span class='line'> 14</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 15</span>     * 获取当前窗口的 Url 的查询字符串中指定的键所对应的值。
+<span class='line'> 16</span>     * @param {string} [key] 要检索的键。
+<span class='line'> 17</span>     * @param {boolean} [ignoreCase=false] 是否忽略参数 key 的大小写。 默认区分大小写。
+<span class='line'> 18</span>         如果要忽略 key 的大小写，请指定为 true；否则不指定或指定为 false。
+<span class='line'> 19</span>         当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
+<span class='line'> 20</span>     * @retun {string|Object|undefined} 返回一个查询字符串值。
+<span class='line'> 21</span>         当不指定参数 key 时，则获取全部查询字符串，返回一个等价的 Object 对象。
+<span class='line'> 22</span>         当指定参数 key 为一个空字符串，则获取全部查询字符串，返回一个 string 类型值。
+<span class='line'> 23</span>     */</span><span class="WHIT">
+<span class='line'> 24</span> </span><span class="WHIT">    </span><span class="NAME">getQueryString</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">key</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">ignoreCase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 25</span> 
+<span class='line'> 26</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">$.toArray</span><span class="PUNC">(</span><span class="NAME">arguments</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 27</span> </span><span class="WHIT">        </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="NAME">window</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">concat</span><span class="PUNC">(</span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 28</span> 
+<span class='line'> 29</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">Url.getQueryString.apply</span><span class="PUNC">(</span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 30</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 31</span> </span><span class="WHIT">    </span><span class="WHIT">
+<span class='line'> 32</span> 
+<span class='line'> 33</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 34</span>     * 把当前窗口的 Url 和查询字符串组装成一个新的 Url。
+<span class='line'> 35</span>     * @param {string|Object} key 要添加的查询字符串的键。
+<span class='line'> 36</span>         当传入一个 Object 对象时，会对键值对进行递归组合编码成查询字符串。
+<span class='line'> 37</span>     * @param {string} [value] 要添加的查询字符串的值。
+<span class='line'> 38</span>     * @retun {string} 返回组装后的新的 Url。
+<span class='line'> 39</span>     */</span><span class="WHIT">
+<span class='line'> 40</span> </span><span class="WHIT">    </span><span class="NAME">setQueryString</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">key</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 41</span> 
+<span class='line'> 42</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">$.toArray</span><span class="PUNC">(</span><span class="NAME">arguments</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="WHIT">        </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="NAME">window</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">concat</span><span class="PUNC">(</span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 44</span> 
+<span class='line'> 45</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">Url.setQueryString.apply</span><span class="PUNC">(</span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 46</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 47</span> 
+<span class='line'> 48</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 49</span>     * 判断当前窗口的 Url 是否包含特定名称的查询字符串。
+<span class='line'> 50</span>     * @param {string} [key] 要提取的查询字符串的键。
+<span class='line'> 51</span>     * @param {boolean} [ignoreCase=false] 是否忽略参数 key 的大小写，默认区分大小写。
+<span class='line'> 52</span>         如果要忽略 key 的大小写，请指定为 true；否则不指定或指定为 false。
+<span class='line'> 53</span>         当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
+<span class='line'> 54</span>     * @retun {boolean} 如果 url 中包含该名称的查询字符串，则返回 true；否则返回 false。
+<span class='line'> 55</span>     */</span><span class="WHIT">
+<span class='line'> 56</span> </span><span class="WHIT">    </span><span class="NAME">hasQueryString</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">key</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">ignoreCase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 57</span> 
+<span class='line'> 58</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">$.toArray</span><span class="PUNC">(</span><span class="NAME">arguments</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 59</span> </span><span class="WHIT">        </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="NAME">window</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">concat</span><span class="PUNC">(</span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 60</span> 
+<span class='line'> 61</span> </span><span class="WHIT">        </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">Url.hasQueryString.apply</span><span class="PUNC">(</span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 62</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 63</span> 
+<span class='line'> 64</span> 
+<span class='line'> 65</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 66</span>     * 监听当前窗口的 hash 变化，并触发一个回调函数。
+<span class='line'> 67</span>     * @param {function} fn 当本窗口的 hash 发生变化时，要触发的回调函数。
+<span class='line'> 68</span>     *   该回调函数会接收到两个参数：newHash 和 oldHash，当前的 hash 值和旧的 hash 值。
+<span class='line'> 69</span>     *   注意，newHash 和 oldHash 都去掉了 '#' 号而直接保留 hash 值。
+<span class='line'> 70</span>     *   如果 oldHash 不存在，则为 null。
+<span class='line'> 71</span>     *   该回调函数内部的 this 指向当前窗口。
+<span class='line'> 72</span>     * @example
+<span class='line'> 73</span>         $.Url.Current.hashchange(function (newHash, oldHash) {
+<span class='line'> 74</span>             console.log('new hash: ' + newHash);
+<span class='line'> 75</span>             console.log('old hash: ' + oldHash);
+<span class='line'> 76</span>             console.log(this === window); //true
+<span class='line'> 77</span>         });
+<span class='line'> 78</span>     */</span><span class="WHIT">
+<span class='line'> 79</span> </span><span class="WHIT">    </span><span class="NAME">hashchange</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">fn</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 80</span> 
+<span class='line'> 81</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">$.toArray</span><span class="PUNC">(</span><span class="NAME">arguments</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 82</span> </span><span class="WHIT">        </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="NAME">window</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">concat</span><span class="PUNC">(</span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 83</span> 
+<span class='line'> 84</span> </span><span class="WHIT">        </span><span class="NAME">Url.hashchange.apply</span><span class="PUNC">(</span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 85</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 86</span> 
+<span class='line'> 87</span> </span><span class="WHIT">    </span><span class="COMM">/**
+<span class='line'> 88</span>     * 监听当前窗口 Url 的 Hash 变化，并触发相应的路由分支函数。
+<span class='line'> 89</span>     * @param {Object} routes 路由分支函数。
+<span class='line'> 90</span>     *   分支函数会接收到两个参数：newHash 和 oldHash，当前的 hash 值和旧的 hash 值。
+<span class='line'> 91</span>     *   注意，newHash 和 oldHash 都去掉了 '#' 号而直接保留 hash 值。
+<span class='line'> 92</span>     *   如果 oldHash 不存在，则为 null。
+<span class='line'> 93</span>     *   分支函数内部的 this 指向监听的窗口。
+<span class='line'> 94</span>     * @example
+<span class='line'> 95</span>         $.Url.route({
+<span class='line'> 96</span>             'abc': function () { },
+<span class='line'> 97</span>             'user/': function(){},
+<span class='line'> 98</span>             'user/1234': function () { }
+<span class='line'> 99</span>         });
+<span class='line'>100</span>     */</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="WHIT">    </span><span class="NAME">route</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">routes</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>102</span> 
+<span class='line'>103</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">$.toArray</span><span class="PUNC">(</span><span class="NAME">arguments</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>104</span> </span><span class="WHIT">        </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="NAME">window</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">concat</span><span class="PUNC">(</span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>105</span> 
+<span class='line'>106</span> </span><span class="WHIT">        </span><span class="NAME">Url.route.apply</span><span class="PUNC">(</span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">args</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>108</span> 
+<span class='line'>109</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>110</span> 
+<span class='line'>111</span> 
+<span class='line'>112</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">(</span><span class="NAME">MiniQuery.Url</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">window</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">window.location</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>113</span> 
+<span class='line'>114</span> 
+<span class='line'>115</span> 
+<span class='line'>116</span> 
+<span class='line'>117</span> 
+<span class='line'>118</span> 
+<span class='line'>119</span> </span></pre></body></html>
