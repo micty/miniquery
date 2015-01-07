@@ -8,9 +8,8 @@ module.exports = {
         options: {
             banner: '\n' +
                 '/*!\n' +
-                '* <%=pkg.description%>\n' +
-                '* 版本: <%=pkg.version%>\n' +
-                '* for node\n' +
+                '* <%=pkg.description%> for node\n' +
+                '* version: <%=pkg.version%>\n' +
                 '*/'
         },
         src: [

@@ -4,47 +4,53 @@
 //----------------------------------------------------------------------------------------------------------------
 //MiniQuery.Boolean 包装类的实例方法
 
-; (function (This) {
+
+define('Boolean.prototype', function (require, module, exports) {
 
 
-This.prototype = { /**@inner*/
-
-    constructor: This,
-    value: false,
+    var $ = require('$');
+    var $Boolean = require('Boolean');
 
 
-    init: function (b) {
-        this.value = This.parse(b);
-    },
-
-
-    valueOf: function () {
-        return this.value;
-    },
-
-
-    toString: function () {
-        return this.value.toString();
-    },
-
-
-    toInt: function () {
-        return this.value ? 1 : 0;
-    },
-
-
-    reverse: function () {
-        this.value = !this.value;
-        return this;
-    },
-
-    random: function () {
-        this.value = This.random();
-        return;
+    function init(b) {
+        this.value = $Boolean.parse(b);
     }
-};
+
+    
+    module.exports =
+    init.prototype =
+    $Boolean.prototype = { /**@inner*/
+
+        constructor: $Boolean,
+        init: init,
+
+        value: false,
+
+        valueOf: function () {
+            return this.value;
+        },
 
 
-This.prototype.init.prototype = This.prototype;
+        toString: function () {
+            return this.value.toString();
+        },
 
-})(MiniQuery.Boolean);
+
+        toInt: function () {
+            return this.value ? 1 : 0;
+        },
+
+
+        reverse: function () {
+            this.value = !this.value;
+            return this;
+        },
+
+        random: function () {
+            this.value = $Boolean.random();
+            return;
+        }
+    };
+
+
+});

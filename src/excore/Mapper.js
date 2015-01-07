@@ -11,10 +11,14 @@
     var mapper = new $.Mapper();
 */
 
-MiniQuery.Mapper = (function ($) {
+
+define('Mapper', function (require, module, exports) {
+
+    var $ = require('$');
+    var $String = require('String');
 
 
-    var guidKey = '__guid__' + $.String.random();
+    var guidKey = '__guid__' + $String.random();
     var guid$type$object = {}; //容纳所有 Mapper 实例的数据
 
 
@@ -22,7 +26,7 @@ MiniQuery.Mapper = (function ($) {
     function Mapper(key, value) {
 
         //分配本实例对应的容器
-        var guid = $.String.random();
+        var guid = $String.random();
         this[guidKey] = guid;
 
         guid$type$object[guid] = {
@@ -66,25 +70,21 @@ MiniQuery.Mapper = (function ($) {
             }
         }
 
+        var $Object = require('Object');
 
-        return $.Object.getType(obj); //返回相应构造器的名称，不要用　toString，因为可能会变
+        return $Object.getType(obj); //返回相应构造器的名称，不要用　toString，因为可能会变
 
     }
 
 
 
-    //静态方法
-    $.extend(Mapper, { /**@lends MiniQuery.Mapper */
-        getGuidKey: function () {
-            return guidKey;
-        }
-    });
-
-
-
-    //原型方法
-    $.extend(Mapper.prototype, { /**@lends MiniQuery.Mapper# */
     
+
+
+
+    //实例方法
+    $.extend(Mapper.prototype, { /**@lends MiniQuery.Mapper# */
+
         /**
         * 设置一对映射关系。
         * @param src 映射关系的键，可以是任何类型。
@@ -133,7 +133,8 @@ MiniQuery.Mapper = (function ($) {
                     var key = getString(src); //这里确保 key 一定是一个 string
                     var list = all[type][key];
                     if (list) { //已存在对应字符串的列表
-                        var pair = $.Array.findItem(list, function (pair, index) {
+                        var $Array = require('Array');
+                        var pair = $Array.findItem(list, function (pair, index) {
                             return pair[0] === src;
                         });
 
@@ -166,9 +167,11 @@ MiniQuery.Mapper = (function ($) {
             ]);
         */
         setBatch: function (list) {
+            var $Array = require('Array');
+
             var self = this;
 
-            $.Array.each(list, function (item, index) {
+            $Array.each(list, function (item, index) {
                 self.set(item[0], item[1]);
             });
         },
@@ -217,13 +220,14 @@ MiniQuery.Mapper = (function ($) {
                     return all[type][String(src)];
 
 
-                //引用类型的，通过 key 映射到一个二维数组，每个二维数组项为 [src, target]
+                    //引用类型的，通过 key 映射到一个二维数组，每个二维数组项为 [src, target]
                 case 'object':
                 case 'function':
                     var key = getString(src);
                     var list = all[type][key];
                     if (list) { //已存在对应字符串的列表
-                        var pair = $.Array.findItem(list, function (pair, index) {
+                        var $Array = require('Array');
+                        var pair = $Array.findItem(list, function (pair, index) {
                             return pair[0] === src;
                         });
 
@@ -281,14 +285,15 @@ MiniQuery.Mapper = (function ($) {
                     delete all[type][String(src)];
                     break;
 
-                //引用类型的，通过 key 映射到一个二维数组，每个二维数组项为 [src, target]
+                    //引用类型的，通过 key 映射到一个二维数组，每个二维数组项为 [src, target]
                 case 'object':
                 case 'function':
                     var key = getString(src);
                     var list = all[type][key];
                     if (list) { //已存在对应字符串的列表
                         //移除 src 的项
-                        all[type][key] = $.Array.grep(list, function (pair, index) {
+                        var $Array = require('Array');
+                        all[type][key] = $Array.grep(list, function (pair, index) {
                             return pair[0] !== src;
                         });
                     }
@@ -311,10 +316,17 @@ MiniQuery.Mapper = (function ($) {
     //for test
     //Mapper.guid$type$object = guid$type$object;
 
-    return Mapper;
+    //静态方法
+    $.extend(Mapper, { /**@lends MiniQuery.Mapper */
+        getGuidKey: function () {
+            return guidKey;
+        }
+    });
+
+    module.exports = Mapper;
 
 
-})(MiniQuery);
+});
 
 
 

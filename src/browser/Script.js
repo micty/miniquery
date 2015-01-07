@@ -6,8 +6,8 @@
 * Script 脚本工具
 * @namespace
 */
-MiniQuery.Script = (function ($, This) {
 
+define('Script', function (require, module, exports) {
 
 
     var defaults = {
@@ -25,7 +25,7 @@ MiniQuery.Script = (function ($, This) {
     * @inner
     */
     function loadSingle(url, charset, document, onload) {
-        
+
         var id;
 
         if (typeof url == 'object') { //传入的是一个 {} 
@@ -119,10 +119,10 @@ MiniQuery.Script = (function ($, This) {
         document.write(html);
     }
 
-    
 
-    // MiniQuery.Script = 
-    return $.extend(This, { /**@lends MiniQuery.Script*/
+
+    
+    module.exports = exports = { /**@lends MiniQuery.Script*/
 
         /**
         * 跨浏览器动态加载 JS 文件，并在加载完成后执行指定的回调函数。
@@ -325,12 +325,9 @@ MiniQuery.Script = (function ($, This) {
                 document_write(obj.url, obj.charset, obj.document);
             }
         }
-    });
+    };
 
+});
 
-
-
-
-})(MiniQuery, {});
 
 

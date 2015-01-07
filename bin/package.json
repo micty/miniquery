@@ -1,17 +1,19 @@
 ﻿
 {
     "name": "MiniQuery",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "repository": {},
     "description": "MiniQuery JavaScript Library",
     "dependencies": {},
     "devDependencies": {
+
         "grunt": "~0.4.1",
+        "load-grunt-tasks": "0.6.0", 
         "grunt-contrib-concat": "0.5.0",
         "grunt-contrib-uglify": "0.5.0",
-        "grunt-contrib-less": ">=0.11.0",
         "grunt-contrib-watch": "0.6.1",
-        "grunt-contrib-copy": "0.5.0"
+        "grunt-contrib-copy": "0.5.0",
+        "grunt-contrib-clean": "0.6.0"
         
     }, 
 

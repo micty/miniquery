@@ -4,7 +4,8 @@
 * 本地存储工具类
 * @namespace
 */
-MiniQuery.LocalStorage = (function (localStorage) {
+
+define('LocalStorage', function (require, module, exports) {
 
 
     if (!localStorage) { //不支持
@@ -27,7 +28,7 @@ MiniQuery.LocalStorage = (function (localStorage) {
 
         var json = JSON.stringify(all);
         localStorage.setItem(id, json);
-        
+
     }
 
 
@@ -98,5 +99,6 @@ MiniQuery.LocalStorage = (function (localStorage) {
     };
 
 
+});
 
-})(localStorage);
+

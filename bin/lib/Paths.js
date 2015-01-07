@@ -5,12 +5,16 @@ module.exports = (function ($) {
 
     function combine(dir, files, state) {
 
+        if (dir.slice(-1) != '/') { //确保以 '/' 结束，统一约定，不易出错
+            dir += '/';
+        }
+
         var depth = 1;
 
         return $.Array.keep(files, function (item, index) {
 
             if (typeof item == 'string') {
-                return dir + '/' + item;
+                return dir + item;
             }
 
             depth++;
@@ -19,7 +23,7 @@ module.exports = (function ($) {
                 state.depth = depth;
             }
 
-            return combine(dir + '/' + item.dir, item.files, state); //递归
+            return combine(dir + item.dir, item.files, state); //递归
         });
     }
 
@@ -29,6 +33,10 @@ module.exports = (function ($) {
         if (typeof dir == 'object') { //linear( { dir: '', files: [] } );
             files = dir.files;
             dir = dir.dir;
+        }
+
+        if (dir.slice(-1) != '/') { //确保以 '/' 结束，统一约定，不易出错
+            dir += '/';
         }
 
         var state = {

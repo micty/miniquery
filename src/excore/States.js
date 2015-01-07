@@ -13,7 +13,11 @@
 * 有限状态机的写法，逻辑清晰，表达力强，有利于封装事件。
 * 一个对象的状态越多、发生的事件越多，就越适合采用有限状态机的写法。
 */
-MiniQuery.States = (function ($, Mapper) {
+
+define('States', function (require, module, exports) {
+
+    var $ = require('$');
+    var Mapper = require('Mapper');
 
 
     var guidKey = Mapper.getGuidKey();
@@ -26,8 +30,11 @@ MiniQuery.States = (function ($, Mapper) {
     */
     function States(current, list) {
 
+        var $String = require('String');
+        var $Array = require('Array');
+        var Event = require('Event');
 
-        this[guidKey] = $.String.random();
+        this[guidKey] = $String.random();
 
 
         var states = {};//状态集合
@@ -40,10 +47,10 @@ MiniQuery.States = (function ($, Mapper) {
         });
 
         var self = this;
-        var bind = $.Event.bind;
+        var bind = Event.bind;
         list = normalize(list);
 
-        $.Array.each(list, function (item, index) {
+        $Array.each(list, function (item, index) {
 
             var from = item.from;
             var to = item.to;
@@ -79,11 +86,15 @@ MiniQuery.States = (function ($, Mapper) {
     */
     function normalize(states) {
 
+        var $Object = require('Object');
+        var $Array = require('Array');
+
+
         var list = [];
 
-        if ($.Object.isPlain(states)) { //此时为 { ... }
+        if ($Object.isPlain(states)) { //此时为 { ... }
 
-            $.Object.each(states, function (key, fn) {
+            $Object.each(states, function (key, fn) {
 
                 var pair = key.split('->');
                 var from = pair[0];
@@ -102,12 +113,12 @@ MiniQuery.States = (function ($, Mapper) {
                         fn: fn
                     });
                 }
-            
+
             });
         }
-        else if ($.Object.isArray(states)) { // 此时为 [ ... ]
+        else if ($Object.isArray(states)) { // 此时为 [ ... ]
 
-            $.Array.each(states, function (item, index) {
+            $Array.each(states, function (item, index) {
 
                 var from = item.from;
                 var to = item.to;
@@ -143,10 +154,12 @@ MiniQuery.States = (function ($, Mapper) {
     * @inner
     */
     function combine(A, B, fn) {
-    
-        var groups = $.Array.descartes(A, B);
-    
-        return $.Array.map(groups, function (item, index) {
+
+        var $Array = require('Array');
+
+        var groups = $Array.descartes(A, B);
+
+        return $Array.keep(groups, function (item, index) {
             return {
                 from: item[0],
                 to: item[1],
@@ -160,7 +173,7 @@ MiniQuery.States = (function ($, Mapper) {
 
 
     $.extend(States.prototype, { /**@lends MiniQuery.States#*/
-    
+
         /**
         * 把当前状态转换到指定的状态。
         * @param {string} name 要转换到的目标状态。
@@ -170,18 +183,21 @@ MiniQuery.States = (function ($, Mapper) {
         */
         to: function (name, args) {
 
+            var $String = require('String');
+            var Event = require('Event');
+
             var current = this.current();
 
             if (!this.has(current, name)) {
-                throw new Error($.String.format('不存在从状态 {0} 到状态 {1} 的路径', current, name));
+                throw new Error($String.format('不存在从状态 {0} 到状态 {1} 的路径', current, name));
             }
 
             mapper.get(this).histories.push(name); //先改变状态，再触发事件
 
-            $.Event.trigger(this, current + '->', args);
-            $.Event.trigger(this, current + '->' + name, args);
-            $.Event.trigger(this, '->' + name, args);
-            $.Event.trigger(this, '->', args);
+            Event.trigger(this, current + '->', args);
+            Event.trigger(this, current + '->' + name, args);
+            Event.trigger(this, '->' + name, args);
+            Event.trigger(this, '->', args);
 
 
         },
@@ -213,13 +229,16 @@ MiniQuery.States = (function ($, Mapper) {
         },
 
         states: function () {
+            var $Object = require('Object');
+
             var states = mapper.get(this).states;
-            return $.Object.getKeys(states);
+            return $Object.getKeys(states);
         },
 
         paths: function () {
+            var $Object = require('Object');
             var paths = mapper.get(this).paths;
-            return $.Object.getKeys(paths);
+            return $Object.getKeys(paths);
         },
 
         histories: function () {
@@ -238,9 +257,6 @@ MiniQuery.States = (function ($, Mapper) {
 
     return States;
 
-
-
-})(MiniQuery, MiniQuery.Mapper);
-
+});
 
 

@@ -4,10 +4,10 @@
 * 会话存储工具类
 * @namespace
 */
-MiniQuery.SessionStorage = (function (sessionStorage) {
+define('SessionStorage', function (require, module, exports) {
 
 
-    if (!sessionStorage) { //不支持
+    if (!window.sessionStorage) { //不支持
         return null;
     }
 
@@ -28,7 +28,7 @@ MiniQuery.SessionStorage = (function (sessionStorage) {
 
         var json = JSON.stringify(all);
         sessionStorage.setItem(id, json);
-        
+
     }
 
 
@@ -94,9 +94,9 @@ MiniQuery.SessionStorage = (function (sessionStorage) {
         key: key
     };
 
+});
 
 
-})(sessionStorage);
 
 
 
