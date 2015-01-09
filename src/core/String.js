@@ -638,14 +638,26 @@ $.extend(This, { /**@lends MiniQuery.String */
             var name = item.name || index;
             var begin = item.begin;
             var end = item.end;
+            var fn = item.fn;
 
-            samples[name] = between(s, begin, end);
+            var sample = between(s, begin, end);
 
             if ('outer' in item) { //指定了 outer
                 s = replaceBetween(s, begin, end, item.outer);
             }
 
+            if (fn) { //指定了处理函数
+                sample = fn(sample, item);
+            }
+
+            samples[name] = sample;
+
         });
+
+        var fn = item0.fn;
+        if (fn) { //指定了处理函数
+            s = fn(s, item0);
+        }
 
         samples[item0.name] = s; //所有的子模板处理完后，就是最外层的结果
 

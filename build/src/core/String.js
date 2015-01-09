@@ -28,7 +28,6 @@ $.extend(This, { /**@lends MiniQuery.String */
     * @param {Object} obj 要填充的键值对的对象。
     * @return 返回一个用值去填充后的字符串。
     * @example
-    * 用法：
         $.String.format('{id}{type}', {id: 1, type: 'app'});
         $.String.format('{2}{0}{1}', 'a', 'b', 'c');
     */
@@ -639,14 +638,26 @@ $.extend(This, { /**@lends MiniQuery.String */
             var name = item.name || index;
             var begin = item.begin;
             var end = item.end;
+            var fn = item.fn;
 
-            samples[name] = between(s, begin, end);
+            var sample = between(s, begin, end);
 
             if ('outer' in item) { //指定了 outer
                 s = replaceBetween(s, begin, end, item.outer);
             }
 
+            if (fn) { //指定了处理函数
+                sample = fn(sample, item);
+            }
+
+            samples[name] = sample;
+
         });
+
+        var fn = item0.fn;
+        if (fn) { //指定了处理函数
+            s = fn(s, item0);
+        }
 
         samples[item0.name] = s; //所有的子模板处理完后，就是最外层的结果
 
