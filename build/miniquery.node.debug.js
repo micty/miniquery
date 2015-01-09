@@ -1,7 +1,7 @@
 
 /*!
 * MiniQuery JavaScript Library for Node.js
-* version: 3.0.0
+* version: 3.0.1
 */
 ;( function (
     global, 
@@ -5335,26 +5335,6 @@ define('String', function (require, module, exports) {
 
             var item0 = tags[0];
 
-            if (item0 instanceof Array) { //传进来的是数组的数组，转成 json 数组
-                tags = $Array.keep(tags, function (item, index) {
-                    var obj = {
-                        name: item[0],
-                        begin: item[1],
-                        end: item[2]
-                    };
-
-                    if (item.length > 3) {
-                        obj.outer = item[3];
-                    }
-
-                    return obj;
-                });
-
-                item0 = tags[0]; //回写，因为后面要用到
-            }
-
-
-
             //缓存一下，以提高 for 中的性能
             var between = exports.between;
             var replaceBetween = exports.replaceBetween;
@@ -5372,13 +5352,26 @@ define('String', function (require, module, exports) {
                 var begin = item.begin;
                 var end = item.end;
 
-                samples[name] = between(s, begin, end);
+                var fn = item.fn;
+
+                var sample = between(s, begin, end);
 
                 if ('outer' in item) { //指定了 outer
                     s = replaceBetween(s, begin, end, item.outer);
                 }
 
+                if (fn) { //指定了处理函数
+                    sample = fn(sample, item);
+                }
+
+                samples[name] = sample;
+
             });
+
+            var fn = item0.fn;
+            if (fn) { //指定了处理函数
+                s = fn(s, item0);
+            }
 
             samples[item0.name] = s; //所有的子模板处理完后，就是最外层的结果
 
