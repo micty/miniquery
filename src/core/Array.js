@@ -288,6 +288,7 @@ define('Array', function (require, module, exports) {
 
         /**
         * 把一个数组中的元素转换到另一个数组中，返回一个新的数组。
+        * 重载了map(startIndex, endIndex, fn) 使其具有 pad 和 map 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -299,6 +300,15 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个转换后的新数组。
         */
         map: function (array, fn, isDeep) {
+
+            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
+                var startIndex = array;
+                var endIndex = fn;
+                fn = isDeep;
+                array = This.pad(startIndex, endIndex);
+                isDeep = false;
+            }
+
 
             var map = arguments.callee; //引用自身，用于递归
             var a = [];
@@ -333,6 +343,7 @@ define('Array', function (require, module, exports) {
         * 将一个数组中的元素转换到另一个数组中，并且保留所有的元素，返回一个新数组。
         * 作为参数的转换函数会为每个数组元素调用，并把当前元素和索引作为参数传给转换函数。
         * 该方法与 map 的区别在于本方法会保留所有的元素，而不管它的返回是什么。
+        * 重载了keep(startIndex, endIndex, fn) 使其具有 pad 和 keep 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -342,6 +353,14 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个转换后的新数组。
         */
         keep: function (array, fn, isDeep) {
+
+            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
+                var startIndex = array;
+                var endIndex = fn;
+                fn = isDeep;
+                array = This.pad(startIndex, endIndex);
+                isDeep = false;
+            }
 
             var keep = arguments.callee; //引用自身，用于递归
             var a = [];
