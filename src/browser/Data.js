@@ -9,7 +9,8 @@
 define('Data', function (require, module, exports) {
 
     exports = function () {
-        return new exports.prototype.init(node);
+        var prototype = require('Data.prototype');
+        return new prototype.init(node);
     };
 
 

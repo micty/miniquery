@@ -87,7 +87,7 @@ define('LocalStorage', function (require, module, exports) {
 
 
 
-    return {
+    module.exports = {
         set: set,
         get: get,
         remove: remove,

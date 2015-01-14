@@ -7,13 +7,6 @@
 define('DataTypeXML', function (require, module, exports) {
 
 
-    var $Object = require('Object');
-    $String,
-    $Boolean,
-    $Date,
-    $XML
-
-
     var defaults = {
 
         //typeof 的值
@@ -48,6 +41,8 @@ define('DataTypeXML', function (require, module, exports) {
             return '';
         }
 
+        var $String = require('String');
+
         var type = typeof value;
         var sample = templates[type];
 
@@ -60,6 +55,9 @@ define('DataTypeXML', function (require, module, exports) {
 
 
         //以下是 type == 'object' 会进入的分支
+
+        var $Object = require('Object');
+        var $Array = require('Array');
 
         var getXml = arguments.callee; //递归要用到：引用自身，避免外部改名而影响到内部的使用
 
@@ -110,6 +108,11 @@ define('DataTypeXML', function (require, module, exports) {
     * @inner
     */
     function getObject(type, list) {
+
+        var $Object = require('Object');
+        var $Array = require('Array');
+        var $Boolean = require('Boolean');
+        var $Date = require('Date');
 
         var fn = arguments.callee; //引用自身，递归用到
         var obj = {};
@@ -200,6 +203,9 @@ define('DataTypeXML', function (require, module, exports) {
         *           属性值只能是 string、number、boolean 三种值类型。
         */
         toString: function (obj, tmpl) {
+
+            var $Object = require('Object');
+
             //合并参数指定的模板(如果有)
             templates = $Object.extend({}, defaults, tmpl);
 
@@ -220,7 +226,11 @@ define('DataTypeXML', function (require, module, exports) {
         * 返回的 Object 对象中，属性表示该节点自身的属性；数组表示该节点的子节点集合。
         */
         toObject: function (data) {
-            var xmlObj = $XML.toObject(data); //把字符串解析成标准的 Object
+
+            var $Object = require('Object');
+            var Xml = require('Xml');
+
+            var xmlObj = Xml.toObject(data); //把字符串解析成标准的 Object
             for (var key in xmlObj) //只取第一个成员，其实就是 xmlObj['object']，这样写是为了通用性
             {
                 xmlObj = xmlObj[key];
@@ -241,8 +251,3 @@ define('DataTypeXML', function (require, module, exports) {
 
 });
 
-MiniQuery.DataTypeXML = (function ($, This, $Object, $String, $Boolean, $Date, $XML) {
-
-
-
-})(MiniQuery, {}, MiniQuery.Object, MiniQuery.String, MiniQuery.Boolean, MiniQuery.Date, MiniQuery.XML);

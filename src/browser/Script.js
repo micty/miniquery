@@ -111,6 +111,9 @@ define('Script', function (require, module, exports) {
     * @inner
     */
     function document_write(url, charset, document) {
+
+        var $String = require('String');
+
         var html = $.String.format('<script type="text/javascript" src="{src}" {charset} ><\/script>', {
             'src': url,
             'charset': charset ? $.String.format('charset="{0}"', charset) : ''

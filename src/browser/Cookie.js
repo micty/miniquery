@@ -22,6 +22,8 @@ define('Cookie', function (require, module, exports) {
     */
     var parseExpires = (function () {
 
+        var $Date = require('Date');
+
         var reg = /^\d+([y|M|w|d|h|m|s]|ms)$/; //这里不要使用 /g
 
         var fns = {
@@ -41,17 +43,17 @@ define('Cookie', function (require, module, exports) {
             var now = new Date();
 
             if (typeof s == 'number') {
-                return $.Date.addMilliseconds(now, s);
+                return $Date.addMilliseconds(now, s);
             }
 
 
             if (reg.test(s)) {
                 var value = parseInt(s);
                 var unit = s.replace(/^\d+/g, '');
-                return $.Date['add' + fns[unit] + 's'](now, value);
+                return $Date['add' + fns[unit] + 's'](now, value);
             }
 
-            return $.Date.parse(s);
+            return $Date.parse(s);
         };
 
 
@@ -115,9 +117,12 @@ define('Cookie', function (require, module, exports) {
 
             obj = {};
 
-            var parseQueryString = $.Object.parseQueryString;
+            var $Object = require('Object');
+            var $Array = require('Array');
 
-            $.Array.each(cookie.split('; '), function (item, index) {
+            var parseQueryString = $Object.parseQueryString;
+
+            $Array.each(cookie.split('; '), function (item, index) {
 
                 var pos = item.indexOf('=');
 
@@ -205,8 +210,10 @@ define('Cookie', function (require, module, exports) {
 
             if (value instanceof Array) { //同一个 name 得到多个值，主要是由于 path 不同导致的
 
+                var $Array = require('Array');
+
                 //过滤出含有 key 的 object 项
-                var items = $.Array.grep(value, function (item, index) {
+                var items = $Array.grep(value, function (item, index) {
                     return item &&
                         typeof item == 'object' &&
                         key in item;
@@ -220,7 +227,7 @@ define('Cookie', function (require, module, exports) {
                     return items[0][key];
                 }
 
-                return $.Array.keep(items, function (item, index) {
+                return $Array.keep(items, function (item, index) {
                     return item[key];
                 });
             }
@@ -271,8 +278,10 @@ define('Cookie', function (require, module, exports) {
         */
         set: function (name, value, expires, path, domain, secure) {
 
+            var $Object = require('Object');
 
-            if ($.Object.isPlain(name)) { // 此时为 set({ ... });
+
+            if ($Object.isPlain(name)) { // 此时为 set({ ... });
                 var config = name;
                 name = config.name;
                 value = config.value;
@@ -288,8 +297,8 @@ define('Cookie', function (require, module, exports) {
             }
 
 
-            if ($.Object.isPlain(value)) {
-                value = $.Object.toQueryString(value);
+            if ($Object.isPlain(value)) {
+                value = $Object.toQueryString(value);
             }
             else {
                 value = encodeURIComponent(value);
@@ -331,7 +340,9 @@ define('Cookie', function (require, module, exports) {
         */
         remove: function (name, path, domain, secure) {
 
-            var config = $.Object.isPlain(name) ? name : {
+            var $Object = require('Object');
+
+            var config = $Object.isPlain(name) ? name : {
                 name: name,
                 path: path,
                 domain: domain,
@@ -344,7 +355,7 @@ define('Cookie', function (require, module, exports) {
 
             if (name === undefined) { //未指定名称，则全部移除
                 var obj = exports.toObject();
-                $.Object.each(obj, function (name, value) {
+                $Object.each(obj, function (name, value) {
                     config.name = name;
                     exports.set(config);
                 });
