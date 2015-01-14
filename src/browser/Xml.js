@@ -1,6 +1,6 @@
 ﻿
 /**
-* XML 工具类
+* Xml 工具类
 * @namespace
 */
 
@@ -44,11 +44,14 @@ define('Xml', function (require, module, exports) {
     */
     function parseAttributes(node, deep) {
 
+        var $Object = require('Object');
+        var $Array = require('Array');
+
         var obj = {};
-        var parseQueryString = $.Object.parseQueryString;
+        var parseQueryString = $Object.parseQueryString;
 
         //把类数组对象转成真正的数组
-        $.Array(node.attributes).each(function (item, index) {
+        $Array.each(node.attributes, function (item, index) {
 
             if (item.specified) { //兼容性写法，过滤出自定义特性，可用于 HTML 节点的 attributes
 
@@ -108,10 +111,9 @@ define('Xml', function (require, module, exports) {
 
     /**
     * 把一个 Object 对象转成等价的 XML 字符串。
-    *
     * 注意：传入的 Object 对象中，简单属性表示该节点自身的属性；
-            数组表示该节点的子节点集合；
-    *       属性值只能是 string、number、boolean 三种值类型。
+    *   数组表示该节点的子节点集合；
+    *   属性值只能是 string、number、boolean 三种值类型。
     * @inner
     */
     function Object_to_String(obj, name) {
@@ -129,13 +131,18 @@ define('Xml', function (require, module, exports) {
 
         //正常情况 Object_to_String(obj, name)
 
+        var $Object = require('Object');
+        var $Array = require('Array');
+        var $String = require('String');
+
+
         var attributes = [];
         var children = [];
 
         for (var key in obj) {
-            if ($.Object.isArray(obj[key])) { //处理子节点
+            if ($Object.isArray(obj[key])) { //处理子节点
 
-                $.Array.each(obj[key], function (child, index) {
+                $Array.each(obj[key], function (child, index) {
                     children.push(fn(child, key));
                 });
                 continue;
@@ -145,17 +152,17 @@ define('Xml', function (require, module, exports) {
             var type = typeof obj[key];
             if (type == 'string' || type == 'number' || type == 'boolean') {
                 var value = String(obj[key]).replace(/"/g, '\\"');
-                attributes.push($.String.format('{0}="{1}"', key, value));
+                attributes.push($String.format('{0}="{1}"', key, value));
             }
             else {
                 throw new Error('非法数据类型的属性值: ' + key);
             }
         }
 
-        return $.String.format('<{name} {attributes}>{children}</{name}>', {
-            name: name,
-            attributes: attributes.join(' '),
-            children: children.join(' \r\n')
+        return $String.format('<{name} {attributes}>{children}</{name}>', {
+            'name': name,
+            'attributes': attributes.join(' '),
+            'children': children.join(' \r\n')
         });
     }
 
@@ -350,9 +357,10 @@ define('Xml', function (require, module, exports) {
             }
 
 
-            var obj = parseAttributes(node, deep); //把节点属性转成键值对 obj
+            var $Array = require('Array');
 
-            var childNodes = $.Array.parse(node.childNodes); //把类数组的子节点列表转成真正的数组
+            var obj = parseAttributes(node, deep); //把节点属性转成键值对 obj
+            var childNodes = $Array.parse(node.childNodes); //把类数组的子节点列表转成真正的数组
 
             //处理 <abc ...>xxx</abc> 这样的情况：obj.value = xxx;
             if (childNodes.length == 1) { //只有一个子节点
@@ -364,7 +372,7 @@ define('Xml', function (require, module, exports) {
             }
 
             //过虑出真正的元素节点。IE 中 node 节点 没有 children 属性，因此用 childNodes 是兼容的写法
-            $.Array(childNodes).grep(function (item, index) {
+            $Array(childNodes).grep(function (item, index) {
                 return item.nodeType === 1; //元素节点
 
             }).each(function (child, index) {
