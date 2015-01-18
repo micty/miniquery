@@ -7,9 +7,10 @@
 
 define('LocalStorage', function (require, module, exports) {
 
+    var localStorage = window.localStorage;
 
     if (!localStorage) { //不支持
-        return null;
+        return null; //须显式的返回 null，以告诉 require 加载器已加载过
     }
 
 

@@ -4,7 +4,10 @@
 * Style 样式类工具
 * @namespace
 */
-MiniQuery.Style = (function ($, This) {
+
+define('Style', function (require, module, exports) {
+
+
 
     var iframe;
     var iframeDoc;
@@ -111,7 +114,7 @@ MiniQuery.Style = (function ($, This) {
 
 
 
-    return $.extend(This, { /**@exports as MiniQuery.Style */
+    module.exports = exports = { /**@exports as MiniQuery.Style */
 
         /**
         * 跨浏览器动态加载 JS 文件，并在加载完成后执行指定的回调函数。
@@ -143,12 +146,14 @@ MiniQuery.Style = (function ($, This) {
         */
         load: function (params) {
 
-            var obj = $.Object.extend({}, defaults); //复制一份
+            var $Object = require('Object');
+
+            var obj = $Object.extend({}, defaults); //复制一份
 
             //注意，params 有可能是个数组，不能用 typeof 为 'object'
-            if ($.Object.isPlain(params)) { //纯对象 {}
+            if ($Object.isPlain(params)) { //纯对象 {}
 
-                $.Object.extend(obj, params);
+                $Object.extend(obj, params);
             }
             else {
 
@@ -198,6 +203,8 @@ MiniQuery.Style = (function ($, This) {
 
         getComputed: function (node, propertyName) {
 
+            var $String = require('String');
+
             var name = $.String.toCamelCase(propertyName);
             var style = node.currentStyle || document.defaultView.getComputedStyle(node, null);
             return style ? style[name] : null;
@@ -234,7 +241,7 @@ MiniQuery.Style = (function ($, This) {
                 var node = iframeDoc.createElement(nodeName);
                 iframeDoc.body.appendChild(node);
 
-                cache[nodeName][propertyName] = This.getComputed(node, propertyName);
+                cache[nodeName][propertyName] = exports.getComputed(node, propertyName);
 
                 document.body.removeChild(iframe);
             }
@@ -290,9 +297,8 @@ MiniQuery.Style = (function ($, This) {
                 throw new Error('无法删除样式规则!');
             }
         }
-    });
+    };
 
+});
 
-
-})(MiniQuery, {});
 

@@ -114,9 +114,9 @@ define('Script', function (require, module, exports) {
 
         var $String = require('String');
 
-        var html = $.String.format('<script type="text/javascript" src="{src}" {charset} ><\/script>', {
+        var html = $String.format('<script type="text/javascript" src="{src}" {charset} ><\/script>', {
             'src': url,
-            'charset': charset ? $.String.format('charset="{0}"', charset) : ''
+            'charset': charset ? $String.format('charset="{0}"', charset) : ''
         });
 
         document.write(html);
@@ -157,12 +157,13 @@ define('Script', function (require, module, exports) {
         */
         load: function (params) {
 
-            var obj = $.Object.extend({}, defaults); //复制一份
+            var $Object = require('Object');
+
+            var obj = $Object.extend({}, defaults); //复制一份
 
             //注意，params 有可能是个数组，不能用 typeof 为 'object'
-            if ($.Object.isPlain(params)) { //纯对象 {}
-
-                $.Object.extend(obj, params);
+            if ($Object.isPlain(params)) { //纯对象 {}
+                $Object.extend(obj, params);
             }
             else {
 
@@ -235,8 +236,11 @@ define('Script', function (require, module, exports) {
                 document: window.document
             };
 
-            if ($.Object.isPlain(params)) {
-                $.Object.extend(obj, params);
+            var $Object = require('Object');
+
+
+            if ($Object.isPlain(params)) {
+                $Object.extend(obj, params);
             }
             else {
                 obj.code = params;
@@ -298,8 +302,10 @@ define('Script', function (require, module, exports) {
                 document: window.document
             };
 
-            if ($.Object.isPlain(params)) {
-                $.Object.extend(obj, params);
+            var $Object = require('Object');
+
+            if ($Object.isPlain(params)) {
+                $Object.extend(obj, params);
             }
             else {
                 obj.url = params;
@@ -318,7 +324,7 @@ define('Script', function (require, module, exports) {
 
             }
 
-            if ($.Object.isArray(obj.url)) {
+            if ($Object.isArray(obj.url)) {
                 var urls = obj.url;
                 for (var i = 0, len = urls.length; i < len; i++) {
                     document_write(urls[i], obj.charset, obj.document);

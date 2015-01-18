@@ -1,8 +1,7 @@
 
 
 
-MiniQuery.Des = (function ($, This) {
-
+define('Des', function (require, module, exports) {
 
 
 
@@ -233,28 +232,27 @@ MiniQuery.Des = (function ($, This) {
 
 
 
-return $.extend(This, { /**lends MiniQuery.Des*/
-    
-    /**
-    * 用 DES 对明文进行加密
-    */
-    encode: function (key, message) {
-        var ciphertext = stringToHex(des(key, message, 1, 0));
-        return ciphertext;
-    },
+    module.exports = exports = { /**lends MiniQuery.Des*/
 
-    /**
-    * 解密 DES 生成的密文
-    */
-    decode: function (key, message) {
-        var plaintext = des(key, hexToString(message), 0, 0);
-        return plaintext;
-    }
+        /**
+        * 用 DES 对明文进行加密
+        */
+        encode: function (key, message) {
+            var ciphertext = stringToHex(des(key, message, 1, 0));
+            return ciphertext;
+        },
+
+        /**
+        * 解密 DES 生成的密文
+        */
+        decode: function (key, message) {
+            var plaintext = des(key, hexToString(message), 0, 0);
+            return plaintext;
+        }
+
+    };
 
 
 });
-
-
-})(MiniQuery, {});
 
 

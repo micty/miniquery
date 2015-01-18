@@ -6,9 +6,10 @@
 */
 define('SessionStorage', function (require, module, exports) {
 
+    var sessionStorage = window.sessionStorage;
 
-    if (!window.sessionStorage) { //不支持
-        return null;
+    if (!sessionStorage) { //不支持
+        return null; //须显式的返回 null，以告诉 require 加载器已加载过
     }
 
 

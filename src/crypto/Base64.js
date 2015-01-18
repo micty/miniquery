@@ -4,7 +4,10 @@
  *BASE64 Encode and Decode By UTF-8 unicode
  *可以和java的BASE64编码和解码互相转化
  */
-MiniQuery.Base64 = (function ($, This) {
+
+define('Base64', function (require, module, exports) {
+
+
     var BASE64_MAPPING = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'];
 
     /**
@@ -71,7 +74,7 @@ MiniQuery.Base64 = (function ($, This) {
 
 
 
-    return $.extend(This, { /**@lends MiniQuery.Base64*/
+    module.exports = exports = { /**@lends MiniQuery.Base64*/
 
         encode: function (str) {
 
@@ -216,8 +219,10 @@ MiniQuery.Base64 = (function ($, This) {
             }
             return unicode;
         }
-    });
+    };
+
+
+});
 
 
 
-})(MiniQuery, {});

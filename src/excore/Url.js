@@ -4,7 +4,7 @@
 * @namespace
 */
 
-define('Url', function (require, module, exports) {
+define('excore/Url', function (require, module, exports) {
 
 
     module.exports = exports =  {  /**@lends MiniQuery.Url */
@@ -421,6 +421,8 @@ define('Url', function (require, module, exports) {
 });
 
 
-
+define('Url', function (require, module, exports) {
+    return require('excore/Url');
+});
 
 
