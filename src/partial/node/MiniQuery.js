@@ -2,18 +2,25 @@
 
 
 
-var MiniQuery = {
+define('MiniQuery', function (require, module, exports) {
 
-    'Array': require('Array'),
-    'Boolean': require('Boolean'),
-    'Date': require('Date'),
-    'Function': require('Function'),
-    'Math': require('Math'),
-    'Object': require('Object'),
-    'String': require('String'),
+    var $ = require('$');
 
-    require: function (id) {
-       return Module.expose(id) ? require(id) : null;
-    },
+    module.exports = {
 
-};
+        'Array': require('Array'),
+        'Boolean': require('Boolean'),
+        'Date': require('Date'),
+        'Function': require('Function'),
+        'Math': require('Math'),
+        'Object': require('Object'),
+        'String': require('String'),
+
+        use: $.use,
+        require: $.require,
+
+    };
+
+
+
+});

@@ -17,6 +17,11 @@ define('Array', function (require, module, exports) {
     module.exports = $.extend(exports, { /**@lends MiniQuery.Array*/
 
         /**
+        * 把数组、类数组合并成一个真正的数组。
+        */
+        concat: $.concat,
+
+        /**
         * 对数组进行迭代。 
         * 对数组中的每个元素执行指定的操作。
         * 可以指定为深层次的)

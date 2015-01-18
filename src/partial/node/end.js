@@ -2,7 +2,7 @@
 
 
 
-module.exports = MiniQuery;
+module.exports = require('MiniQuery');
 
 
 })(

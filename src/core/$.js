@@ -108,7 +108,11 @@ define('$', function (require, module, exports) {
                 }
             }
 
-        }
+        },
+
+        require: function (id) {
+            return Module.expose(id) ? require(id) : null;
+        },
     };
 
 });
