@@ -8,6 +8,7 @@
 
 define('Callbacks', function (require, module, exports) {
 
+    var $ = require('$');
     var $String = require('String');
     var Mapper = require('Mapper');
     var Event = require('Event');
