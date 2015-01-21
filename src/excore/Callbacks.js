@@ -28,7 +28,9 @@ define('Callbacks', function (require, module, exports) {
     }
 
 
-    $.extend(Callbacks.prototype, { /**@lends MiniQuery.Callbacks#*/
+    Callbacks.prototype = { /**@lends MiniQuery.Callbacks#*/
+
+        constructor: Callbacks,
 
         /**
         * 添加一个回调函数到回调列表中。
@@ -149,7 +151,7 @@ define('Callbacks', function (require, module, exports) {
             Event.unique.apply(null, args);
         }
 
-    });
+    };
 
 
     module.exports = Callbacks;
