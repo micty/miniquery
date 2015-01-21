@@ -58,9 +58,6 @@ define('Event', function (require, module, exports) {
         */
         bind: function (obj, eventName, fn, isOnce) {
 
-            
-
-
             var all = mapper.get(obj); //获取 obj 所关联的全部事件的容器 {}
             if (!all) { // 首次对 obj 进行绑定事件 
                 all = {};

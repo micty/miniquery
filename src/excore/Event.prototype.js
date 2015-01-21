@@ -37,7 +37,6 @@ define('Event.prototype', function (require, module, exports) {
         },
 
         off: function (eventName, fn) {
-            //Event.unbind(this.value, eventName, fn);
             var args = $.concat([this.value], arguments);
             Event.unbind.apply(null, args);
             return this;
@@ -74,7 +73,6 @@ define('Event.prototype', function (require, module, exports) {
         fire: function (eventName, args) {
             var args = $.concat([this.value], arguments);
             return Event.trigger.apply(null, args);
-            //return Event.trigger(this.value, eventName, args);
         },
 
         fireStop: function (eventName, args, stopValue) {
