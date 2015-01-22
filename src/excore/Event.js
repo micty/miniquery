@@ -198,13 +198,25 @@ define('Event', function (require, module, exports) {
             args = args || [];
 
 
-            //依次执行回调列表中的函数，并且移除那些只需要执行一次的
-            all[eventName] = $Array.grep(list, function (item, index) {
+            //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
+            //即 all[eventName]，而此处又要去移除那些一次性的回调（即只执行一次的），
+            //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
+            //以原来的回调列表为准去查询要移除的项的确切位置。
+
+            list = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化
+
+            $Array.each(list, function (item, index) {
+
+                if (item.isOnce) { 
+                    var index = $Array.indexOf(all[eventName], item); //找到该项在回调列表中的索引位置
+                    if (index > -1) {
+                        all[eventName].splice(index, 1); //直接从原数组删除
+                    }
+                }
 
                 var value = item.fn.apply(obj, args); //让 fn 内的 this 指向 obj
                 returns.push(value);
 
-                return !item.isOnce;
             });
 
             return returns;
