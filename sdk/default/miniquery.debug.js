@@ -6431,13 +6431,26 @@ $.extend(This, { /**@lends MiniQuery.Event*/
         args = args || [];
 
 
-        //依次执行回调列表中的函数，并且移除那些只需要执行一次的
-        all[eventName] = $.Array.grep(list, function (item, index) {
+        var $Array = $.Array;
+
+        list = list.slice(0); //复制一份
+
+        $Array.each(list, function (item, index) {
+
+            //先删除一次性的，再去调用回调。
+            //因为回调里有可能去修改了回调列表(比如移除/增加)。
+            //如果先调用回调再去删除一次性的，有可能会破坏回调里的行为。
+
+            if (item.isOnce) {
+                var index = $Array.indexOf(all[eventName], item); //找到该项在回调列表中的索引位置
+                if (index > -1) {
+                    all[eventName].splice(index, 1); //直接从原数组删除
+                }
+            }
 
             var value = item.fn.apply(obj, args); //让 fn 内的 this 指向 obj
             returns.push(value);
 
-            return !item.isOnce;
         });
 
         return returns;
