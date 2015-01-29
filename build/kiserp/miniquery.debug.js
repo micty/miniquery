@@ -7655,20 +7655,11 @@ define('browser/Url', function (require, module, exports) {
 
 //对外暴露的 Url 模块
 define('Url', function (require, module, exports) {
-
     var $ = require('$');
     var excoreUrl = require('excore/Url');
     var browserUrl = require('browser/Url');
-
-    module.exports = $.extend({}, excoreUrl, browserUrl);
+    module.exports = $.extend({}, excoreUrl, browserUrl); //这里要拷到一个新的对象上
 });
-
-
-
-
-
-
-
 
 
 define('MiniQuery', function (require, module, exports) {
