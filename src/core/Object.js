@@ -21,14 +21,12 @@ define('Object', function (require, module, exports) {
     var $ = require('$');
 
 
-
     exports = function (obj) {
         var prototype = require('Object.prototype');
         return new prototype.init(obj);
     };
 
     module.exports = $.extend(exports, { /**@lends MiniQuery.Object */
-
 
         /**
         * 用一个或多个其他对象来扩展一个对象，返回被扩展的对象。
@@ -189,7 +187,6 @@ define('Object', function (require, module, exports) {
                     case 'object':
                         target[key] = clone(value);   //递归调用
                         break;
-
                 }
             }
 
@@ -376,8 +373,6 @@ define('Object', function (require, module, exports) {
             return true;
         },
 
-
-
         /**
         * 检测一个对象是否是纯粹的对象（通过 "{}" 或者 "new Object" 创建的）。
         * 该实现为 jQuery 的版本。
@@ -437,9 +432,6 @@ define('Object', function (require, module, exports) {
             return type == 'string' || type == 'number' || type == 'boolean';
         },
 
-
-
-
         /**
         * 判断一个对象是否为包装类型。<br />
         * 包装类型是指 String, Number, Boolean 的 new 的实例。
@@ -488,7 +480,6 @@ define('Object', function (require, module, exports) {
             return type == 'object' || type == 'function';
         },
 
-
         /**
         * 一个简单的方法来判断一个对象是否为 window 窗口。
         * 该实现为 jQuery 的版本。
@@ -517,8 +508,6 @@ define('Object', function (require, module, exports) {
                 typeof obj == 'object' &&
                 'getElementById' in obj;
         },
-
-
 
         /**
         * 对象映射转换器，返回一个新的对象。
@@ -555,7 +544,6 @@ define('Object', function (require, module, exports) {
 
             return target;
         },
-
 
         /**
         * 给指定的对象快速创建多层次的命名空间，返回创建后的最内层的命名空间所指的对象。
@@ -643,7 +631,6 @@ define('Object', function (require, module, exports) {
 
                 return fn(container, path, value);
             }
-
 
             /*
             此时为：
@@ -803,7 +790,6 @@ define('Object', function (require, module, exports) {
             return obj;
         },
 
-
         /**
         * 删除对象中指定的成员，返回一个新对象。
         * 指定的成员可以以单个的方式指定，也可以以数组的方式指定(批量)。
@@ -843,7 +829,6 @@ define('Object', function (require, module, exports) {
             return target;
         },
 
-
         /**
         * 用一组指定的名称-值对中的值去替换指定名称对应的值。
         * 当指定第三个参数为 true 时，将进行第一层次的搜索与替换，否则替换所有同名的成员为指定的值
@@ -869,9 +854,6 @@ define('Object', function (require, module, exports) {
             }
             return target;
         },
-
-
-
 
         /**
         * 把一个 Object 对象转成一个数组。
@@ -1007,7 +989,6 @@ define('Object', function (require, module, exports) {
             }
 
 
-
             if (obj == null) { // null 或 undefined
 
                 return String(obj);
@@ -1049,7 +1030,6 @@ define('Object', function (require, module, exports) {
             }
             return '{ ' + pairs.join(', ') + ' }';
         },
-
 
         /**
         * 把一个对象编码成等价结构的 Url 查询字符串。
@@ -1104,8 +1084,6 @@ define('Object', function (require, module, exports) {
             return pairs.join('&');
 
         },
-
-
 
         /**
         * 删除对象的成员中值为指定的值列表中的成员，返回一个新对象。
@@ -1279,7 +1257,6 @@ define('Object', function (require, module, exports) {
 
             return obj;
         },
-
 
         /**
         * 对一个源对象进行成员过滤，并把过滤后的结果扩展到目标对象上。
@@ -1684,7 +1661,6 @@ define('Object', function (require, module, exports) {
 
             return exports.extend(src, dest);
         }
-
 
 
     });

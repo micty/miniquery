@@ -1,10 +1,5 @@
 ﻿
-//----------------------------------------------------------------------------------------------------------------
-//包装类的实例方法
-
-
 define('String.prototype', function (require, module, exports) {
-
 
     var $ = require('$');
     var $String = require('String');
@@ -13,7 +8,6 @@ define('String.prototype', function (require, module, exports) {
     function init(string) {
         this.value = String(string);
     }
-
 
     module.exports =
     init.prototype =
@@ -31,7 +25,6 @@ define('String.prototype', function (require, module, exports) {
             return this.value;
         },
 
-
         format: function (arg1, arg2) {
 
             var args = $.concat([this.value], arguments);
@@ -47,7 +40,6 @@ define('String.prototype', function (require, module, exports) {
 
             return this;
         },
-
 
         replaceBetween: function (startTag, endTag, newString) {
 
@@ -69,7 +61,6 @@ define('String.prototype', function (require, module, exports) {
             return this;
         },
 
-
         trim: function () {
             this.value = $String.trim(this.value);
             return this;
@@ -81,12 +72,10 @@ define('String.prototype', function (require, module, exports) {
             return this;
         },
 
-
         trimEnd: function () {
             this.value = $String.trimEnd(this.value);
             return this;
         },
-
 
         split: function (separators) {
             return $String.split(this.value, separators);
@@ -102,47 +91,39 @@ define('String.prototype', function (require, module, exports) {
             return $String.endsWith(this.value, dest, ignoreCase);
         },
 
-
         contains: function (target, useOr) {
             return $String.contains(this.value, target, useOr);
         },
-
 
         padLeft: function (totalWidth, paddingChar) {
             this.value = $String.padLeft(this.value, totalWidth, paddingChar);
             return this;
         },
 
-
         padRight: function (totalWidth, paddingChar) {
             this.value = $String.padRight(this.value, totalWidth, paddingChar);
             return this;
         },
-
 
         toCamelCase: function () {
             this.value = $String.toCamelCase(this.value);
             return this;
         },
 
-
         toHyphenate: function () {
             this.value = $String.toHyphenate(this.value);
             return this;
         },
-
 
         between: function (tag0, tag1) {
             this.value = $String.between(this.value, tag0, tag1);
             return this;
         },
 
-
         toUtf8: function () {
             this.value = $String.toUtf8(this.value);
             return this;
         },
-
 
         toValue: function (value) {
             return $String.toValue(this.value);
@@ -156,7 +137,6 @@ define('String.prototype', function (require, module, exports) {
             return $String.segment(this.value, size, size);
         }
     };
-
 
 });
 

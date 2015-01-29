@@ -3,7 +3,6 @@
 * Xml 工具类
 * @namespace
 */
-
 define('Xml', function (require, module, exports) {
 
 

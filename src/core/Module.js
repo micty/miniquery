@@ -61,18 +61,6 @@ var Module = (function () {
 
     }
 
-    /**
-    * 异步加载指定的模块，并在加载完成后执行指定的回调函数。
-    * @param {string} id 模块的名称。
-    * @param {function} fn 模块加载完成后要执行的回调函数。
-        该函数会接收到模块作为参数。
-    */
-    function async(id, fn) {
-
-     
-
-    }
-
 
     /**
     * 设置或获取对外暴露的模块。
@@ -131,7 +119,6 @@ var Module = (function () {
     return {
         define: define,
         require: require,
-        async: async,
         expose: expose
     };
 

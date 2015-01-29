@@ -78,7 +78,6 @@ module.exports = function (grunt) {
                     {
                         dir: 'browser',
                         files: [
-                            'Cookie.js',
                             'LocalStorage.js',
                             'SessionStorage.js',
                             'Script.js',

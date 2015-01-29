@@ -1,12 +1,8 @@
 ﻿
-
-
-
 /**
 * Script 脚本工具
 * @namespace
 */
-
 define('Script', function (require, module, exports) {
 
 
@@ -17,7 +13,6 @@ define('Script', function (require, module, exports) {
         document: window.document,
         onload: null
     };
-
 
 
     /**

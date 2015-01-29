@@ -1,10 +1,8 @@
 
-
 /**
 * 本地存储工具类
 * @namespace
 */
-
 define('LocalStorage', function (require, module, exports) {
 
     var localStorage = window.localStorage;

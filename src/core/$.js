@@ -1,5 +1,4 @@
 ﻿
-
 /**
 * 内部用的一个 MiniQuery 容器
 * @namespace

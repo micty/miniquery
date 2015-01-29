@@ -7,7 +7,6 @@ define('Date', function (require, module, exports) {
 
     var $ = require('$');
 
-
     exports = function (date) {
         var prototype = require('Date.prototype');
         return new prototype.init(date);

@@ -1,10 +1,4 @@
 ﻿
-
-
-//----------------------------------------------------------------------------------------------------------------
-//MiniQuery.Boolean 包装类的实例方法
-
-
 define('Boolean.prototype', function (require, module, exports) {
 
 
@@ -51,6 +45,5 @@ define('Boolean.prototype', function (require, module, exports) {
             return;
         }
     };
-
 
 });

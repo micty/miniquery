@@ -1,7 +1,4 @@
 ﻿
-
-
-
 define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');

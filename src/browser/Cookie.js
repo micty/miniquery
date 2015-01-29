@@ -1,20 +1,15 @@
 ﻿
-
-
 /**
 * Cookie 工具
 * @namespace
 */
-
 define('Cookie', function (require, module, exports) {
-
 
     //缓存 toObject 中的结果
     var cookie$object = {
         'true': {},
         'false': {}
     };
-
 
     /**
     * 解析字符串描述的 expires 字段
@@ -177,7 +172,6 @@ define('Cookie', function (require, module, exports) {
         */
         get: function (name, key) {
 
-
             if (name === undefined) { //此时为 get()
                 return exports.toObject(); //返回一个浅解析的全量 Object
             }
@@ -187,9 +181,7 @@ define('Cookie', function (require, module, exports) {
             }
 
 
-
             //下面的 name 为一个具体的值
-
 
             if (key === undefined) { //此时为 get(name)
                 var obj = exports.toObject(); //浅解析
