@@ -1,6 +1,6 @@
 
 /*!
-* MiniQuery JavaScript Library for Node.js
+* MiniQuery JavaScript Library for node
 * version: 3.0.1
 */
 ;( function (
@@ -249,33 +249,11 @@ define('$', function (require, module, exports) {
 
         },
 
-        /**
-        * 以安全的方式给 MiniQuery 使用一个新的命名空间。
-        * 比如 MiniQuery.use('$')，则 global.$ 基本上等同于 global.MiniQuery；
-        * 当 global 中未存在指定的命名空间或参数中指定了要全量覆盖时，则使用全量覆盖的方式，
-        * 该方式会覆盖原来的命名空间，可能会造成成一些错误，不推荐使用；
-        * 当 global 中已存在指定的命名空间时，则只拷贝不冲突的部分到该命名空间，
-        * 该方式是最安全的方式，也是默认和推荐的方式。
-        */
-        use: function (namespace, overwrite) {
+        
 
-            if (!(namespace in global) || overwrite) { //未存在或明确指定了覆盖
-                global[namespace] = exports; //全量覆盖
-                return;
-            }
-
-
-            //已经存在，则拷贝不冲突的成员部分
-            var obj = global[namespace];
-
-            for (var key in exports) {
-
-                if (!(key in obj)) { //只拷贝不冲突的部分
-                    obj[key] = exports[key];
-                }
-            }
-
-        }
+        require: function (id) {
+            return Module.expose(id) ? require(id) : null;
+        },
     };
 
 });
@@ -298,6 +276,11 @@ define('Array', function (require, module, exports) {
 
 
     module.exports = $.extend(exports, { /**@lends MiniQuery.Array*/
+
+        /**
+        * 把数组、类数组合并成一个真正的数组。
+        */
+        concat: $.concat,
 
         /**
         * 对数组进行迭代。 
@@ -571,6 +554,7 @@ define('Array', function (require, module, exports) {
 
         /**
         * 把一个数组中的元素转换到另一个数组中，返回一个新的数组。
+        * 重载了map(startIndex, endIndex, fn) 使其具有 pad 和 map 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -582,6 +566,15 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个转换后的新数组。
         */
         map: function (array, fn, isDeep) {
+
+            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
+                var startIndex = array;
+                var endIndex = fn;
+                fn = isDeep;
+                array = This.pad(startIndex, endIndex);
+                isDeep = false;
+            }
+
 
             var map = arguments.callee; //引用自身，用于递归
             var a = [];
@@ -616,6 +609,7 @@ define('Array', function (require, module, exports) {
         * 将一个数组中的元素转换到另一个数组中，并且保留所有的元素，返回一个新数组。
         * 作为参数的转换函数会为每个数组元素调用，并把当前元素和索引作为参数传给转换函数。
         * 该方法与 map 的区别在于本方法会保留所有的元素，而不管它的返回是什么。
+        * 重载了keep(startIndex, endIndex, fn) 使其具有 pad 和 keep 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -625,6 +619,14 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个转换后的新数组。
         */
         keep: function (array, fn, isDeep) {
+
+            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
+                var startIndex = array;
+                var endIndex = fn;
+                fn = isDeep;
+                array = This.pad(startIndex, endIndex);
+                isDeep = false;
+            }
 
             var keep = arguments.callee; //引用自身，用于递归
             var a = [];
@@ -5670,6 +5672,35 @@ define('String.prototype', function (require, module, exports) {
 
 
 
+
+
+define('MiniQuery', function (require, module, exports) {
+
+    var $ = require('$');
+
+    module.exports = exports = {
+
+        'Array': require('Array'),
+        'Boolean': require('Boolean'),
+        'Date': require('Date'),
+        'Function': require('Function'),
+        'Math': require('Math'),
+        'Object': require('Object'),
+        'String': require('String'),
+
+        'Event': require('Event'),
+        'Mapper': require('Mapper'),
+        'Url': require('Url'),
+
+        require: $.require,
+
+    };
+
+
+
+});
+
+
 //设置对外暴露的模块
 Module.expose({
 
@@ -5689,22 +5720,7 @@ Module.expose({
 
 
 
-var MiniQuery = {
-
-    'Array': require('Array'),
-    'Boolean': require('Boolean'),
-    'Date': require('Date'),
-    'Function': require('Function'),
-    'Math': require('Math'),
-    'Object': require('Object'),
-    'String': require('String'),
-};
-
-
-
-
-
-module.exports = MiniQuery;
+module.exports = require('MiniQuery');
 
 
 })(

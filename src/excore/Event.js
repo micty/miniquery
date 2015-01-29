@@ -406,7 +406,7 @@ define('Event', function (require, module, exports) {
             var $String = require('String');
 
             var obj = {};
-            obj[guidKey] = $.String.random();
+            obj[guidKey] = $String.random();
 
             return new exports(obj);
         },

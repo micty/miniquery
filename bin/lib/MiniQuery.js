@@ -1,3 +1,3 @@
 ﻿
 
-module.exports = require('./miniquery.node.debug.js');
+module.exports = require('./miniquery.debug.js');
