@@ -5,7 +5,7 @@
 define('browser/Url', function (require, module, exports) {
 
 
-
+    var $ = require('$');
     var $String = require('String');
     var Mapper = require('Mapper');
     var Url = require('excore/Url');
@@ -307,6 +307,7 @@ define('browser/Url', function (require, module, exports) {
 //对外暴露的 Url 模块
 define('Url', function (require, module, exports) {
 
+    var $ = require('$');
     var excoreUrl = require('excore/Url');
     var browserUrl = require('browser/Url');
 

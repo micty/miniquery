@@ -17,6 +17,7 @@ module.exports = require('MiniQuery');
     Object,
     RegExp,
     String
-    /*, undefined */
+    /*, $ -> undefined */
+    /*, undefined -> undefined */
 );
 

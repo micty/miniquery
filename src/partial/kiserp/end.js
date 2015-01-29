@@ -44,5 +44,6 @@
     Object,
     RegExp,
     String
-    /*, undefined */
+    /*, $ -> undefined */
+    /*, undefined -> undefined */
 );

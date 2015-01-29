@@ -82,6 +82,7 @@ module.exports = function (grunt) {
                             'LocalStorage.js',
                             'SessionStorage.js',
                             'Script.js',
+                            'Url.js',
                         ]
                     },
                     {

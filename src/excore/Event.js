@@ -13,7 +13,6 @@
 * @param {Object} obj 要进行绑定事件的目标对象。
 * @return {MiniQuery.Event} 返回一个 MiniQuery.Event 的实例。
 */
-
 define('Event', function (require, module, exports) {
 
     var $ = require('$');
