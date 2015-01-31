@@ -577,7 +577,7 @@ define('Array', function (require, module, exports) {
                 var startIndex = array;
                 var endIndex = fn;
                 fn = isDeep;
-                array = This.pad(startIndex, endIndex);
+                array = exports.pad(startIndex, endIndex);
                 isDeep = false;
             }
 
@@ -630,7 +630,7 @@ define('Array', function (require, module, exports) {
                 var startIndex = array;
                 var endIndex = fn;
                 fn = isDeep;
-                array = This.pad(startIndex, endIndex);
+                array = exports.pad(startIndex, endIndex);
                 isDeep = false;
             }
 
