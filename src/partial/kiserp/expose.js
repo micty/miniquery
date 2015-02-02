@@ -11,6 +11,15 @@ Module.expose({
     'Math': true,
     'Object': true,
     'String': true,
+
+    'Event': true,
+    'Mapper': true,
+    'Url': true,
+
+    'Cookie': true,
+    'LocalStorage': true,
+    'SessionStorage': true,
+    'Script': true,
     
 });
 
