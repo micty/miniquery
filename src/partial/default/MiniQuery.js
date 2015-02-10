@@ -1,7 +1,4 @@
 ﻿
-
-
-
 define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');
@@ -16,14 +13,7 @@ define('MiniQuery', function (require, module, exports) {
         'Object': require('Object'),
         'String': require('String'),
 
-        'Event': require('Event'),
-        'Mapper': require('Mapper'),
-        'Url': require('Url'),
-
-        'Cookie': require('Cookie'),
-        'LocalStorage': require('LocalStorage'),
-        'SessionStorage': require('SessionStorage'),
-        'Script': require('Script'),
+        require: $.require,
 
 
 
@@ -54,7 +44,7 @@ define('MiniQuery', function (require, module, exports) {
 
         },
 
-        require: $.require,
+        
 
     };
 

@@ -203,13 +203,22 @@ define('Object', function (require, module, exports) {
             指示是否要进行深层次的迭代，如果是，请指定 true；
             否则请指定 false 或不指定。默认为 false，即浅迭代
         * @example
-            var obj = {a: 1, b: 2, c: {A: 11, B: 22} };
+            var obj = {
+                a: 1, 
+                b: 2, 
+                c: {
+                    A: 11, 
+                    B: 22
+                } 
+            };
+
             $.Object.each(obj, function(key, value) {
                 console.log(key, ': ', value);
             }, true);
         输出：
             a: 1,
             b: 2,
+            c: { A: 11, B: 22},
             A: 11,
             B: 22
         */
@@ -220,16 +229,16 @@ define('Object', function (require, module, exports) {
             for (var key in obj) {
                 var value = obj[key];
 
+                // 只有在 fn 中明确返回 false 才停止循环
+                if (fn(key, value) === false) {
+                    break;
+                }
+
                 //指定了深迭代，并且当前 value 为非 null 的对象
                 if (isDeep === true && value && typeof value == 'object') {
                     each(value, fn, true); //递归
                 }
-                else {
-                    // 只有在 fn 中明确返回 false 才停止循环
-                    if (fn(key, value) === false) {
-                        break;
-                    }
-                }
+                 
             }
         },
 
@@ -1660,7 +1669,86 @@ define('Object', function (require, module, exports) {
             }
 
             return exports.extend(src, dest);
-        }
+        },
+
+        /**
+        * 把一个对象的键/值对深层次地线性化成一个数组。
+        * @param {Object} obj 要进行线性化的纯对象。
+        * @return {Array} 返回一个线性化表示的一维数组。
+        *   数组的每项都为一个 { keys: [], value: ... } 的结构。
+        * @example
+            var list = $.Object.linearize({
+	            name: {
+	                a: 1,
+                    b: 2,
+                    c: {
+	                    aa: 11,
+                        bb: 22
+                    }
+                },
+                tag: {
+	                a: 'a0',
+                    b: 'b0'
+                },
+                id: 1000
+            });
+            console.dir(list);
+            //得到: 
+            [
+                { keys: ['name', 'a'], value: 1 },
+                { keys: ['name', 'b'], value: 2 },
+                { keys: ['name', 'c', 'aa'], value: 11 },
+                { keys: ['name', 'c', 'bb'], value: 22 },
+                { keys: ['tag', 'a'], value: 'a0' },
+                { keys: ['tag', 'b'], value: 'b0' },
+                { keys: ['id'], value: 1000 },
+            ]
+        */
+        linearize: function (obj) {
+
+            var isPlain = exports.isPlain;
+
+            var list = [];
+            if (!obj || !isPlain(obj)) {
+                return list;
+            }
+
+
+            var keys = [];
+
+            /**
+            * @inner
+            * 内部使用的迭代函数。
+            * @param {Object} obj 要进行迭代的对象。
+            * @param {number} level 用来跟踪当前迭代键值所处的层次深度，辅助用的。
+            */
+            function each(obj, level) {
+
+                for (var key in obj) {
+
+                    var value = obj[key];
+
+                    keys = keys.slice(0, level);
+                    keys.push(key);
+
+                    if (isPlain(value)) {   //还是一个纯对象
+                        each(value, level + 1);     //递归处理
+                        continue;
+                    }
+
+                    //叶子结点
+                    list.push({
+                        'keys': keys,
+                        'value': value
+                    });
+                }
+            }
+
+            each(obj, 0);
+
+            return list;
+
+        },
 
 
     });

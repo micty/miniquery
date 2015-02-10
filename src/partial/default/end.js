@@ -5,11 +5,11 @@
 
     if (typeof define == 'function' && (define.amd || define.cmd)) { //amd|cmd
         define(function (require) {
-            return MiniQuery;
+            return require('MiniQuery');
         });
     }
     else { //browser 普通方式
-        global.MiniQuery = MiniQuery;
+        global.MiniQuery = require('MiniQuery');
     }
 
 
@@ -44,5 +44,6 @@
     Object,
     RegExp,
     String
-    /*, undefined */
+    /*, $ -> undefined */
+    /*, undefined -> undefined */
 );

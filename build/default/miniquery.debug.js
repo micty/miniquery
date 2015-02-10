@@ -1,6 +1,6 @@
 
 /*!
-* MiniQuery JavaScript Library for kiserp
+* MiniQuery JavaScript Library for default
 * version: 3.2.0
 */
 ;( function (
@@ -5603,532 +5603,366 @@ define('String.prototype', function (require, module, exports) {
 
 
 
-
-
 /**
-* 自定义事件工具类。
-* 该模式也叫观察者模式，该模式的另外一个别名是 订阅/发布 模式。
-* 设计这种模式背后的主要动机是促进松散耦合。
-* 在这种模式中，并不是一个对象调用另一对象的方法，
-* 而是一个对象订阅另一个对象的特定活动并在该活动发生改变后获得通知。
-* 订阅者也称之为观察者，而被观察的对象成为发布者。
-* 当发生了一个重要的事件时，发布者将通知（调用）所有订阅者并且以事件对象的形式传递消息。
+* 自定义多级事件类。
 * @class
-* @param {Object} obj 要进行绑定事件的目标对象。
-* @return {MiniQuery.Event} 返回一个 MiniQuery.Event 的实例。
 */
-define('Event', function (require, module, exports) {
+define('Emitter', function (require, module, exports) {
 
     var $ = require('$');
+    var $Array = require('Array');
+    var $Object = require('Object');
+    var $String = require('String');
     var Mapper = require('Mapper');
 
     var guidKey = Mapper.getGuidKey();
     var mapper = new Mapper();
 
 
-    exports = function Event(obj) {
-        var prototype = require('Event.prototype');
-        return new prototype.init(obj);
-    };
+    function add(name$node, names, item) {
+
+        var lastIndex = names.length - 1;
+
+        $Array.each(names, function (name, index) {
+
+            var node = name$node[name];
+            if (!node) {
+                node = name$node[name] = {
+                    'list': [],
+                    'tree': {}
+                };
+            }
+
+            if (index < lastIndex) {
+                name$node = node.tree;
+            }
+            else { //最后一项
+                node.list.push(item);
+            }
+
+        });
+
+    }
+
+    function getNode(name$node, names) {
+       
+        var lastIndex = names.length - 1;
+
+        for (var i = 0; i <= lastIndex; i++) {
+            var name = names[i];
+            var node = name$node[name];
+
+            if (!node || i == lastIndex) { //最后一项
+                return node;
+            }
+
+            name$node = node.tree;
+        }
+
+    }
 
 
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Event*/
+    function getList(name$node, names) {
+        var node = getNode(name$node, names);
+        return node ? node.list : null;
+    }
 
-        /**
-        * 给指定的对象绑定指定类型的事件处理函数。
-        * @param {Object} obj 要进行绑定事件的目标对象。
-        * @param {string} eventName 要绑定的事件名称。
-        * @param {function} fn 事件处理函数。 
-            在处理函数内部， this 指向参数 obj 对象。
-        * @param {boolean} [isOnce=false] 指示是否只执行一次事件处理函数，
-            如果指定为 true，则执行事件处理函数后会将该处理函数从事件列表中移除。
-        * @example
-            var obj = { value: 100 };
-            $.Event.bind(obj, 'show', function(){
-                console.log(this.value); // this 指向 obj
+    //绑定事件。
+    //实例的私有方法，必须用 bind.apply(this, []) 的方式来调用。
+    function bind(isOneOff, name, fn) {
+
+        var meta = mapper.get(this);
+        var all = meta.all;
+
+        // 单名称情况 on(name, fn)，专门成一个分支，为了优化
+        if (typeof name == 'string' && typeof fn == 'function') {
+            add(all, [name], {
+                'fn': fn,
+                'isOneOff': isOneOff,
             });
-            $.Event.bind(obj, {
-                myEvent: function(){
-                    console.log(this.value);
-                },
-                add: function(value1, value2){
-                    this.value += (value1 * value2);
-                }
-            });
-            $.Event.trigger(obj, 'show'); //输出 100
-            $.Event.trigger(obj, 'add', [2, 3]);
-            $.Event.trigger(obj, 'myEvent'); //输出 106
-        */
-        bind: function (obj, eventName, fn, isOnce) {
+            return;
+        }
 
-            var all = mapper.get(obj); //获取 obj 所关联的全部事件的容器 {}
-            if (!all) { // 首次对 obj 进行绑定事件 
-                all = {};
-                mapper.set(obj, all);
-            }
+        //多名称情况
+        var args = $.toArray(arguments).slice(1);
 
-            switch (typeof eventName) {
+        //重载 bind(isOneOff, name0, name1, ..., nameN, {...}) 的情况
+        //先尝试找到 {} 所在的位置
+        var index = $Array.findIndex(args, function (item, index) {
+            return typeof item == 'object';
+        });
 
-                case 'string':  //标准的，单个绑定
-                    bindItem(eventName, fn);
-                    break;
-
-                case 'object':  //此时类似为 bind(obj, {click: fn, myEvent: fn}, isOnce)
-                    var $Object = require('Object');
-
-                    if (!$Object.isPlain(eventName)) {
-                        throw new Error('当别参数 eventName 为 object 类型时，必须指定为纯对象 {}');
-                    }
-
-                    isOnce = fn; //参数位置修正
-                    $Object.each(eventName, function (key, value) {
-                        bindItem(key, value);   //批量绑定
-                    });
-                    break;
-
-                default:
-                    throw new Error('无法识别参数 eventName 的类型');
-                    break;
-
-            }
-
-            isOnce = !!isOnce; //转成 boolean
-
-
-            //一个内部的共用函数
-            function bindItem(eventName, fn) {
-                if (typeof fn != 'function') {
-                    throw new Error('参数 fn 必须为一个 function');
-                }
-
-                var list = all[eventName] || [];
-
-                list.push({
-                    fn: fn,
-                    isOnce: isOnce
-                });
-
-                all[eventName] = list;
-            }
-
-        },
-
-        /**
-        * 给指定的对象绑定一个一次性的事件处理函数。
-        * @param {Object} obj 要进行绑定事件的目标对象。
-        * @param {string} eventName 要绑定的事件名称。
-        * @param {function} fn 事件处理函数。
-            在函数内部，this 指向参数 obj 对象。
-        */
-        once: function (obj, eventName, fn) {
-            
-            var args = $.concat(arguments, [true]);
-            exports.bind.apply(null, args);
-
-        },
-
-        /**
-        * 给指定的对象解除绑定指定类型的事件处理函数。
-        * @param {Object} obj 要进行解除绑定事件的目标对象。
-        * @param {string} [eventName] 要解除绑定的事件名称。
-            如果不指定该参数，则移除所有的事件。
-            如果指定了该参数，其类型必须为 string，否则会抛出异常。
-        * @param {function} [fn] 要解除绑定事件处理函数。
-            如果不指定，则移除 eventName 所关联的所有事件。
-        */
-        unbind: function (obj, eventName, fn) {
-
-            var all = mapper.get(obj); //获取 obj 所关联的全部事件的容器 {}
-            if (!all) { //尚未存在对象 obj 所关联的事件列表
-                return;
-            }
-
-
-            //未指定事件名，则移除所有的事件
-            if (eventName === undefined) {
-                mapper.remove(obj);
-                return;
-            }
-
-            //指定了事件名
-            if (typeof eventName != 'string') {
-                throw new Error('如果指定了参数 eventName，则其类型必须为 string');
-            }
-
-            var list = all[eventName];
-            if (!list) { //尚未存在该事件名所对应的事件列表
-                return;
-            }
-
-            //未指定事件处理函数，则移除该事件名的所有事件处理函数
-            if (!fn) {
-                all[eventName] = [];
-                return;
-            }
-
-            var $Array = require('Array');
-
-            //移除所有 fn 的项
-            all[eventName] = $Array.grep(list, function (item, index) {
-                return item.fn !== fn;
-            });
-        },
-
-        /**
-        * 触发指定的对象上的特定类型事件。
-        * @param {Object} obj 要触发事件的目标对象。
-        * @param {string} eventName 要触发的事件名称。
-        * @param {Array} [args] 要向事件处理函数传递的参数数组。
-        * @return {Array} 返回所有事件处理函数的返回值所组成的一个数组。
-        */
-        trigger: function (obj, eventName, args) {
-
-            var returns = [];
-
-            var all = mapper.get(obj); // all = {...}
-            if (!all) {
-                return returns;
-            }
-
-
-            var list = all[eventName]; //取得回调列表
-            if (!list) {
-                return returns;
-            }
-
-            var $Array = require('Array');
-
-            args = args || [];
-
-
-            //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
-            //即 all[eventName]，而此处又要去移除那些一次性的回调（即只执行一次的），
-            //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
-            //以原来的回调列表为准去查询要移除的项的确切位置。
-
-            list = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化
+        if (index >= 0) {
+            var obj = args[index];
+            var names = args.slice(0, index);
+            var list = $Object.linearize(obj);
 
             $Array.each(list, function (item, index) {
 
-                if (item.isOnce) { 
-                    var index = $Array.indexOf(all[eventName], item); //找到该项在回调列表中的索引位置
-                    if (index > -1) {
-                        all[eventName].splice(index, 1); //直接从原数组删除
+                var keys = names.concat(item.keys);
+
+                add(all, keys, {
+                    'fn': item.value,
+                    'isOneOff': isOneOff,
+                });
+            });
+            return;
+        }
+ 
+
+        //重载 bind(isOneOff, name0, name1, ..., nameN, fn) 的情况
+        //尝试找到回调函数 fn 所在的位置
+        var index = $Array.findIndex(args, function (item, index) {
+            return typeof item == 'function';
+        });
+
+        if (index < 0) {
+            throw new Error('参数中必须指定一个回调函数');
+        }
+
+        fn = args[index]; //回调函数
+        var names = args.slice(0, index); //前面的都当作是名称
+
+        add(all, names, {
+            'fn': fn,
+            'isOneOff': isOneOff,
+        });
+    }
+
+
+
+
+
+    /**
+    * 构造器。
+    * @param {Object} [context] 事件处理函数中的 this 上下文对象。
+    * 如果不指定，则默认为 null。
+    */
+    function Emitter(context) {
+
+        this[guidKey] = $String.random();
+
+        var meta = {
+            'context': context,
+            'all': {},
+        };
+
+        mapper.set(this, meta);
+
+    }
+
+    //实例方法
+    Emitter.prototype = {
+        constructor: Emitter,
+
+        /**
+        * 绑定指定名称的事件处理函数。
+        * @param {string} name 要绑定的事件名称。
+        * @param {function} fn 事件处理函数。 
+            在处理函数内部， this 指向构造器参数 context 对象。
+        * @example
+        */
+        on: function (name, fn) {
+
+            var args = $.toArray(arguments);
+            args = [false].concat(args);
+            bind.apply(this, args);
+
+        },
+
+        /**
+        * 绑定指定名称的一次性事件处理函数。
+        * @param {string} name 要绑定的事件名称。
+        * @param {function} fn 事件处理函数。 
+            在处理函数内部， this 指向构造器参数 context 对象。
+        * @example
+        */
+        one: function (name, fn) {
+            var args = $.toArray(arguments);
+            args = [true].concat(args);
+            bind.apply(this, args);
+        },
+
+
+        /**
+        * 解除绑定指定名称的事件处理函数。
+        * @param {string} [name] 要解除绑定的事件名称。
+            如果不指定该参数，则移除所有的事件。
+            如果指定了该参数，其类型必须为 string，否则会抛出异常。
+        * @param {function} [fn] 要解除绑定事件处理函数。
+            如果不指定，则移除 name 所关联的所有事件。
+        */
+        off: function (name, fn) {
+
+            var meta = mapper.get(this);
+            var all = meta.all;
+
+            //未指定事件名，则移除所有的事件
+            if (name === undefined) {
+                meta.all = {};
+                return;
+            }
+
+            //多名称情况: fire(name0, name1, name2, ..., nameN, fn)
+            var args = $.toArray(arguments);
+
+            //找到回调函数所在的位置
+            var index = $Array.findIndex(args, function (item, index) {
+                return typeof item == 'function';
+            });
+
+            if (index < 0) {
+                index = args.length;
+            }
+
+            fn = args[index];
+
+            var names = args.slice(0, index);
+            var node = getNode(all, names);
+            if (!node) { //尚未存在该名称所对应的节点
+                return;
+            }
+
+            var list = node.list;
+            if (list.length == 0) {
+                return;
+            }
+
+            if (fn) {
+                node.list = $Array.grep(list, function (item, index) {
+                    return item.fn !== fn;
+                });
+            }
+            else { //未指定处理函数，则清空列表
+                list.length = 0; 
+            }
+
+        },
+
+        /**
+        * 触发指定名称的事件，并可向事件处理函数传递一些参数。
+        * @param {string} name 要触发的事件名称。
+        * @param {Array} [params] 要向事件处理函数传递的参数数组。
+        * @return {Array} 返回所有事件处理函数的返回值所组成的一个数组。
+        */
+        fire: function (name, params) {
+
+            var meta = mapper.get(this);
+            var all = meta.all;
+            var context = meta.context;
+
+            //多名称情况: fire(name0, name1, name2, ..., nameN, params)
+            var args = $.toArray(arguments);
+
+            //找到回调函数所在的位置
+            var index = $Array.findIndex(args, function (item, index) {
+                return item instanceof Array;
+            });
+
+            if (index < 0) {
+                index = args.length;
+            }
+
+            params = args[index] || [];
+
+            var names = args.slice(0, index);
+            var list = getList(all, names);
+            var returns = [];
+
+            if (!list || list.length == 0) {
+                return returns;
+            }
+
+            //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
+            //而此处又要去移除那些一次性的回调（即只执行一次的），
+            //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
+            //以原来的回调列表为准去查询要移除的项的确切位置。
+
+            var items = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化。
+
+            $Array.each(items, function (item, index) {
+
+                if (item.isOneOff) { //只需执行一次的
+                    var index = $Array.indexOf(list, item); //找到该项在回调列表中的索引位置
+                    if (index >= 0) {
+                        list.splice(index, 1); //直接从原数组删除
                     }
                 }
 
-                var value = item.fn.apply(obj, args); //让 fn 内的 this 指向 obj
+                var value = item.fn.apply(context, params); //让 fn 内的 this 指向 obj
                 returns.push(value);
 
             });
 
             return returns;
+
         },
 
         /**
-        * 触发指定的对象上的特定类型事件，当事件处理函数返回指定的值时将停止继续调用。
-        * @param {Object} obj 要触发事件的目标对象。
-        * @param {string} eventName 要触发的事件名称。
-        * @param {Array} [args] 要向事件处理函数传递的参数数组。
-        * @param [stopValue=false] 要停止继续调用时的返回值。
-            当事件处理函数返回参数 stopValue 所指定的值时，将停止调用后面的处理函数。
-        * @return {Array} 返回已调用的事件处理函数的返回值所组成的一个数组。
-        */
-        triggerStop: function (obj, eventName, args, stopValue) {
-
-            var returns = [];
-
-            var all = mapper.get(obj); // all = {...}
-            if (!all) {
-                return returns;
-            }
-
-
-            var list = all[eventName]; //取得回调列表
-            if (!list) {
-                return returns;
-            }
-
-            args = args || [];
-
-            if (arguments.length == 3) { //不传 stopValue 时，默认为 false
-                stopValue = false;
-            }
-
-            var items = [];
-
-
-            for (var i = 0, len = list.length; i < len; i++) {
-                var item = list[i];
-                var value = item.fn.apply(obj, args); //让 fn 内的 this 指向 obj
-
-                if (!item.isOnce) {
-                    items.push(item);
-                }
-
-                returns.push(value);
-
-                if (value === stopValue) {
-                    break;
-                }
-            }
-
-            list = list.slice(i + 1);
-            all[eventName] = items.concat(list);
-
-            return returns;
-        },
-
-        /**
-        * 检测指定的对象上是否包含特定类型的事件。
-        * @param {Object} obj 要检测的目标对象。
-        * @param {string} [eventName] 要检测的事件名称。
+        * 检测是否包含指定名称的事件。
+        * @param {string} [name] 要检测的事件名称。
             当不指定时，则判断是否包含了任意类型的事件。
         * @param {function} [fn] 要检测的事件处理函数。
         * @return {boolean} 返回一个布尔值，该布尔值指示目标对象上是否包含指否类型的事件以及指定的处理函数。
             如果是则返回 true；否则返回 false。
         */
-        has: function (obj, eventName, fn) {
+        has: function (name, fn) {
+            
+            var meta = mapper.get(this);
+            var all = meta.all;
 
-            var all = mapper.get(obj); // all = {...}
-            if (!all) {   //尚未绑定任何类型的事件
+            if (arguments.length == 0) { //未指定名称，则判断是否包含了任意类型的事件
+                return !$Object.isEmpty(all); 
+            }
+
+            //多名称情况: fire(name0, name1, name2, ..., nameN, fn)
+            var args = $.toArray(arguments);
+
+            //找到回调函数所在的位置
+            var index = $Array.findIndex(args, function (item, index) {
+                return typeof item == 'function';
+            });
+
+            if (index < 0) {
+                index = args.length;
+            }
+
+            fn = args[index];
+
+            var names = args.slice(0, index);
+            var list = getList(all, names);
+
+            if (!list || list.length == 0) { //尚未存在该名称所对应的节点
                 return false;
             }
 
-
-            var $Object = require('Object');
-
-            if (eventName === undefined) {   //未指定事件名，则判断是否包含了任意类型的事件
-                if ($Object.isEmpty(all)) { // 空对象 {}
-                    return false;
-                }
-
-                var hasEvent = false;
-
-                $Object.each(all, function (eventName, list) {
-                    if (list && list.length > 0) {
-                        hasEvent = true;
-                        return false; // break, 只有在回调函数中明确返回 false 才停止循环。
-                    }
-                });
-
-                return hasEvent;
-            }
-
-
-            //指定了事件名
-            if (typeof eventName != 'string') {
-                throw new Error('如果指定了参数 eventName，则其类型必须为 string');
-            }
-
-            var list = all[eventName]; //取得回调列表
-            if (!list || list.length == 0) {
-                return false;
-            }
-
-            if (fn === undefined) { //未指定回调函数
+            if (!fn) {
                 return true;
             }
 
-            var $Array = require('Array');
-
-            //从列表中搜索该回调函数
+            //指定了回调函数
             return $Array.find(list, function (item, index) {
                 return item.fn === fn;
             });
 
-        },
-
-        /**
-        * 给指定的对象绑定/解除绑定指定类型的事件处理函数。
-        * 如果目标对象的指定类型事件中存在该处理函数，则移除它；否则会添加它。
-        * @param {Object} obj 要进行绑定/解除绑定事件的目标对象。
-        * @param {string} eventName 要绑定/解除绑定的事件名称。
-        * @param {function} fn 事件处理函数。 
-        * @param {boolean} [isOnce=false] 指示是否只执行一次事件处理函数，
-            如果指定为 true，则执行事件处理函数后会将该处理函数从事件列表中移除。
-        * @example
-            var obj = { value: 100 };
-            var fn = function() {
-                console.log(this.value); // this 指向 obj
-            }
-            $.Event.bind(obj, 'show', fn);
-            $.Event.trigger(obj, 'show'); //输出 100
-    
-            $.Event.toggle(obj, 'show', fn); //因为 'show' 事件列表中已存在 fn 函数，所以会给移除
-            $.Event.trigger(obj, 'show'); //fn 函数已给移除，因为不产生输出
-        */
-        toggle: function (obj, eventName, fn, isOnce) {
-
-            if (exports.has(obj, eventName, fn)) {
-                exports.unbind(obj, eventName, fn);
-            }
-            else {
-                exports.bind(obj, eventName, fn, isOnce);
-            }
-        },
-
-        /**
-        * 给指定的对象只绑定一次指定类型的事件处理函数。
-        * 只有当目标对象的指定类型事件中不存在该处理函数时才添加；否则忽略操作。
-        * @param {Object} obj 要进行绑定事件的目标对象。
-        * @param {string} eventName 要绑定的事件名称。
-        * @param {function} fn 事件处理函数。 
-        * @param {boolean} [isOnce=false] 指示是否只执行一次事件处理函数，
-            如果指定为 true，则执行事件处理函数后会将该处理函数从事件列表中移除。
-        * @example
-            var obj = { value: 100 };
-            var fn = function() {
-                console.log(this.value); // this 指向 obj
-            }
-            $.Event.bind(obj, 'show', fn);
-            $.Event.trigger(obj, 'show'); //输出 100
-    
-            $.Event.unique(obj, 'show', fn); //因为 'show' 事件列表中已存在 fn 函数，所以不会重复绑定
-            $.Event.trigger(obj, 'show'); //依然只输出 100
-        */
-        unique: function (obj, eventName, fn, isOnce) {
-
-            if (exports.has(obj, eventName, fn)) {
-                return;
-            }
-
-            exports.bind(obj, eventName, fn, isOnce);
 
         },
 
-        /**
-        * 创建一个通用事件类的实例。
-        * 该实例内部会创建一个具有 guid 的对象用来管理事件。
-        * @example
-            var event = $.Event.create();
-            event.on('myEvent', function () {  });
-        */
-        create: function () {
 
-            var $String = require('String');
-
-            var obj = {};
-            obj[guidKey] = $String.random();
-
-            return new exports(obj);
-        },
-
-        //for test
-        //_mapper: mapper,
-
-    });
-
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//----------------------------------------------------------------------------------------------------------------
-//包装类的实例方法
-
-define('Event.prototype', function (require, module, exports) {
-
-    var $ = require('$');
-    var Event = require('Event');
-
-
-    function init(obj) {
-        this.value = obj;
-    }
-
-
-    module.exports =
-    init.prototype =
-    Event.prototype = { /**@inner*/
-
-        constructor: Event,
-        init: init,
-        value: {},
-
-
-        valueOf: function () {
-            return this.value;
-        },
-
-        on: function (eventName, fn, isOnce) {
-            var args = $.concat([this.value], arguments);
-            Event.bind.apply(null, args);
-            return this;
-        },
-
-        off: function (eventName, fn) {
-            var args = $.concat([this.value], arguments);
-            Event.unbind.apply(null, args);
-            return this;
-        },
-
-        bind: function (eventName, fn, isOnce) {
-            var args = $.concat([this.value], arguments);
-            Event.bind.apply(null, args);
-            return this;
-        },
-
-        unbind: function (eventName, fn) {
-            var args = $.concat([this.value], arguments);
-            Event.unbind.apply(null, args);
-            return this;
-        },
-
-        once: function (eventName, fn) {
-            var args = $.concat([this.value], arguments);
-            Event.once.apply(null, args);
-            return this;
-        },
-
-        trigger: function (eventName, args) {
-            var args = $.concat([this.value], arguments);
-            return Event.trigger.apply(null, args);
-        },
-
-        triggerStop: function (eventName, args, stopValue) {
-            var args = $.concat([this.value], arguments);
-            return Event.triggerStop.apply(null, args);
-        },
-
-        fire: function (eventName, args) {
-            var args = $.concat([this.value], arguments);
-            return Event.trigger.apply(null, args);
-        },
-
-        fireStop: function (eventName, args, stopValue) {
-            var args = $.concat([this.value], arguments);
-            return Event.triggerStop.apply(null, args);
-        },
-
-        has: function (eventName, fn) {
-            var args = $.concat([this.value], arguments);
-            return Event.has.apply(null, args);
-        },
-
-        toggle: function (eventName, fn, isOnce) {
-            var args = $.concat([this.value], arguments);
-            Event.toggle.apply(null, args);
-            return this;
-        },
-
-        unique: function (eventName, fn, isOnce) {
-            var args = $.concat([this.value], arguments);
-            return Event.unique.apply(null, args);
-        }
     };
 
+
+    module.exports = Emitter;
+
+
 });
+
+
+
+
+
+
+
 
 
 
@@ -6462,6 +6296,145 @@ define('Mapper', function (require, module, exports) {
 });
 
 
+
+
+
+/**
+* 模块管理器类。
+* 主要提供给页面定义页面级别的私有模块。
+*/
+define('Module', function (require, module, exports) {
+
+    var $ = require('$');
+    var $String = require('String');
+    var $Object = require('Object');
+    var Mapper = require('Mapper');
+
+    var guidKey = Mapper.getGuidKey();
+    var mapper = new Mapper();
+
+
+
+    //根据工厂函数反向查找对应的模块 id。
+    function getId(id$module, factory) {
+
+        return $Object.findKey(id$module, function (id, module) {
+            return module.factory === factory;
+        });
+    }
+
+
+    /**
+    * 构造器。
+    */
+    function Module() {
+
+        this[guidKey] = $String.random();
+
+        var meta = {
+            id$module: {},
+        };
+
+        mapper.set(this, meta);
+
+    }
+
+
+    //实例方法
+    Module.prototype = {
+        constructor: Module,
+
+        /**
+        * 定义指定名称的模块。
+        * @param {string} id 模块的名称。
+        * @param {Object|function} factory 模块的导出函数或对象。
+        */
+        define: function define(id, factory) {
+
+            var meta = mapper.get(this);
+            var id$module = meta.id$module;
+
+            id$module[id] = {
+                factory: factory,
+                exports: null,      //这个值在 require 后可能会给改写
+                required: false,    //指示是否已经 require 过
+                exposed: false,     //默认对外不可见
+            };
+        
+        },
+
+
+        /**
+        * 加载指定的模块。
+        * @param {string} id 模块的名称。
+        * @return 返回指定的模块。
+        */
+        require: function (id) {
+
+            var meta = mapper.get(this);
+            var id$module = meta.id$module;
+
+            if (id.indexOf('/') == 0) { //以 '/' 开头，如　'/API'
+                var parentId = getId(id$module, arguments.callee.caller); //如 'List'
+                if (!parentId) {
+                    throw new Error('require 时如果指定了以 "/" 开头的短名称，则必须用在 define 的函数体内');
+                }
+
+                id = parentId + id; //完整名称，如 'List/API'
+            }
+
+
+            var module = id$module[id];
+            if (!module) { //不存在该模块
+                return;
+            }
+
+            if (module.required) { //已经 require 过了
+                return module.exports;
+            }
+
+
+            //首次 require
+
+            module.required = true; //更改标志，指示已经 require 过一次
+
+            var factory = module.factory;
+
+            if (typeof factory != 'function') { //非工厂函数，则直接导出
+                module.exports = factory;
+                return factory;
+            }
+
+            //factory 是个工厂函数
+            var require = arguments.callee.bind(this); //引用自身，并且作为静态方法调用
+            var exports = {};
+            var mod = {
+                id: id,
+                exports: exports,
+            };
+
+            exports = factory(require, mod, exports);
+            if (exports === undefined) {    //没有通过 return 来返回值，
+                exports = mod.exports;      //则要导出的值只能在 mod.exports 里
+            }
+
+            module.exports = exports;
+            return exports;
+            
+        },
+    };
+
+
+    var mod = new Module(); //默认的、静态的
+
+    module.exports = $.extend(Module, { //提供静态的调用方式
+        'define': mod.define.bind(mod),
+        'require': mod.require.bind(mod),
+    });
+
+
+
+});
 
 
 
@@ -6890,6 +6863,375 @@ define('excore/Url', function (require, module, exports) {
 define('Url', function (require, module, exports) {
     return require('excore/Url');
 });
+
+
+
+
+/**
+* Cookie 工具
+* @namespace
+*/
+define('Cookie', function (require, module, exports) {
+
+    //缓存 toObject 中的结果
+    var cookie$object = {
+        'true': {},
+        'false': {}
+    };
+
+    /**
+    * 解析字符串描述的 expires 字段
+    * @inner
+    */
+    var parseExpires = (function () {
+
+        var $Date = require('Date');
+
+        var reg = /^\d+([y|M|w|d|h|m|s]|ms)$/; //这里不要使用 /g
+
+        var fns = {
+            y: 'Year',
+            M: 'Month',
+            w: 'Week',
+            d: 'Day',
+            h: 'Hour',
+            m: 'Minute',
+            s: 'Second',
+            ms: 'Millisecond'
+        };
+
+        //parseExpires = 
+        return function (s) {
+
+            var now = new Date();
+
+            if (typeof s == 'number') {
+                return $Date.addMilliseconds(now, s);
+            }
+
+
+            if (reg.test(s)) {
+                var value = parseInt(s);
+                var unit = s.replace(/^\d+/g, '');
+                return $Date['add' + fns[unit] + 's'](now, value);
+            }
+
+            return $Date.parse(s);
+        };
+
+
+    })();
+
+
+
+    module.exports = exports = { /**@lends MiniQuery.Cookie*/
+
+        /**
+        * 把一个 cookie 字符串解析成等价的 Object 对象。
+        * @param {String} cookie 要进行解析的 cookie 字符串。
+        * @param {boolean} [deep=false] 指定是否要进行深层次解析。
+            如果要对 cookie 中的值进行查询字符串方式的深层次解析，请指定 true；
+            否则请指定 false 或不指定。
+        * @return {Object} 返回一个解析后的等价的 Object 对象。
+        * @example 
+            var obj = $.Cookie.toObject('A=1; B=2; C=a=100&b=200', true); //深层次解析
+            //得到
+            obj = {
+                A: 1,
+                B: 2,
+                C: {
+                    a: 100,
+                    b: 200
+                }
+            };
+    
+            var obj = $.Cookie.toObject('A=1; B=2; C=a=100&b=200'); //浅解析
+            //得到
+            obj = {
+                A: 1,
+                B: 2,
+                C: 'a=100&b=200'
+            };
+    
+            $.Cookie.toObject('a=1; b=2');
+            $.Cookie.toObject('a=1; b=2', true);
+            $.Cookie.toObject();
+            $.Cookie.toObject(true);
+    
+        */
+        toObject: function (cookie, deep) {
+
+            if (typeof cookie != 'string') { //此时为 toObject(true|false) 或 toObject()
+                deep = cookie;
+                cookie = document.cookie;
+            }
+
+            if (!cookie) {
+                return {};
+            }
+
+            deep = !!deep; //转成 true|false，因为有以它为键的存储
+
+            var obj = cookie$object[deep][cookie];
+            if (obj) { //缓存中找到
+                return obj;
+            }
+
+
+            obj = {};
+
+            var $Object = require('Object');
+            var $Array = require('Array');
+
+            var parseQueryString = $Object.parseQueryString;
+
+            $Array.each(cookie.split('; '), function (item, index) {
+
+                var pos = item.indexOf('=');
+
+                var name = item.slice(0, pos);
+                name = decodeURIComponent(name);
+
+
+                var value = item.slice(pos + 1);
+
+                if (deep && value.indexOf('=') > -1) { //指定了深层次解析，并且还包含 '=' 号
+                    value = parseQueryString(value); //深层次解析复合值
+                }
+                else {
+                    value = decodeURIComponent(value);
+                }
+
+
+                if (name in obj) {
+                    var a = obj[name];
+                    if (a instanceof Array) {
+                        a.push(value);
+                    }
+                    else {
+                        obj[name] = [a, value]
+                    }
+                }
+                else {
+                    obj[name] = value;
+                }
+
+            });
+
+            cookie$object[deep][cookie] = obj; //缓存起来
+
+            return obj;
+        },
+
+
+        /**
+        * 从当前 document.cookie 中获取指定名称和键所对应的值。
+        * @param {boolean} [name] 要获取的项的名称。
+            当不指定该参数时，全量返回 document.cookie 字符串。
+        * @param {String} [key] 要获取的项的键。
+            当不指定该参数时，返回参数 name 对应的项。
+        * @return 返回指定项的值。
+        * @example 
+            $.Cookie.get();
+            $.Cookie.get(true);
+            $.Cookie.get('A');
+            $.Cookie.get('A', true);
+            $.Cookie.get('A', 'b');
+        */
+        get: function (name, key) {
+
+            if (name === undefined) { //此时为 get()
+                return exports.toObject(); //返回一个浅解析的全量 Object
+            }
+
+            if (name === true) { //此时为 get(true)
+                return exports.toObject(true); //返回一个深解析的全量 Object
+            }
+
+
+            //下面的 name 为一个具体的值
+
+            if (key === undefined) { //此时为 get(name)
+                var obj = exports.toObject(); //浅解析
+                return obj[name];
+            }
+
+
+            //下面的指定了 key
+
+            var obj = exports.toObject(true); //深解析
+            var value = obj[name];
+
+            if (key === true) {
+                return value;
+            }
+
+            //下面的 key 为一个具体的值
+
+            if (value instanceof Array) { //同一个 name 得到多个值，主要是由于 path 不同导致的
+
+                var $Array = require('Array');
+
+                //过滤出含有 key 的 object 项
+                var items = $Array.grep(value, function (item, index) {
+                    return item &&
+                        typeof item == 'object' &&
+                        key in item;
+                });
+
+                if (items.length == 0) {
+                    return;
+                }
+
+                if (items.length == 1) { //只有一个
+                    return items[0][key];
+                }
+
+                return $Array.keep(items, function (item, index) {
+                    return item[key];
+                });
+            }
+
+
+            if (value && typeof value == 'object') {
+                return value[key];
+            }
+
+        },
+
+
+        /**
+        * 给当前的 document.cookie 设置一个 Cookie。
+        * @param {Document} document 要进行操作的 Document 对象。
+        * @param {String} name 要设置的 Cookie 名称。
+        * @param {String|Object} value 要设置的 Cookie 值。
+            当传入一个 Object 对象时，会对它进行查询字符串的编码以获取一个 String 类型值。
+        * @param {String|Number|Date} [expires] 过期时间。
+            参数 expires 接受以下格式的字符串：
+                y: 年
+                M: 月
+                w: 周
+                d: 天
+                h: 小时
+                m: 分钟
+                s: 秒
+                ms: 毫秒
+            或传入一个 $.Date.parse 识别的格式字符串，并会被解析成一个实际的日期实例。
+        * @example 
+            //设置一个 A=100 的 Cookie，过期时间为12天后
+            $.Cookie.set('A', 100, '12d'); 
+    
+            //设置一个 B=200 的 Cookie，过期时间为2周后
+            $.Cookie.set('B', 200, '2w'); 
+    
+            //设置一个 C=300 的 Cookie，过期时间为 '2014-9-10'
+            $.Cookie.set('C', 300, '2014-9-10'); 
+    
+            $.Cookie.set({
+                name: 'A',
+                value: 100,
+                expires: '2w',
+                path: '/',
+                domain: 'localhost',
+                secure: true
+            });
+        */
+        set: function (name, value, expires, path, domain, secure) {
+
+            var $Object = require('Object');
+
+
+            if ($Object.isPlain(name)) { // 此时为 set({ ... });
+                var config = name;
+                name = config.name;
+                value = config.value;
+                expires = config.expires;
+                path = config.path;
+                domain = config.domain;
+                secure = config.secure;
+            }
+
+            name = encodeURIComponent(name);
+            if (!name) { // 空字符串
+                throw new Error('参数 name 不能为空字符串');
+            }
+
+
+            if ($Object.isPlain(value)) {
+                value = $Object.toQueryString(value);
+            }
+            else {
+                value = encodeURIComponent(value);
+            }
+
+            var cookie = name + '=' + value + '; ';
+
+            if (expires) {
+                expires = parseExpires(expires);
+                cookie += 'expires=' + expires.toGMTString() + '; '; //不推荐使用 toGMTString 方法
+            }
+
+            if (path) {
+                cookie += 'path=' + path + '; ';
+            }
+
+            if (domain) {
+                cookie += 'domain=' + domain + '; ';
+            }
+
+            if (secure) {
+                cookie += 'secure';
+            }
+
+            document.cookie = cookie;
+        },
+
+
+        /**
+        * 从当前的 document.cookie 中移除指定名称的 Cookie。
+        * @param {String} [name] 要移除的 Cookie 的名称。
+            当不指定参数 name 时，则会把所有的 Cookie 都移除。
+        * @example 
+            //给 document 名称为 A 的 Cookie 移除
+            $.Cookie.remove(document, 'A'); 
+    
+            //把 document 的所有 Cookie 都移除
+            $.Cookie.remove(document); 
+        */
+        remove: function (name, path, domain, secure) {
+
+            var $Object = require('Object');
+
+            var config = $Object.isPlain(name) ? name : {
+                name: name,
+                path: path,
+                domain: domain,
+                secure: secure
+            };
+
+            config.expires = new Date(0);
+
+            name = config.name;
+
+            if (name === undefined) { //未指定名称，则全部移除
+                var obj = exports.toObject();
+                $Object.each(obj, function (name, value) {
+                    config.name = name;
+                    exports.set(config);
+                });
+
+                return;
+            }
+
+            exports.set(config);
+
+        }
+
+
+    };
+
+});
+
 
 
 
@@ -7764,15 +8106,6 @@ define('MiniQuery', function (require, module, exports) {
         'Object': require('Object'),
         'String': require('String'),
 
-        'Event': require('Event'),
-        'Mapper': require('Mapper'),
-        'Url': require('Url'),
-
-        'LocalStorage': require('LocalStorage'),
-        'SessionStorage': require('SessionStorage'),
-        'Script': require('Script'),
-
-
         require: $.require,
 
 
@@ -7825,8 +8158,9 @@ Module.expose({
     'Object': true,
     'String': true,
 
-    'Event': true,
+    'Emitter': true,
     'Mapper': true,
+    'Module': true,
     'Url': true,
 
     'Cookie': true,
