@@ -5,7 +5,6 @@
 * 提供全局 ID 生成和管理的方法，可用于给组件创建 ID。
 * @namespace
 */
-
 define('Guid', function (require, module, exports) {
 
 

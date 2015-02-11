@@ -46,131 +46,202 @@
 */
 var Module = (function () {
 
-    var id$module = {};
+    var guidKey = '__guid__';
+    var guid$meta = {};
 
-    /**
-    * 定义指定名称的模块。
-    * @param {string} id 模块的名称。
-    * @param {Object|function} exports 模块的导出函数。
-    */
-    function define(id, exports) {
-        id$module[id] = {
-            required: false,
-            exports: exports,
-            exposed: false      //默认对外不可见
-        };
+
+    //根据工厂函数反向查找对应的模块 id。
+    function findId(id$module, factory) {
+        for (var id in id$module) {
+            if (id$module[id].factory === factory) {
+                return id;
+            }
+        }
     }
 
+
+
     /**
-    * 加载指定的模块。
-    * @param {string} id 模块的名称。
-    * @return 返回指定的模块。
+    * 构造器。
     */
-    function require(id) {
+    function Module() {
 
-        var module = id$module[id];
-        if (!module) { //不存在该模块
-            return;
-        }
+        var guid = Math.random().toString().slice(2);
+        this[guidKey] = guid;
 
-        var exports = module.exports;
+        var meta = {
+            id$module: {},
+        };
 
-        if (module.required) { //已经 require 过了
-            return exports;
-        }
+        guid$meta[guid] = meta;
 
-        //首次 require
-        if (typeof exports == 'function') {
+    }
 
-            var fn = exports;
-            exports = {};
 
+    //实例方法
+    Module.prototype = {
+        constructor: Module,
+
+        /**
+        * 定义指定名称的模块。
+        * @param {string} id 模块的名称。
+        * @param {Object|function} factory 模块的导出函数或对象。
+        */
+        define: function define(id, factory) {
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+
+            var id$module = meta.id$module;
+
+            id$module[id] = {
+                factory: factory,
+                exports: null,      //这个值在 require 后可能会给改写
+                required: false,    //指示是否已经 require 过
+                exposed: false,     //默认对外不可见
+            };
+
+        },
+
+
+        /**
+        * 加载指定的模块。
+        * @param {string} id 模块的名称。
+        * @return 返回指定的模块。
+        */
+        require: function (id) {
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+
+            var id$module = meta.id$module;
+
+            if (id.indexOf('/') == 0) { //以 '/' 开头，如　'/API'
+                var parentId = findId(id$module, arguments.callee.caller); //如 'List'
+                if (!parentId) {
+                    throw new Error('require 时如果指定了以 "/" 开头的短名称，则必须用在 define 的函数体内');
+                }
+
+                id = parentId + id; //完整名称，如 'List/API'
+            }
+
+
+            var module = id$module[id];
+            if (!module) { //不存在该模块
+                return;
+            }
+
+            if (module.required) { //已经 require 过了
+                return module.exports;
+            }
+
+
+            //首次 require
+
+            module.required = true; //更改标志，指示已经 require 过一次
+
+            var factory = module.factory;
+
+            if (typeof factory != 'function') { //非工厂函数，则直接导出
+                module.exports = factory;
+                return factory;
+            }
+
+            //factory 是个工厂函数
+            var require = arguments.callee.bind(this); //引用自身，并且作为静态方法调用
+            var exports = {};
             var mod = {
                 id: id,
                 exports: exports,
             };
 
-            var value = fn(require, mod, exports);
+            exports = factory(require, mod, exports);
+            if (exports === undefined) {    //没有通过 return 来返回值，
+                exports = mod.exports;      //则要导出的值只能在 mod.exports 里
+            }
 
-            //没有通过 return 来返回值，则要导出的值在 mod.exports 里
-            exports = value === undefined ? mod.exports : value;
             module.exports = exports;
-        }
+            return exports;
 
-        module.required = true; //指示已经 require 过一次
+        },
 
-        return exports;
+        
+        /**
+        * 设置或获取对外暴露的模块。
+        * 通过此方法，可以控制指定的模块是否可以通过 KERP.require(id) 来加载到。
+        * @param {string|Object} id 模块的名称。
+            当指定为一个 {} 时，则表示批量设置。
+            当指定为一个字符串时，则单个设置。
+        * @param {boolean} [exposed] 模块是否对外暴露。
+            当参数 id 为字符串时，且不指定该参数时，表示获取操作，
+            即获取指定 id 的模块是否对外暴露。
+        * @return {boolean}
+        */
+        expose: function (id, exposed) {
 
-    }
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+            var id$module = meta.id$module;
 
+            //内部方法: get 操作
+            function get(id) {
+                var module = id$module[id];
+                if (!module) {
+                    return;
+                }
 
-    /**
-    * 设置或获取对外暴露的模块。
-    * 通过此方法，可以控制指定的模块是否可以通过 KERP.require(id) 来加载到。
-    * @param {string|Object} id 模块的名称。
-        当指定为一个 {} 时，则表示批量设置。
-        当指定为一个字符串时，则单个设置。
-    * @param {boolean} [exposed] 模块是否对外暴露。
-        当参数 id 为字符串时，且不指定该参数时，表示获取操作，
-        即获取指定 id 的模块是否对外暴露。
-    * @return {boolean}
-    */
-    function expose(id, exposed) {
+                return module.exposed;
+            }
 
-        if (typeof id == 'object') { // expose({ })，批量 set
+            //内部方法: set 操作
+            function set(id, exposed) {
+                var module = id$module[id];
+                if (module) {
+                    module.exposed = !!exposed;
+                }
+            }
 
-            var id$exposed = id;
+            //set 操作
+            if (typeof id == 'object') { // expose({ })，批量 set
+                var id$exposed = id;
+                for (var id in id$exposed) {
+                    var exposed = id$exposed[id];
+                    set(id, exposed);
+                }
+                return;
+            }
 
-            for (var id in id$exposed) {
-                var exposed = id$exposed[id];
+            if (arguments.length == 2) { // expose('', true|false)，单个 set
                 set(id, exposed);
+                return;
             }
 
-            return;
-        }
+            //get 操作
+            return get(id);
+        },
 
-        if (arguments.length == 2) { // expose('', true|false)，单个 set
-            set(id, exposed);
-            return;
-        }
-
-        //get
-        return get(id);
-
-
-        //内部方法
-        function get(id) {
-            var module = id$module[id];
-            if (!module) {
-                return false;
-            }
-
-            return module.exposed;
-        }
-
-        function set(id, exposed) {
-            var module = id$module[id];
-            if (module) {
-                module.exposed = !!exposed;
-            }
-        }
-    }
-
-
-
-    return {
-        define: define,
-        require: require,
-        expose: expose
+        /**
+        * 销毁本实例。
+        */
+        destroy: function () {
+            var guid = this[guidKey];
+            delete this[guidKey];
+            delete guid$meta[guid];
+        },
     };
+
+
+
+    return Module;
 
 
 })();
 
-
 //提供快捷方式
-var define = Module.define;
-var require = Module.require;
+var mod = new Module();
+var define = mod.define.bind(mod);
+var require = mod.require.bind(mod);
+var expose = mod.expose.bind(mod);
 
 
 /**
@@ -180,7 +251,7 @@ var require = Module.require;
 */
 define('$', function (require, module, exports) {
 
-    var slice = Array.prototype.slice;
+    var slice = [].slice;
 
     //兼容性写法
     var toArray = slice.call.bind ? slice.call.bind(slice) : function ($arguments) {
@@ -238,7 +309,6 @@ define('$', function (require, module, exports) {
         concat: function () {
 
             var a = [];
-
             var args = toArray(arguments);
 
             for (var i = 0, len = args.length; i < len; i++) {
@@ -252,13 +322,11 @@ define('$', function (require, module, exports) {
             }
 
             return a;
-
         },
 
-        
 
         require: function (id) {
-            return Module.expose(id) ? require(id) : null;
+            return expose(id) ? require(id) : null;
         },
     };
 
@@ -268,20 +336,15 @@ define('$', function (require, module, exports) {
 
 /**
 * 数组工具
-* @class
+* @namespace
 */
 define('Array', function (require, module, exports) {
 
     var $ = require('$');
 
 
-    exports = function (array) {
-        var prototype = require('Array.prototype');
-        return new prototype.init(array);
-    };
 
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Array*/
+    module.exports = exports = { /**@lends MiniQuery.Array*/
 
         /**
         * 把数组、类数组合并成一个真正的数组。
@@ -299,7 +362,7 @@ define('Array', function (require, module, exports) {
             如果要进行深层次迭代，即对数组元素为数组继续迭代的，请指定 true；否则为浅迭代。
         * @return {Array} 返回当前数组。
         * @example
-            $.Array.each([0, 1, 2, ['a', 'b']], function(item, index) {
+            $Array.each([0, 1, 2, ['a', 'b']], function(item, index) {
                 console.log(index + ': ' + item);
             }, true);
         */
@@ -345,10 +408,9 @@ define('Array', function (require, module, exports) {
         */
         parse: function (obj, useForIn) {
             //本身就是数组。
-            //这里不要用 $.Object.isArray(obj)，因为跨页面得到的obj，即使 $.Object.getType(obj) 返回 'Array'，
+            //这里不要用 $Object.isArray(obj)，因为跨页面得到的obj，即使 $Object.getType(obj) 返回 'Array'，
             //但在 IE 下 obj instanceof Array 仍为 false，从而对 obj 调用数组实例的方法就会出错。
             //即使该方法确实存在于 obj 中，但 IE 仍会报“意外地调用了方法或属性访问”的错误。
-            //
             if (obj instanceof Array) {
                 return obj;
             }
@@ -357,29 +419,21 @@ define('Array', function (require, module, exports) {
             var a = [];
 
             if (useForIn === true) { //没有 length 属性，或者不方便使用 length，则使用 for in
-
                 for (var name in obj) {
-                    if (name === 'length') //忽略掉 length 属性
-                    {
+                    if (name === 'length') { //忽略掉 length 属性
                         continue;
                     }
-
                     a.push(obj[name]);
                 }
-
                 return a;
             }
-
 
             if (!obj || !obj.length) { //参数非法
                 return [];
             }
 
-
-
             try { //标准方法
-
-                a = Array.prototype.slice.call(obj, 0);
+                a = $.toArray(obj);
             }
             catch (ex) {
                 for (var i = 0, len = obj.length; i < len; i++) {
@@ -409,7 +463,7 @@ define('Array', function (require, module, exports) {
         * @return {Object} 返回一个 Object 对象，该对象上包含数组的处理结果，并且包含一个 length 成员。
         * @example
             //例子1: 不指定第二个参数 maps，得到一个类数组的对象（arguments 就是这样的对象）。
-            var obj = $.Array.toObject(array);
+            var obj = $Array.toObject(array);
             //等价于：
             var obj = {
                 0: array[0],
@@ -419,7 +473,7 @@ define('Array', function (require, module, exports) {
             };
             
             //例子2: maps 为数组，则作为键的列表[key0,…, keyN]一一对应去建立键值映射关系，即{keyN: array[N]}
-            var obj = $.Array.toObject(array, ['a', 'b', 'c']);
+            var obj = $Array.toObject(array, ['a', 'b', 'c']);
             //等价于
             var obj = {
                 a: array[0], //maps[0] --> array[0]
@@ -428,7 +482,7 @@ define('Array', function (require, module, exports) {
             };
             
             //例子3:  maps 为对象，则作为键-索引的映射关系去建立对象
-            var obj = $.Array.toObject(array, {
+            var obj = $Array.toObject(array, {
                 a: 1,
                 b: 1,
                 c: 2
@@ -441,7 +495,7 @@ define('Array', function (require, module, exports) {
             };
             
             //例子4: maps 为函数，则会调用该函数取得一个处理结果
-            var obj = $.Array.toObject(['a', 'b', 'c'], function(item, index) {
+            var obj = $Array.toObject(['a', 'b', 'c'], function(item, index) {
                 return [item, index + 1000]; //第1个元素作为键，第2个元素作为值
             });
             //得到 
@@ -452,7 +506,7 @@ define('Array', function (require, module, exports) {
             };
             
             //又如：
-            var obj = $.Array.toObject(['a', 'b', 'c'], function(item, index) {
+            var obj = $Array.toObject(['a', 'b', 'c'], function(item, index) {
                 //处理函数返回一个对象，则第1个成员的键作为键，第1个成员的值作为值，存到目标对象上，其他的忽略。
                 var obj = {};
                 obj[item] = index + 1000;
@@ -560,7 +614,6 @@ define('Array', function (require, module, exports) {
 
         /**
         * 把一个数组中的元素转换到另一个数组中，返回一个新的数组。
-        * 重载了map(startIndex, endIndex, fn) 使其具有 pad 和 map 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -572,15 +625,6 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个转换后的新数组。
         */
         map: function (array, fn, isDeep) {
-
-            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
-                var startIndex = array;
-                var endIndex = fn;
-                fn = isDeep;
-                array = exports.pad(startIndex, endIndex);
-                isDeep = false;
-            }
-
 
             var map = arguments.callee; //引用自身，用于递归
             var a = [];
@@ -604,7 +648,6 @@ define('Array', function (require, module, exports) {
                     }
                 }
 
-
                 a.push(value);
             }
 
@@ -615,7 +658,6 @@ define('Array', function (require, module, exports) {
         * 将一个数组中的元素转换到另一个数组中，并且保留所有的元素，返回一个新数组。
         * 作为参数的转换函数会为每个数组元素调用，并把当前元素和索引作为参数传给转换函数。
         * 该方法与 map 的区别在于本方法会保留所有的元素，而不管它的返回是什么。
-        * 重载了keep(startIndex, endIndex, fn) 使其具有 pad 和 keep 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -626,27 +668,15 @@ define('Array', function (require, module, exports) {
         */
         keep: function (array, fn, isDeep) {
 
-            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
-                var startIndex = array;
-                var endIndex = fn;
-                fn = isDeep;
-                array = exports.pad(startIndex, endIndex);
-                isDeep = false;
-            }
-
             var keep = arguments.callee; //引用自身，用于递归
             var a = [];
-            var value;
 
             for (var i = 0, len = array.length; i < len; i++) {
                 var item = array[i];
 
-                if (isDeep && (item instanceof Array)) {
-                    value = keep(item, fn, true);
-                }
-                else {
-                    value = fn(item, i);
-                }
+                var value = isDeep && (item instanceof Array) ?
+                        keep(item, fn, true) :
+                        fn(item, i);
 
                 a.push(value);
             }
@@ -697,7 +727,7 @@ define('Array', function (require, module, exports) {
         * @return 返回一个整数，表示检索项在数组第一次出现的索引位置。
         *   如果不存在该元素，则返回 -1。
         * @example
-            $.Array.indexOf(['a', '10', 10, 'b'], 10); //使用的是全等比较，结果为 2
+            $Array.indexOf(['a', '10', 10, 'b'], 10); //使用的是全等比较，结果为 2
             
         */
         indexOf: function (array, item) {
@@ -826,7 +856,6 @@ define('Array', function (require, module, exports) {
                 list.push(item);
                 return list;
             }
-
         },
 
 
@@ -878,7 +907,7 @@ define('Array', function (require, module, exports) {
         * @param {Array} list 要进行排序的数组。
         * @return {Array} 返回一个随机排序的新数组。
         * @example
-            $.Array.random( ['a', 'b', 'c', 'd'] ); 
+            $Array.random( ['a', 'b', 'c', 'd'] ); 
         */
         random: function (list) {
             var array = list.slice(0);
@@ -899,7 +928,7 @@ define('Array', function (require, module, exports) {
         * @return 随机返回一个数组项。
             当数组为空时，返回 undefined。
         * @example
-            $.Array.randomItem( ['a', 'b', 'c', 'd'] ); 
+            $Array.randomItem( ['a', 'b', 'c', 'd'] ); 
         */
         randomItem: function (array) {
             var $Math = require('Math');
@@ -931,7 +960,6 @@ define('Array', function (require, module, exports) {
             }
 
             if (index == null) { // undefined 或 null
-
                 return array.slice(0);
             }
         },
@@ -1033,7 +1061,7 @@ define('Array', function (require, module, exports) {
         * @return {Number} 返回数组所有元素之和。
         * @example
             var a = [1, 2, 3, 4];
-            var sum = $.Array.sum(a); //得到 10
+            var sum = $Array.sum(a); //得到 10
             //又如
             var a = [
                 { value: 1 },
@@ -1041,7 +1069,7 @@ define('Array', function (require, module, exports) {
                 { value: 3 },
                 { value: 4 },
             ];
-            var sum = $.Array.sum(a, true, 'value'); //得到 8
+            var sum = $Array.sum(a, true, 'value'); //得到 8
     
         */
         sum: function (array, ignoreNaN, key) {
@@ -1137,15 +1165,15 @@ define('Array', function (require, module, exports) {
         * @example： 
             var A = [a, b]; 
             var B = [0, 1, 2]; 求积后结果为：
-            var C = $.Array.descartes(A, B);
+            var C = $Array.descartes(A, B);
             //得到 
             C = [ 
                 [a, 0], [a, 1], [a, 2], 
                 [b, 0], [b, 1], [b, 2] 
             ];
         * 注意：
-        *   $.Array.descartes(A, B, C)并不等于（但等于$.Array(A).descartes(B, C)的结果）
-        *   $.Array.descartes($.Array.descartes(A, B), C)（但等于$.Array(A).descartes(B).descartes(C)的结果）
+        *   $Array.descartes(A, B, C)并不等于（但等于$Array(A).descartes(B, C)的结果）
+        *   $Array.descartes($Array.descartes(A, B), C)（但等于$Array(A).descartes(B).descartes(C)的结果）
         */
         descartes: function (arrayA, arrayB) {
             var list = fn(arrayA, arrayB); //常规情况，两个数组
@@ -1219,7 +1247,7 @@ define('Array', function (require, module, exports) {
                 ['a', 'b', 'c'],
                 [100, 200, 300]
             ];
-            var B = $.Array.transpose(A);
+            var B = $Array.transpose(A);
             //得到
             C = [
                 ['a', 100],
@@ -1266,7 +1294,6 @@ define('Array', function (require, module, exports) {
             }
 
             return list;
-
 
             function fn(A, B) {
                 var list = [];
@@ -1369,33 +1396,52 @@ define('Array', function (require, module, exports) {
         * @param {number} start 半开区间的开始值。
         * @param {number} end 半开区间的结束值。
         * @param {number} [step=1] 填充的步长，默认值为 1。可以指定为负数。
+        * @param {function} [fn] 转换函数。 会收到当前项和索引值作为参数。
         * @return {Array} 返回一个递增（减）的数组。
         *   当 start 与 end 相等时，返回一个空数组。
         * @example
-            $.Array.pad(1, 9, 2); //产生一个从1到9的数组，步长为2，结果为[1, 3, 5, 7]
-            $.Array.pad(5, 2, -1); //产生一个从5到2的数组，步长为-1，结果为[5, 4, 3]
+            $Array.pad(2, 5); //产生一个从2到5的数组，步长为1，结果为[2, 3, 4, 5]
+            $Array.pad(1, 9, 2); //产生一个从1到9的数组，步长为2，结果为[1, 3, 5, 7]
+            $Array.pad(5, 2, -1); //产生一个从5到2的数组，步长为-1，结果为[5, 4, 3]
+            //得到 [10, 20, 30]
+            $Array.pad(1, 3, function (item, index) {
+                return item * 10;
+            });
         */
-        pad: function (start, end, step) {
+        pad: function (start, end, step, fn) {
             if (start == end) {
                 return [];
             }
 
-            step = Math.abs(step || 1);
+            if (typeof step == 'function') { // 重载 pad(start, end, fn)
+                fn = step;
+                step = 1;
+            }
+            else {
+                step = Math.abs(step || 1);
+            }
+            
 
             var a = [];
+            var index = 0;
 
             if (start < end) { //升序
                 for (var i = start; i < end; i += step) {
-                    a.push(i);
+                    var item = fn ? fn(i, index) : i;
+                    a.push(item);
+                    index++;
                 }
             }
             else { //降序
                 for (var i = start; i > end; i -= step) {
-                    a.push(i);
+                    var item = fn ? fn(i, index) : i;
+                    a.push(item);
+                    index++;
                 }
             }
 
             return a;
+            
         },
 
         /**
@@ -1407,7 +1453,7 @@ define('Array', function (require, module, exports) {
             如果提供的是函数，则会在参数中接收到当前处理的数组项和索引。
         * @param {function} [getValue] 用于处理当前数组项的函数，返回一个新值代替原来的数组项。
             如果指定该参数，则会在参数中接收到当前处理的数组项和索引，然后返回一个新值来代替原来的数组项。
-            注意：类似于 $.Array.map 的规定用法，
+            注意：类似于 $Array.map 的规定用法，
                 当返回 null 时，则会 continue，忽略该返回值；
                 当返回 undefined 时，则会 break，停止再迭代数组；
         * @return {Object} 返回一个经过分类聚合的 Object 对象。
@@ -1423,10 +1469,10 @@ define('Array', function (require, module, exports) {
                 { name: '微积分', type: '数学', year: 2013 }
             ];
             //按 type 进行聚合(分组)
-            var byTypes = $.Array.aggregate( books, 'type' );  
+            var byTypes = $Array.aggregate( books, 'type' );  
             
             //按 year 进行聚合(分组)，并重新返回一个值。
-            var byYears = $.Array.aggregate( books, 'year', function(item, index) {
+            var byYears = $Array.aggregate( books, 'year', function(item, index) {
                 return { name: item.name, type: item.type, year: '出版年份：' + item.year };
             });   
         
@@ -1508,7 +1554,7 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个包含新添加的元素的新数组。
         * @example
             var a = ['a', 'b'];
-            var b = $.Array.add(a, 'c');
+            var b = $Array.add(a, 'c');
             console.dir(a); //结果没变，仍为 ['a', 'b']
             console.dir(b); //结果为 ['a', 'b', 'c'];
     
@@ -1543,340 +1589,6 @@ define('Array', function (require, module, exports) {
 
 
 
-    });
-
-});
-
-
-define('Array.prototype', function (require, module, exports) {
-
-
-    var $ = require('$');
-    var $Array = require('Array');
-
-    function init(array) {
-        this.value = $Array.parse(array);
-    }
-
-
-    module.exports =
-    init.prototype =
-    $Array.prototype = { /**@inner*/
-
-        constructor: $Array,
-        init: init,
-
-        value: [],
-
-        toString: function (separator) {
-            separator = separator === undefined ? '' : separator;
-            return this.value.join(separator);
-        },
-
-        valueOf: function () {
-            return this.value;
-        },
-
-
-        each: function (fn, isReversed) {
-            var args = $.concat([this.value], arguments);
-            $Array.each.apply(null, args);
-            return this;
-        },
-
-
-        toObject: function (maps) {
-            var args = $.concat([this.value], arguments);
-            return $Array.toObject.apply(null, args);
-        },
-
-
-        map: function (fn) {
-            var args = $.concat([this.value], arguments);
-            $Array.map.apply(null, args);
-            return this;
-        },
-
-        keep: function (fn) {
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.keep.apply(null, args);
-            return this;
-        },
-
-
-        grep: function (fn) {
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.grep.apply(null, args);
-            return this;
-        },
-
-
-        indexOf: function (item) {
-            var args = $.concat([this.value], arguments);
-            return $Array.indexOf(this.value, item);
-        },
-
-
-        contains: function (item) {
-            return $Array.contains(this.value, item);
-        },
-
-
-        remove: function (target) {
-            this.value = $Array.remove(this.value, target);
-            return this;
-        },
-
-
-        removeAt: function (index) {
-            this.value = $Array.removeAt(this.value, index);
-            return this;
-        },
-
-
-        reverse: function () {
-            this.value = $Array.reverse(this.value);
-            return this;
-        },
-
-
-        merge: function () {
-
-            //其实是想执行 MiniQuery.Array.merge(this.value, arguments[0], arguments[1], …);
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.merge.apply(null, args);
-
-            return this;
-        },
-
-
-        mergeUnique: function () {
-            //其实是想执行 MiniQuery.Array.mergeUnique(this.value, arguments[0], arguments[1], …);
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.mergeUnique.apply(null, args);
-
-            return this;
-        },
-
-
-        unique: function () {
-
-            this.value = $Array.unique(this.value);
-            return this;
-        },
-
-
-        toggle: function (item) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.toggle.apply(null, args);
-
-            return this;
-        },
-
-
-        find: function (fn, startIndex) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.find.apply(null, args);
-        },
-
-
-        findIndex: function (fn, startIndex) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.findIndex.apply(null, args);
-        },
-
-
-        findItem: function (fn, startIndex) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.findItem.apply(null, args);
-        },
-
-
-        random: function () {
-            this.value = $Array.random(this.value);
-            return this;
-        },
-
-
-        randomItem: function () {
-            return $Array.randomItem(this.value);
-        },
-
-
-        get: function (index) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.get.apply(null, args);
-        },
-
-
-        trim: function () {
-
-            this.value = $Array.trim(this.value);
-
-            return this;
-        },
-
-
-        group: function (size, isPadRight) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.group.apply(null, args);
-
-            return this;
-        },
-
-
-        slide: function (windowSize, stepSize) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.slide.apply(null, args);
-
-            return this;
-        },
-
-
-        circleSlice: function (startIndex, size) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.circleSlice.apply(null, args);
-
-            return this;
-        },
-
-
-        circleSlide: function (windowSize, stepSize) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.circleSlide.apply(null, args);
-
-            return this;
-        },
-
-
-        sum: function (ignoreNaN, key) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.sum.apply(null, args);
-        },
-
-
-        max: function (ignoreNaN, key) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.max.apply(null, args);
-        },
-
-
-        hasItem: function () {
-            return $Array.hasItem(this.value);
-        },
-
-
-        reduceDimension: function (count) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.reduceDimension.apply(null, args);
-
-            return this;
-        },
-
-        //注意：
-        //  $.Array(A).descartes(B, C) 并不等于
-        //  $.Array(A).descartes(B).descartes(C) 中的结果
-
-        descartes: function () {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.descartes.apply(null, args);
-
-            return this;
-        },
-
-
-        divideDescartes: function (sizes) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.divideDescartes.apply(null, args);
-
-            return this;
-        },
-
-
-        transpose: function () {
-
-            this.value = $Array.transpose(this.value);
-
-            return this;
-        },
-
-
-
-        //注意：
-        // $.Array(a).intersection(b, c) 等于
-        // $.Array(a).intersection(b).intersection(c)
-
-        intersection: function () {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.intersection.apply(null, args);
-
-            return this;
-        },
-
-
-        equals: function (array, fn) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.equals.apply(null, args);
-        },
-
-
-        isContained: function (B) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Array.isContained.apply(null, args);
-        },
-
-
-        padLeft: function (totalLength, paddingItem) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.padLeft.apply(null, args);
-
-            return this;
-        },
-
-
-        padRight: function (totalLength, paddingItem) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $Array.padRight.apply(null, args);
-
-            return this;
-        },
-
-
-        pad: function (start, end, step) {
-
-            var args = $.toArray(arguments);
-            this.value = $Array.pad.apply(null, args);
-
-            return this;
-        }
     };
 
 });
@@ -1884,21 +1596,11 @@ define('Array.prototype', function (require, module, exports) {
 
 /**
 * Boolean 工具类
-* @class
-* @param {Object} b 要进行进换的值，可以是任何类型。
-* @return {MiniQuery.Boolean} 返回一个 MiniQuery.Boolean 的实例。
+* @namespace
 */
 define('Boolean', function (require, module, exports) {
 
-    var $ = require('$');
-
-    exports = function (b) {
-        var prototype = require('Boolean.prototype');
-        return new prototype.init(b);
-    };
-
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Boolean */
+    module.exports = exports = { /**@lends MiniQuery.Boolean */
 
         /**
         * 解析指定的参数为 bool 值。
@@ -1907,32 +1609,29 @@ define('Boolean', function (require, module, exports) {
         * @param {Object} arg 要进行进换的值，可以是任何类型。
         * @return {boolean} 返回一个 bool 值。
         * @example
-            $.Boolean.parse(null); //false;
-            $.Boolean.parse('null'); //false;
-            $.Boolean.parse(undefined); //false;
-            $.Boolean.parse('undefined'); //false;
-            $.Boolean.parse(0); //false;
-            $.Boolean.parse('0'); //false;
-            $.Boolean.parse(NaN); //false;
-            $.Boolean.parse('NaN'); //false;
-            $.Boolean.parse(false); //false;
-            $.Boolean.parse('false'); //false;
-            $.Boolean.parse(''); //false;
-            $.Boolean.parse(true); //true;
-            $.Boolean.parse({}); //true;
+            $Boolean.parse(null); //false;
+            $Boolean.parse('null'); //false;
+            $Boolean.parse(undefined); //false;
+            $Boolean.parse('undefined'); //false;
+            $Boolean.parse(0); //false;
+            $Boolean.parse('0'); //false;
+            $Boolean.parse(NaN); //false;
+            $Boolean.parse('NaN'); //false;
+            $Boolean.parse(false); //false;
+            $Boolean.parse('false'); //false;
+            $Boolean.parse(''); //false;
+            $Boolean.parse(true); //true;
+            $Boolean.parse({}); //true;
         */
         parse: function (arg) {
-            if (!arg) // null、undefined、0、NaN、false、''
-            {
+            if (!arg) {// null、undefined、0、NaN、false、''
                 return false;
             }
 
             if (typeof arg == 'string' || arg instanceof String) {
                 var reg = /^(false|null|undefined|0|NaN)$/g;
-
                 return !reg.test(arg);
             }
-
 
             return true;
         },
@@ -1944,19 +1643,19 @@ define('Boolean', function (require, module, exports) {
         * @param {Object} 要进行转换的值，可以是任何类型。
         * @return {int} 返回一个整型值 0 或 1。
         * @example
-            $.Boolean.toInt(null); //0;
-            $.Boolean.toInt('null'); //0;
-            $.Boolean.toInt(undefined); //0;
-            $.Boolean.toInt('undefined'); //0;
-            $.Boolean.toInt(0); //0;
-            $.Boolean.toInt('0'); //0;
-            $.Boolean.toInt(NaN); //0;
-            $.Boolean.toInt('NaN'); //0;
-            $.Boolean.toInt(false); //0;
-            $.Boolean.toInt('false'); //0;
-            $.Boolean.toInt(''); //0;
-            $.Boolean.toInt(true); //1;
-            $.Boolean.toInt({}); //1;
+            $Boolean.toInt(null); //0;
+            $Boolean.toInt('null'); //0;
+            $Boolean.toInt(undefined); //0;
+            $Boolean.toInt('undefined'); //0;
+            $Boolean.toInt(0); //0;
+            $Boolean.toInt('0'); //0;
+            $Boolean.toInt(NaN); //0;
+            $Boolean.toInt('NaN'); //0;
+            $Boolean.toInt(false); //0;
+            $Boolean.toInt('false'); //0;
+            $Boolean.toInt(''); //0;
+            $Boolean.toInt(true); //1;
+            $Boolean.toInt({}); //1;
         */
         toInt: function (arg) {
             return exports.parse(arg) ? 1 : 0;
@@ -1967,19 +1666,19 @@ define('Boolean', function (require, module, exports) {
         * @param {Object} 要进行反转的值，可以是任何类型。
         * @return {int} 返回一个 bool 值。
         * @example
-            $.Boolean.reverse(null); //true;
-            $.Boolean.reverse('null'); //true;
-            $.Boolean.reverse(undefined); //true;
-            $.Boolean.reverse('undefined'); //true;
-            $.Boolean.reverse(0); //true;
-            $.Boolean.reverse('0'); //true;
-            $.Boolean.reverse(NaN); //true;
-            $.Boolean.reverse('NaN'); //true;
-            $.Boolean.reverse(false); //true;
-            $.Boolean.reverse('false'); //true;
-            $.Boolean.reverse(''); //true;
-            $.Boolean.reverse(true); //false;
-            $.Boolean.reverse({}); //false;
+            $Boolean.reverse(null); //true;
+            $Boolean.reverse('null'); //true;
+            $Boolean.reverse(undefined); //true;
+            $Boolean.reverse('undefined'); //true;
+            $Boolean.reverse(0); //true;
+            $Boolean.reverse('0'); //true;
+            $Boolean.reverse(NaN); //true;
+            $Boolean.reverse('NaN'); //true;
+            $Boolean.reverse(false); //true;
+            $Boolean.reverse('false'); //true;
+            $Boolean.reverse(''); //true;
+            $Boolean.reverse(true); //false;
+            $Boolean.reverse({}); //false;
         */
         reverse: function (arg) {
             return !exports.parse(arg);
@@ -1989,65 +1688,15 @@ define('Boolean', function (require, module, exports) {
         * 产生一个随机布尔值。
         * @return {boolean} 返回一个随机的 true 或 false。
         * @example
-            $.Boolean.random();
+            $Boolean.random();
         */
         random: function () {
             return !!Math.floor(Math.random() * 2); //产生随机数 0 或 1
         }
-    });
-
-});
-
-
-
-define('Boolean.prototype', function (require, module, exports) {
-
-
-    var $ = require('$');
-    var $Boolean = require('Boolean');
-
-
-    function init(b) {
-        this.value = $Boolean.parse(b);
-    }
-
-    
-    module.exports =
-    init.prototype =
-    $Boolean.prototype = { /**@inner*/
-
-        constructor: $Boolean,
-        init: init,
-
-        value: false,
-
-        valueOf: function () {
-            return this.value;
-        },
-
-
-        toString: function () {
-            return this.value.toString();
-        },
-
-
-        toInt: function () {
-            return this.value ? 1 : 0;
-        },
-
-
-        reverse: function () {
-            this.value = !this.value;
-            return this;
-        },
-
-        random: function () {
-            this.value = $Boolean.random();
-            return;
-        }
     };
 
 });
+
 
 
 /**
@@ -2056,20 +1705,51 @@ define('Boolean.prototype', function (require, module, exports) {
 */
 define('Date', function (require, module, exports) {
 
-    var $ = require('$');
+    function getDateItem(s) {
+        var now = new Date();
 
-    exports = function (date) {
-        var prototype = require('Date.prototype');
-        return new prototype.init(date);
-    };
+        var separator =
+                s.indexOf('.') > 0 ? '.' :
+                s.indexOf('-') > 0 ? '-' :
+                s.indexOf('/') > 0 ? '/' :
+                s.indexOf('_') > 0 ? '_' : null;
 
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Date */
+        if (!separator) {
+            return null;
+        }
+
+        var ps = s.split(separator);
+
+        return {
+            'yyyy': ps[0],
+            'MM': ps[1] || 0,
+            'dd': ps[2] || 1
+        };
+    }
+
+    function getTimeItem(s) {
+        var separator = s.indexOf(':') > 0 ? ':' : null;
+        if (!separator) {
+            return null;
+        }
+
+        var ps = s.split(separator);
+
+        return {
+            'HH': ps[0] || 0,
+            'mm': ps[1] || 0,
+            'ss': ps[2] || 0
+        };
+    }
+
+
+    module.exports = exports = { /**@lends MiniQuery.Date */
 
         /**
         * 获取当前系统时间。
         * @return 返回当前系统时间实例。
         * @example
-            $.Date.now();
+            $Date.now();
         */
         now: function () {
             return new Date();
@@ -2077,39 +1757,29 @@ define('Date', function (require, module, exports) {
 
         /**
         * 把参数 value 解析成等价的日期时间实例。
-        * 当无法解析时，返回 null。
         * @param {Date|string} value 要进行解析的参数，可接受的类型为：
-        *   1.Date 实例<br />
-        *   2.string 字符串，包括调用 Date 实例的 toString 方法得到的字符串，也包括以下格式: 
-            <pre>
+        *   1.Date 实例
+        *   2.string 字符串，包括调用 Date 实例的 toString 方法得到的字符串；也包括以下格式: 
                 yyyy-MM-dd
                 yyyy.MM.dd
                 yyyy/MM/dd
                 yyyy_MM_dd
-                    
                 HH:mm:ss
-                    
                 yyyy-MM-dd HH:mm:ss
                 yyyy.MM.dd HH:mm:ss
                 yyyy/MM/dd HH:mm:ss
                 yyyy_MM_dd HH:mm:ss
-            </pre>
         * @return 返回一个日期时间的实例。
+            如果解析失败，则返回 null。
         * @example
-            $.Date.parse('2013-04-29 09:31:20');
+            $Date.parse('2013-04-29 09:31:20');
         */
         parse: function (value) {
             if (value instanceof Date) {
-                if (isNaN(value.getTime())) {
-                    //throw new Error('参数是非法的日期实例');
-                    return null;
-                }
-
-                return value;
+                return isNaN(value.getTime()) ? null : value;
             }
 
             if (typeof value != 'string') {
-                //throw new Error('不支持该类型的参数：' + typeof value);
                 return null;
             }
 
@@ -2121,106 +1791,58 @@ define('Date', function (require, module, exports) {
             }
 
             /*
-                自定义方式：
-                    yyyy-MM-dd
-                    yyyy.MM.dd
-                    yyyy/MM/dd
-                    yyyy_MM_dd
-                    
-                    HH:mm:ss
-                    
-                    yyyy-MM-dd HH:mm:ss
-                    yyyy.MM.dd HH:mm:ss
-                    yyyy/MM/dd HH:mm:ss
-                    yyyy_MM_dd HH:mm:ss
+             自定义方式：
+                yyyy-MM-dd
+                yyyy.MM.dd
+                yyyy/MM/dd
+                yyyy_MM_dd
+                HH:mm:ss
+                yyyy-MM-dd HH:mm:ss
+                yyyy.MM.dd HH:mm:ss
+                yyyy/MM/dd HH:mm:ss
+                yyyy_MM_dd HH:mm:ss
                     
             */
 
-            function GetDate(s) {
-                var now = new Date();
-
-                var separator =
-                        s.indexOf('.') > 0 ? '.' :
-                        s.indexOf('-') > 0 ? '-' :
-                        s.indexOf('/') > 0 ? '/' :
-                        s.indexOf('_') > 0 ? '_' : null;
-
-                if (!separator) {
-                    //throw new Error('无法识别的日期格式：' + s);
-                    return null;
-
-                }
-
-                var ps = s.split(separator);
-
-                return {
-                    yyyy: ps[0],
-                    MM: ps[1] || 0,
-                    dd: ps[2] || 1
-                };
-            }
-
-            function GetTime(s) {
-                var separator = s.indexOf(':') > 0 ? ':' : null;
-                if (!separator) {
-                    //throw new Error('无法识别的时间格式：' + s);
-                    return null;
-
-                }
-
-                var ps = s.split(separator);
-
-                return {
-                    HH: ps[0] || 0,
-                    mm: ps[1] || 0,
-                    ss: ps[2] || 0
-                };
-            }
-
-
             var parts = value.split(' ');
-            if (!parts[0]) {
-                //throw new Error('无法识别的格式：' + value);
+            var left = parts[0];
+
+            if (!left) {
                 return null;
-
             }
 
-            var date = parts[0].indexOf(':') > 0 ? null : parts[0];
-            var time = parts[0].indexOf(':') > 0 ? parts[0] : (parts[1] || null);
+            //冒号只能用在时间的部分，而不能用在日期部分
+            var date = left.indexOf(':') > 0 ? null : left;
+            var time = date ? (parts[1] || null) : date;
 
-            if (date || time) {
-                if (date && time) {
-                    var d = GetDate(date);
-                    var t = GetTime(time);
-                    return new Date(d.yyyy, d.MM - 1, d.dd, t.HH, t.mm, t.ss);
-                }
-
-                if (date) {
-                    var d = GetDate(date);
-                    return new Date(d.yyyy, d.MM - 1, d.dd);
-                }
-
-                if (time) {
-                    var now = new Date();
-                    var t = GetTime(time);
-                    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), t.HH, t.mm, t.ss);
-                }
+            if (!date && !time) { //既没指定日期部分，也没指定时间部分
+                return null;
             }
 
-            //throw new Error('无法识别的格式：' + value);
-            return null;
 
+            if (date && time) {
+                var d = getDateItem(date);
+                var t = getTimeItem(time);
+                return new Date(d.yyyy, d.MM - 1, d.dd, t.HH, t.mm, t.ss);
+            }
 
+            if (date) {
+                var d = getDateItem(date);
+                return new Date(d.yyyy, d.MM - 1, d.dd);
+            }
 
-
+            if (time) {
+                var now = new Date();
+                var t = getTimeItem(time);
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate(), t.HH, t.mm, t.ss);
+            }
+            
         },
 
         /**
         * 把日期时间格式化指定格式的字符串。
         * @param {Date} datetime 要进行格式化的日期时间。
-        * @param {string} formater 格式化的字符串。<br />
-            其中保留的占位符有：
-        <pre>
+        * @param {string} formater 格式化的字符串。 其中保留的占位符有：
             'yyyy': 4位数年份
             'yy': 2位数年份
             'MM': 2位数的月份(01-12)
@@ -2240,11 +1862,10 @@ define('Date', function (require, module, exports) {
             't': 上午：'A'；下午: 'P'
             'TT': 上午： '上午'； 下午: '下午'
             'T': 上午： '上'； 下午: '下'
-        </pre>
         * @return {string} 返回一个格式化的字符串。
         * @example
             //返回当前时间的格式字符串，类似 '2013年4月29日 9:21:59 星期一'
-            $.Date.format(new Date(), 'yyyy年M月d日 h:m:s dddd')
+            $Date.format(new Date(), 'yyyy年M月d日 h:m:s dddd')
         */
         format: function (datetime, formater) {
 
@@ -2289,65 +1910,54 @@ define('Date', function (require, module, exports) {
 
 
             var s = formater;
-
             var replaceAll = $String.replaceAll;
-            for (var i = 0, len = maps.length; i < len; i++) {
 
+            for (var i = 0, len = maps.length; i < len; i++) {
                 var item = maps[i];
                 s = replaceAll(s, item[0], item[1]);
             }
 
             return s;
-
         },
 
         /**
         * 将指定的年份数加到指定的 Date 实例上。
-        * @param {Date} [datetime=new Date()] 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的年份数。可以为正数，也可以为负数。
         * @return {Date} 返回一个新的日期实例。
-            此方法不更改参数 datetime 的值。而是返回一个新的 Date，其值是此运算的结果。
+            此方法不更改参数 datetime 的值。 而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addYear(new Date(), 5); //假如当前时间是2013年，则返回的日期实例的年份为2018
-            $.Date.addYear(-5);//假如当前时间是2013年，则返回的日期实例的年份为2008
+            $Date.addYear(new Date(), 5); //假如当前时间是2013年，则返回的日期实例的年份为2018
         */
         addYears: function (datetime, value) {
-
             value = value * 12;
             return exports.addMonths(datetime, value);
         },
 
         /**
         * 将指定的月份数加到指定的 Date 实例上。
-        * @param {Date} [datetime=new Date()] 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的月份数。可以为正数，也可以为负数。
         * @return {Date} 返回一个新的日期实例。
             此方法不更改参数 datetime 的值。而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addMonths(new Date(), 15); //给当前时间加上15个月
+            $Date.addMonths(new Date(), 15); //给当前时间加上15个月
         */
         addMonths: function (datetime, value) {
-            //重载 addMonths( value )
-            if (!(datetime instanceof Date)) {
-                value = datetime;
-                datetime = new Date(); //默认为当前时间
-            }
-
             var dt = new Date(datetime);//新建一个副本，避免修改参数
             dt.setMonth(datetime.getMonth() + value);
-
             return dt;
         },
 
 
         /**
         * 将指定的周数加到指定的 Date 实例上。
-        * @param {Date} datetime 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的周数。可以为正数，也可以为负数。
         * @return {Date} 返回一个新的日期实例。
             此方法不更改参数 datetime 的值。 而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addWeeks(new Date(), 3); //给当前时间加上3周
+            $Date.addWeeks(new Date(), 3); //给当前时间加上3周
         */
         addWeeks: function (datetime, value) {
             value = value * 7;
@@ -2356,310 +1966,80 @@ define('Date', function (require, module, exports) {
 
         /**
         * 将指定的天数加到指定的 Date 实例上。
-        * @param {Date} datetime 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的天数。可以为正数，也可以为负数。
-        * @return {Date} 返回一个新的日期实例。。<br />
+        * @return {Date} 返回一个新的日期实例。。
             此方法不更改参数 datetime 的值。而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addDays(new Date(), 35); //给当前时间加上35天
+            $Date.addDays(new Date(), 35); //给当前时间加上35天
         */
         addDays: function (datetime, value) {
-            //重载 addDays( value )
-            if (!(datetime instanceof Date)) {
-                value = datetime;
-                datetime = new Date(); //默认为当前时间
-            }
-
             var dt = new Date(datetime);//新建一个副本，避免修改参数
             dt.setDate(datetime.getDate() + value);
-
             return dt;
         },
 
         /**
         * 将指定的小时数加到指定的 Date 实例上。
-        * @param {Date} datetime 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的小时数。可以为正数，也可以为负数。
-        * @return {Date} 返回一个新的日期实例。<br />
+        * @return {Date} 返回一个新的日期实例。
             此方法不更改参数 datetime 的值。而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addHours(new Date(), 35); //给当前时间加上35小时
+            $Date.addHours(new Date(), 35); //给当前时间加上35小时
         */
         addHours: function (datetime, value) {
-            //重载 addHours( value )
-            if (!(datetime instanceof Date)) {
-                value = datetime;
-                datetime = new Date(); //默认为当前时间
-            }
-
             var dt = new Date(datetime);//新建一个副本，避免修改参数
             dt.setHours(datetime.getHours() + value);
-
             return dt;
         },
 
         /**
         * 将指定的分钟数加到指定的 Date 实例上。
-        * @param {Date} datetime 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的分钟数。可以为正数，也可以为负数。
-        * @return {Date} 返回一个新的日期实例。<br />
+        * @return {Date} 返回一个新的日期实例。
             此方法不更改参数 datetime 的值。而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addMinutes(new Date(), 90); //给当前时间加上90分钟
+            $Date.addMinutes(new Date(), 90); //给当前时间加上90分钟
         */
         addMinutes: function (datetime, value) {
-            //重载 addMinutes( value )
-            if (!(datetime instanceof Date)) {
-                value = datetime;
-                datetime = new Date(); //默认为当前时间
-            }
-
             var dt = new Date(datetime);//新建一个副本，避免修改参数
             dt.setMinutes(datetime.getMinutes() + value);
-
             return dt;
         },
 
         /**
         * 将指定的秒数加到指定的 Date 实例上。
-        * @param {Date} datetime 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的秒数。可以为正数，也可以为负数。
-        * @return {Date} 返回一个新的日期实例。<br />
+        * @return {Date} 返回一个新的日期实例。
             此方法不更改参数 datetime 的值。而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addSeconds(new Date(), 90); //给当前时间加上90秒
+            $Date.addSeconds(new Date(), 90); //给当前时间加上90秒
         */
         addSeconds: function (datetime, value) {
-            //重载 addSeconds( value )
-            if (!(datetime instanceof Date)) {
-                value = datetime;
-                datetime = new Date(); //默认为当前时间
-            }
-
             var dt = new Date(datetime);//新建一个副本，避免修改参数
             dt.setSeconds(datetime.getSeconds() + value);
-
             return dt;
         },
-
-
 
         /**
         * 将指定的毫秒数加到指定的 Date 实例上。
-        * @param {Date} datetime 要进行操作的日期时间，如果不指定则默认为当前时间。
+        * @param {Date} datetime 要进行操作的日期时间实例。
         * @param {Number} value 要增加/减少的毫秒数。可以为正数，也可以为负数。
-        * @return {Date} 返回一个新的日期实例。<br />
+        * @return {Date} 返回一个新的日期实例。
             此方法不更改参数 datetime 的值。而是返回一个新的 Date，其值是此运算的结果。
         * @example
-            $.Date.addMilliseconds(new Date(), 2000); //给当前时间加上2000毫秒
+            $Date.addMilliseconds(new Date(), 2000); //给当前时间加上2000毫秒
         */
         addMilliseconds: function (datetime, value) {
-            //重载 addMilliseconds( value )
-            if (!(datetime instanceof Date)) {
-                value = datetime;
-                datetime = new Date(); //默认为当前时间
-            }
-
             var dt = new Date(datetime);//新建一个副本，避免修改参数
             dt.setMilliseconds(datetime.getMilliseconds() + value);
-
             return dt;
         }
 
-    });
-
-});
-
-
-
-define('Date.prototype', function (require, module, exports) {
-
-    var $Date = require('Date');
-
-
-    function init(date) {
-
-        // 注意 Date(xxx)只返回一个 string，而不是一个 Date 实例。
-        this.value = date === undefined ?
-            new Date() :        //未指定参数，则使用当前日期时间
-            $Date.parse(date);  //把参数解析成日期时间
-    }
-
-
-    module.exports =
-    init.prototype =
-    $Date.prototype = { /**@inner*/
-
-        constructor: $Date,
-        init: init,
-
-        value: new Date(),
-
-
-        valueOf: function () {
-            return this.value;
-        },
-
-
-        toString: function (formater) {
-            return $Date.format(this.value, formater);
-        },
-
-
-        format: function (formater) {
-            return $Date.format(this.value, formater);
-        },
-
-
-        addYears: function (value) {
-            this.value = $Date.addYears(this.value, value);
-            return this;
-        },
-
-        addMonths: function (value) {
-            this.value = $Date.addMonths(this.value, value);
-            return this;
-        },
-
-        addDays: function (value) {
-            this.value = $Date.addDays(this.value, value);
-            return this;
-        },
-
-        addHours: function (value) {
-            this.value = $Date.addHours(this.value, value);
-            return this;
-        },
-
-        addMinutes: function (value) {
-            this.value = $Date.addMinutes(this.value, value);
-            return this;
-        },
-
-        addSeconds: function (value) {
-            this.value = $Date.addSeconds(this.value, value);
-            return this;
-        },
-
-        addMilliseconds: function (value) {
-            this.value = $Date.addMilliseconds(this.value, value);
-            return this;
-        }
     };
-
-
-});
-
-
-
-/**
-* 函数工具
-* @namespace
-*/
-define('Function', function (require, module, exports) {
-
-
-    module.exports = exports = { /**@lends MiniQuery.Function*/
-
-        /**
-        * 定义一个通用的空函数。
-        * 实际使用中应该把它当成只读的，而不应该对它进行赋值。
-        * @return 返回一个空函数，不执行任何操作。
-        */
-        empty: function () {
-        },
-
-        /**
-        * 把函数绑定到指定的对象上，从而该函数内部的 this 指向该对象。
-        * @param {Object} obj 要绑定的对象，即 this 要指向的对象
-        * @param {function} fn 要绑定的函数，内部的 this 指向 obj
-        * @return {function} 返回一个新的函数。
-        * @example
-            var p = { msg: 'hi js' };
-            var obj = {
-                msg: 'hello',
-                hi: function(a, b, c) {
-                    console.log(this.msg); // 'hi js'
-                    console.log(a, b, c);
-                }
-            };
-            $.Function.bind(p, obj.hi, 1, 2)(3); //传递附加参数
-            $.Function.bind(p, obj.hi)(4, 5, 6); //传递附加参数
-        */
-        bind: function (obj, fn) {
-
-            var args = Array.prototype.slice.call(arguments, 2); //通过 bind 传进来的参数(除了 obj 和 fn)
-
-            return function () {
-                var list = Array.prototype.slice.call(arguments, 0); //return 的这个函数传进来的参数
-                list = args.concat(list); //合并外层的，即 bind 传进来的参数
-                fn.apply(obj, list);
-            }
-        },
-
-        /**
-        * 间隔执行函数。
-        * 该方法用 setTimeout 的方式实现间隔执行，可以指定要执行的次数。
-        * 在回调函数中，会接收到当次执行次数。
-        * @param {function} fn 要执行的函数。该函数的参数中会接收到当前的执行次数
-        * @param {number|int} delay 时间间隔，单位为毫秒。
-        * @param {number|int} [count] 要执行的次数，如果指定了，则在执行到该次数后自动停止。
-        * @example
-            //每隔 500ms执行一次，最多执行 23 次
-            $.Function.setInterval(function(index) {
-                console.log('A: ', index);
-            }, 500, 23);
-                
-            //每隔 200ms 执行一次，当次数达到 15 以上时，停止
-            $.Function.setInterval(function(index) {
-                console.log('B: ', index);
-                if(index >=15) {
-                    return null; //返回 null 以停止
-                }
-                    
-            }, 200);
-        */
-        setInterval: function (fn, delay, count) {
-
-            //把每个传进来的函数当作一个 cache，而不是缓存在 arguments.callee，
-            //因为是静态的，这样可以避免多个并发调用作产生混乱。
-            var cache = fn;
-            var next = arguments.callee;
-            var key = '__MiniQuery.Funcion.setInterval.count__'; //一个私有的变量，尽可能不干扰原有的 fn
-            cache[key] = (cache[key] || 0) + 1;
-
-            var id = setTimeout(function () {
-
-                var value = fn(cache[key]);
-
-                if (value === null) {
-                    clearTimeout(id);
-                    return;
-                }
-
-                if (count === undefined || cache[key] < count) { //未传入 count 或 未达到指定次数
-                    next(fn, delay, count);
-                }
-
-            }, delay);
-
-        },
-
-        debounce: function (fn, delay) {
-
-            var timeoutId = null;
-
-            return function () {
-
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(fn, delay);
-            }
-
-        }
-
-
-    };
-
 
 });
 
@@ -2681,18 +2061,21 @@ define('Math', function (require, module, exports) {
         * @return 返回一个整数。<br />
             当不指定任何参数时，则用 Math.random() 产生一个已移除了小数点的随机整数。
         * @example
-            $.Math.randomInt(100, 200); //产生一个区间为 [100, 200] 的随机整数。
-            $.Math.randomInt(100); //产生一个区间为 [0, 200] 的随机整数。
-            $.Math.randomInt(); //产生一个随机整数。
+            $Math.randomInt(100, 200); //产生一个区间为 [100, 200] 的随机整数。
+            $Math.randomInt(100); //产生一个区间为 [0, 200] 的随机整数。
+            $Math.randomInt(); //产生一个随机整数。
         */
         randomInt: function (minValue, maxValue) {
-            if (minValue === undefined && maxValue === undefined) { // 此时为  Math.randomInt()
 
+            var len = arguments.length;
+
+            if (len == 0) { //重载 Math.randomInt()
                 //先称除小数点，再去掉所有前导的 0，最后转为 number
                 return Number(String(Math.random()).replace('.', '').replace(/^0*/g, ''));
             }
-            else if (maxValue === undefined) {
-                maxValue = minValue;    //此时相当于 Math.randomInt(minValue)
+
+            if (len == 1) { //重载 Math.randomInt(maxValue)
+                maxValue = minValue;    
                 minValue = 0;
             }
 
@@ -2747,14 +2130,19 @@ define('Math', function (require, module, exports) {
             如果解析失败，则返回 NaN。
         */
         parsePercent: function (v) {
-
-            var $String = require('String');
-
-            if (typeof v == 'string' && $String(v).trim().endsWith('%')) {
-                return parseInt(v) / 100;
+            if (typeof v != 'string') {
+                return v;
             }
 
-            return v;
+            var $String = require('String');
+            var s = $String.trim(v);
+
+            if (s.slide(-1) != '%') {
+                return v;
+            }
+
+            return parseFloat(s) / 100;
+           
         }
 
     };
@@ -2762,34 +2150,16 @@ define('Math', function (require, module, exports) {
 });
 
 
-
-/**
-* @fileOverview 对象工具
-*/
-
-
-
 /**
 * 对象工具
-* @class
-* @param {Object} obj 要进行包装的对象
-* @return {MiniQuery.Object} 返回一个经过包装后的 MiniQuery.Object 对象
-* @example
-    $.Object( {a:1, b:2} );
-或  new $.Object( {a:1, b:2} );
+* @namespace
 */
-
 define('Object', function (require, module, exports) {
 
     var $ = require('$');
 
 
-    exports = function (obj) {
-        var prototype = require('Object.prototype');
-        return new prototype.init(obj);
-    };
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Object */
+    module.exports = exports = { /**@lends MiniQuery.Object */
 
         /**
         * 用一个或多个其他对象来扩展一个对象，返回被扩展的对象。
@@ -2802,14 +2172,10 @@ define('Object', function (require, module, exports) {
             如果只有一个参数，则直接返回该参数。
             否则：把第二个参数到最后一个参数的成员拷贝到第一个参数对应中去，并返回第一个参数。
         * @example 
-            var obj = {
-                a: 1, 
-                b: 2
-            };
-            var obj2 = $.Object.extend(obj, {b:3}, {c:4});
+            var obj = { a: 1,  b: 2 };
+            var obj2 = $Object.extend(obj, {b:3}, {c:4});
             //结果：
             obj = {a:1, b:3, c:4}; 
-            //并且 
             obj === obj2 //为 true
         */
         extend: $.extend,
@@ -2902,7 +2268,7 @@ define('Object', function (require, module, exports) {
         * @return {Object|Array} 克隆后的对象或数组。
         * @example
             var obj = {a: 1, b: 2, c: {a: 10, b: 20} };
-            var obj2 = $.Object.clone( obj );
+            var obj2 = $Object.clone( obj );
             console.dir( obj2 );          //与 obj 一致
             console.log( obj2 === obj );  //false
         */
@@ -2975,7 +2341,7 @@ define('Object', function (require, module, exports) {
                 } 
             };
 
-            $.Object.each(obj, function(key, value) {
+            $Object.each(obj, function(key, value) {
                 console.log(key, ': ', value);
             }, true);
         输出：
@@ -3009,19 +2375,19 @@ define('Object', function (require, module, exports) {
         * 获取一个对象的真实类型的字符串描述。
         * @param obj 要检测的对象，可以是任何类型。
         * @return {String} 返回该对象的类型的字符串描述。
-            当参数为 null、undefined 时，返回 null、undefined；<br />
-            当参数为 string、number、boolean 的值类型时，返回 string、number、boolean；<br />
-            否则返回参数的实际类型的字符串描述(构造函数的名称)：<br />
+            当参数为 null、undefined 时，返回 null、undefined；
+            当参数为 string、number、boolean 的值类型时，返回 string、number、boolean；
+            否则返回参数的实际类型的字符串描述(构造函数的名称)：
             如 Array、String、Number、Boolean、Object、Function、RegExp、Date 等
         * @example
-            $.Object.getType();         //'undefined'
-            $.Object.getType(null);     //'null'
-            $.Object.getType('hello');  //'string'
-            $.Object.getType(100);      //'number'
-            $.Object.getType(false);    //'boolean'
-            $.Object.getType({});       //'Object'
-            $.Object.getType(function(){});//'Function'
-            $.Object.getType([0, 1, 2]);   //'Array'
+            $Object.getType();         //'undefined'
+            $Object.getType(null);     //'null'
+            $Object.getType('hello');  //'string'
+            $Object.getType(100);      //'number'
+            $Object.getType(false);    //'boolean'
+            $Object.getType({});       //'Object'
+            $Object.getType(function(){});//'Function'
+            $Object.getType([0, 1, 2]); //'Array'
         */
         getType: function (obj) {
             return obj === null ? 'null' :
@@ -3033,19 +2399,19 @@ define('Object', function (require, module, exports) {
                 typeof obj == 'boolean' ? 'boolean' :
 
                 //处理对象类型、包装类型
-                Object.prototype.toString.call(obj).slice(8, -1); //去掉 "[object" 和 "]"
+                ({}).toString.call(obj).slice(8, -1); //去掉 "[object" 和 "]"
         },
 
         /**
-        * 判断一个对象是否为数组类型。<br />
-        * 注意：如果是跨窗口取得的数组，请使用非严格判断。<br />
+        * 判断一个对象是否为数组类型。
+        * 注意：如果是跨窗口取得的数组，请使用非严格判断。
         * 由于 IE 的兼容性问题，对于跨窗口取得的数组，请在使用其实例方法之前把它转成真正的数组，否则会报错。
         * @param {Object} obj 要进行判断的对象，可以是任何类型
         * @param {boolean} [useStrict] 指定是否要进行严格判断，如果是请传入 true；否则当成非严格判断
         * @return {boolean} 一个判断结果，如果为数组则返回 true；否则返回 false
         * @example
-            $.Object.isArray([]) //true
-            $.Object.isArray({}) //false
+            $Object.isArray([]) //true
+            $Object.isArray({}) //false
         */
         isArray: function (obj, useStrict) {
             if (useStrict === true) { //指定了要严格判断
@@ -3067,8 +2433,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行判断的对象，可以是任何类型。
         * @return {boolean} 一个判断结果，如果为字符串则返回 true；否则返回 false。
         * @example
-            $.Object.isString( new String(100) ) //false
-            $.Object.isString( '100' ) //true
+            $Object.isString( new String(100) ) //false
+            $Object.isString( '100' ) //true
         */
         isString: function (obj) {
             return typeof obj == 'string';
@@ -3079,8 +2445,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行判断的对象，可以是任何类型。
         * @return {boolean} 一个判断结果，如果为数字则返回 true；否则返回 false。
         * @example
-            $.Object.isNumber( new Number(100) ) //false
-            $.Object.isNumber( 100 ) //true
+            $Object.isNumber( new Number(100) ) //false
+            $Object.isNumber( 100 ) //true
         */
         isNumber: function (obj) {
             return typeof obj == 'number';
@@ -3091,8 +2457,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行判断的对象，可以是任何类型。
         * @return {boolean} 一个判断结果，如果为函数则返回 true；否则返回 false。
         * @example
-            $.Object.isFunction([]) //false
-            $.Object.isFunction(function(){}) //true
+            $Object.isFunction([]) //false
+            $Object.isFunction(function(){}) //true
         */
         isFunction: function (obj) {
             return typeof obj == 'function';
@@ -3100,15 +2466,15 @@ define('Object', function (require, module, exports) {
 
 
         /**
-        * 判断一个对象是否为内置类型。<br />
+        * 判断一个对象是否为内置类型。
         * 内置类型是指 String, Number, Boolean, Array, Date, RegExp, Function。
         * @param {Object} obj 要进行判断的对象，可以是任何类型
         * @return {boolean} 一个判断结果，如果为内置类型则返回 true；否则返回 false
         * @example
-            $.Object.isBuiltinType( 100 );   //false
-            $.Object.isBuiltinType( new Number(100) ); //true
-            $.Object.isBuiltinType( {} );    //false
-            $.Object.isBuiltinType( [] );    //true
+            $Object.isBuiltinType( 100 );   //false
+            $Object.isBuiltinType( new Number(100) ); //true
+            $Object.isBuiltinType( {} );    //false
+            $Object.isBuiltinType( [] );    //true
         */
         isBuiltinType: function (obj) {
             var types = [String, Number, Boolean, Array, Date, RegExp, Function];
@@ -3124,18 +2490,18 @@ define('Object', function (require, module, exports) {
 
 
         /**
-        * 检测对象是否是空对象(不包含任何属性)。<br />
-        * 该方法既检测对象本身的属性，也检测从原型继承的属性(因此没有使用 hasOwnProperty )。<br />
+        * 检测对象是否是空对象(不包含任何属性)。
+        * 该方法既检测对象本身的属性，也检测从原型继承的属性(因此没有使用 hasOwnProperty )。
         * 该实现为 jQuery 的版本。
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为空对象则返回 true；否则返回 false
         * @example
-            $.Object.isEmpty( {} );      //true
+            $Object.isEmpty({});      //true
             
             function Person(){ }
             Person.prototype.name = 'abc';
             var p = new Person();
-            $.Object.isEmpty( p );   //false
+            $Object.isEmpty( p );   //false
         */
         isEmpty: function (obj) {
             for (var name in obj) {
@@ -3151,12 +2517,12 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为纯粹的对象则返回 true；否则返回 false
         * @example
-            $.Object.isPlain( {} );             //true
-            $.Object.isPlain( {a: 1, b: {} } );  //true
+            $Object.isPlain( {} );             //true
+            $Object.isPlain( {a: 1, b: {} } );  //true
             
             function Person(){ }
             var p = new Person();
-            $.Object.isPlain( p );   //false
+            $Object.isPlain( p );   //false
         */
         isPlain: function (obj) {
             if (!obj || typeof obj != 'object' /*|| obj.nodeType || exports.isWindow(obj) */) {
@@ -3189,13 +2555,13 @@ define('Object', function (require, module, exports) {
         },
 
         /**
-        * 判断一个对象是否为值类型。<br />
+        * 判断一个对象是否为值类型。
         * 即 typeof 的结果是否为 string、number、boolean 中的一个。
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为 值类型则返回 true；否则返回 false
         * @example
-            $.Object.isValueType(100);              //true
-            $.Object.isValueType( new Number(100) );//false
+            $Object.isValueType(100);              //true
+            $Object.isValueType( new Number(100) );//false
         */
         isValueType: function (obj) {
             //不要用这种，否则在 rhino 的 js 引擎中会不稳定
@@ -3205,17 +2571,17 @@ define('Object', function (require, module, exports) {
         },
 
         /**
-        * 判断一个对象是否为包装类型。<br />
+        * 判断一个对象是否为包装类型。
         * 包装类型是指 String, Number, Boolean 的 new 的实例。
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果包装类型则返回 true；否则返回 false
         * @example
-            console.log( $.Object.isWrappedType(100) ); //false
-            console.log( $.Object.isWrappedType( new Number(100) ) );  //true
-            console.log( $.Object.isWrappedType('abc') );  //false
-            console.log( $.Object.isWrappedType( new String('abc') ) );  //true
-            console.log( $.Object.isWrappedType(true) );  //false
-            console.log( $.Object.isWrappedType( new Boolean(true) ) );  //true
+            console.log( $Object.isWrappedType(100) ); //false
+            console.log( $Object.isWrappedType( new Number(100) ) );  //true
+            console.log( $Object.isWrappedType('abc') );  //false
+            console.log( $Object.isWrappedType( new String('abc') ) );  //true
+            console.log( $Object.isWrappedType(true) );  //false
+            console.log( $Object.isWrappedType( new Boolean(true) ) );  //true
         */
         isWrappedType: function (obj) {
             var types = [String, Number, Boolean];
@@ -3234,14 +2600,14 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果是非空的对象则返回 true；否则返回 false。
         * @example
-            console.log( $.Object.isNonNull( null ) );  //false
-            console.log( $.Object.isNonNull( {} ) );  //true
-            console.log( $.Object.isNonNull(100) ); //false
-            console.log( $.Object.isNonNull( new Number(100) ) );  //true
-            console.log( $.Object.isNonNull('abc') );  //false
-            console.log( $.Object.isNonNull( new String('abc') ) );  //true
-            console.log( $.Object.isNonNull(true) );  //false
-            console.log( $.Object.isNonNull( new Boolean(true) ) );  //true
+            console.log( $Object.isNonNull( null ) );  //false
+            console.log( $Object.isNonNull( {} ) );  //true
+            console.log( $Object.isNonNull(100) ); //false
+            console.log( $Object.isNonNull( new Number(100) ) );  //true
+            console.log( $Object.isNonNull('abc') );  //false
+            console.log( $Object.isNonNull( new String('abc') ) );  //true
+            console.log( $Object.isNonNull(true) );  //false
+            console.log( $Object.isNonNull( new Boolean(true) ) );  //true
         */
         isNonNull: function (obj) {
             if (!obj) { //false、null、undefined、''、NaN、0
@@ -3258,8 +2624,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为 window 窗口则返回 true；否则返回 false
         * @example
-            $.Object.isWindow( {} ); //false
-            $.Object.isWindow(top);  //true
+            $Object.isWindow( {} ); //false
+            $Object.isWindow(top);  //true
         */
         isWindow: function (obj) {
             return obj &&
@@ -3272,8 +2638,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为  document 对象则返回 true；否则返回 false
         * @example
-            $.Object.isDocument( {} );      //false
-            $.Object.isDocument(document);  //true
+            $Object.isDocument( {} );      //false
+            $Object.isDocument(document);  //true
         */
         isDocument: function (obj) {
             return obj &&
@@ -3292,7 +2658,7 @@ define('Object', function (require, module, exports) {
         * @return {Object} 返回一个新的对象，key 仍为原来的 key，value 由回调函数得到
         * @example
             var obj = {a: 1, b: 2, c: {A: 11, B: 22} };
-            var obj2 = $.Object.map(obj, function(key, value) {
+            var obj2 = $Object.map(obj, function(key, value) {
                 return value * 100;
             }, true);
             console.dir(obj2);
@@ -3301,12 +2667,14 @@ define('Object', function (require, module, exports) {
         */
         map: function (obj, fn, isDeep) {
             var map = arguments.callee; //引用自身，用于递归
+            var isPlain = exports.isPlain;
+
             var target = {};
 
             for (var key in obj) {
                 var value = obj[key];
 
-                if (isDeep && exports.isPlain(value)) { //指定了深迭代，并且当前 value 为纯对象
+                if (isDeep && isPlain(value)) { //指定了深迭代，并且当前 value 为纯对象
                     target[key] = map(value, fn, isDeep); //递归
                 }
                 else {
@@ -3326,21 +2694,21 @@ define('Object', function (require, module, exports) {
         * @return {Object} 返回创建后的最内层的命名空间所指的对象
         * @example
             //给 obj 对象创建一个 A.B.C 的命名空间，其值为 {a:1, b:2}
-            $.Object.namespace(obj, 'A.B.C', {a:1, b:2});
+            $Object.namespace(obj, 'A.B.C', {a:1, b:2});
             console.dir( obj.A.B.C ); //结果为 {a:1, b:2}
             
             //给当前的 global 对象创建一个 A.B.C 的命名空间，其值为 {a:1, b:2}
-            $.Object.namespace('A.B.C', {a:1, b:2});
+            $Object.namespace('A.B.C', {a:1, b:2});
             console.dir( A.B.C ); //结果为 {a:1, b:2}
             
-            //给当前的 global 象分别创建一个 $.AA 和 $.BB 的命名空间，其值为分别 source.A 和 source.B
-            $.Object.namespace(source, {
-                'A': '$.AA', //source.AA -> $.A
-                'B': '$.BB'  //source.BB -> $.B
+            //给当前的 global 象分别创建一个 $AA 和 $BB 的命名空间，其值为分别 source.A 和 source.B
+            $Object.namespace(source, {
+                'A': '$AA', //source.AA -> $A
+                'B': '$BB'  //source.BB -> $B
             });
             
             //给 obj 对象分别创建 obj.A 和 obj.B 命名空间，其值分别为  source.A 和 source.B
-            $.Object.namespace(obj, source, ['A', 'B']);
+            $Object.namespace(obj, source, ['A', 'B']);
         * 
         */
         namespace: function (arg0, arg1, arg2) {
@@ -3355,8 +2723,8 @@ define('Object', function (require, module, exports) {
 
                 var isGet = value === undefined; //指示是否为取值操作，当不指定 value 时，则认为是取值操作
 
-                for (var i = 0; i < len; i++) //迭代路径
-                {
+                for (var i = 0; i < len; i++) { //迭代路径
+                
                     var key = list[i];
 
                     //是获取操作，但不存在该级别
@@ -3368,16 +2736,13 @@ define('Object', function (require, module, exports) {
                         obj[key] = obj[key] || {};
                         obj = obj[key]; //为下一轮做准备
                     }
-                    else //最后一项
-                    {
-                        if (value === undefined) //不指定值时，则为获取
-                        {
+                    else { //最后一项
+                        if (value === undefined) { //不指定值时，则为获取
                             return obj[key];
                         }
 
                         //指定了值
                         obj[key] = value; //全量赋值
-
                     }
                 }
 
@@ -3407,12 +2772,12 @@ define('Object', function (require, module, exports) {
             /*
             此时为：
                 exports.namespace(source, {
-                    'Object': '$.Object',   //source.Object -> $.Object
-                    'Array': '$.Array'      //source.Array -> $.Array
+                    'Object': '$Object',   //source.Object -> $Object
+                    'Array': '$Array'      //source.Array -> $Array
                 });
             要实现的功能：
-                $.Object = source.Object;
-                $.Array = source.Array;
+                $Object = source.Object;
+                $Array = source.Array;
             */
             if (exports.isPlain(arg1) && arg2 === undefined) {
                 //换个名称更容易理解
@@ -3509,7 +2874,7 @@ define('Object', function (require, module, exports) {
             当参数 url 非法时，返回空对象 {}。
         * @example
             var url = 'a=1&b=2&c=A%3D100%26B%3D200';
-            var obj = $.Object.parseQueryString(url);
+            var obj = $Object.parseQueryString(url);
         得到 obj = {a: 1, b:2, c: {A: 100, B: 200}};
         */
         parseQueryString: function (url, isShallow, isCompatible) {
@@ -3575,10 +2940,10 @@ define('Object', function (require, module, exports) {
                 c: 3
             };
     
-            var o = $.Object.remove(obj, ['a', 'c']); //移除成员 a 和 c 
+            var o = $Object.remove(obj, ['a', 'c']); //移除成员 a 和 c 
             console.dir(o); //得到 o = { b: 2 };
     
-            o = $.Object.remove(obj, {a: 1, b: 2});
+            o = $Object.remove(obj, {a: 1, b: 2});
             console.dir(o); //得到 o = { c: 3 };
         */
         remove: function (obj, keys) {
@@ -3630,15 +2995,15 @@ define('Object', function (require, module, exports) {
         /**
         * 把一个 Object 对象转成一个数组。
         * @param {Object} obj 要进行转换的对象
-        * @param {Array|boolean|function} [rule=undefined] 转换映射规则。<br />
-        *   当未指定参数 rule 时，则使用 for in 迭代收集 obj 中的值，返回一个一维的值数组；<br />
-        *   当指定参数 rule 为一个数组时，则按 rule 中的顺序迭代收集 obj 中的值，返回一个一维的值的数组；<br />
-        *   当指定参数 rule 为 true 时，则使用 for in 迭代收集 obj 中的名称和值，返回一个[key, value] 的二维数组，<br />
-        *       即该数组中的每一项的第0个元素为名称，第1个元素为值。<br />
-        *   当指定参数 rule 为一个处理函数时，将使用该处理函数的返回值作为收集到数组的值，<br />
-        *       处理函数会接收到两个参数：该对象迭代的 key 和 value。<br />
-        *       当返回值为 null 时，将忽略它（相当于 continue）；<br />
-        *       当返回值为 undefined 时，将停止迭代（相当于 break）；<br />
+        * @param {Array|boolean|function} [rule=undefined] 转换映射规则。
+        *   当未指定参数 rule 时，则使用 for in 迭代收集 obj 中的值，返回一个一维的值数组；
+        *   当指定参数 rule 为一个数组时，则按 rule 中的顺序迭代收集 obj 中的值，返回一个一维的值的数组；
+        *   当指定参数 rule 为 true 时，则使用 for in 迭代收集 obj 中的名称和值，返回一个[key, value] 的二维数组，
+        *       即该数组中的每一项的第0个元素为名称，第1个元素为值。
+        *   当指定参数 rule 为一个处理函数时，将使用该处理函数的返回值作为收集到数组的值，
+        *       处理函数会接收到两个参数：该对象迭代的 key 和 value。
+        *       当返回值为 null 时，将忽略它（相当于 continue）；
+        *       当返回值为 undefined 时，将停止迭代（相当于 break）；
         * @param {boolean} [isDeep=false] 指定是否递归处理。
             若要递归转换，请指定 true；否则请指定 false 或不指定
         * @return 返回一个数组
@@ -3656,16 +3021,16 @@ define('Object', function (require, module, exports) {
                 } 
             };
             
-            var a = $.Object.toArray(obj, null, true);
+            var a = $Object.toArray(obj, null, true);
             console.dir(a);
             
-            var b = $.Object.toArray(obj, ['b', 'c', 'a']);
+            var b = $Object.toArray(obj, ['b', 'c', 'a']);
             console.dir(b);
             
-            var c = $.Object.toArray(obj, true, true);
+            var c = $Object.toArray(obj, true, true);
             console.dir(c);
             
-            var d = $.Object.toArray(obj, function(key, value) {
+            var d = $Object.toArray(obj, function(key, value) {
                 return value + 1000;
             }, true);
             
@@ -3685,14 +3050,12 @@ define('Object', function (require, module, exports) {
 
             // 传进来的是一个 key 数组
             if (rule instanceof Array) {
-                //注意，这里不要用 $.Array.map 来过滤，
+                //注意，这里不要用 $Array.map 来过滤，
                 //因为 map 会忽略掉 null 和 undefined 的值，这是不合适的
-
                 var keys = rule; //换个名称更好理解
                 var a = [];
 
-                for (var i = 0, len = keys.length; i < len; i++) //此时没有深迭代，因为 keys 只用于第一层
-                {
+                for (var i = 0, len = keys.length; i < len; i++) { //此时没有深迭代，因为 keys 只用于第一层
                     var value = obj[keys[i]]; //取得当前 key 所对应的 value
                     a.push(value); // keys[i] -> key -> value
                 }
@@ -3807,8 +3170,8 @@ define('Object', function (require, module, exports) {
         * 把一个对象编码成等价结构的 Url 查询字符串。
         * @param {Object} obj 要进行编码的对象
         * @param {boolean} [isCompatible=false] 
-            指定是否要使用兼容模式进行编码。<br />
-            当需要使用 escape 进行编码时，请指定 true；<br />
+            指定是否要使用兼容模式进行编码。
+            当需要使用 escape 进行编码时，请指定 true；
             否则要使用 encodeURIComponent 进行编码，请指定 false 或不指定。
         * @return {string} 返回一个经过编码的 Url 查询字符串
         * @example
@@ -3820,7 +3183,7 @@ define('Object', function (require, module, exports) {
                 e: undefined,
                 f: ['a', 'b', 'c']
             };
-            var s = $.Object.toQueryString(obj);
+            var s = $Object.toQueryString(obj);
             console.log(s); 
             //结果 a=1&b=2&c=A%3D100%26B%3D200&d=null&e=undefined&f=%5Ba%2C%20b%5D
         */
@@ -3881,7 +3244,7 @@ define('Object', function (require, module, exports) {
                 c: undefined, 
                 d: d
             };
-            var obj2 = $.Object.trim(obj, [null, undefined, '0'], true );
+            var obj2 = $Object.trim(obj, [null, undefined, '0'], true );
             
             console.dir(obj);   //结果没变
             console.dir(obj2);  //结果为 {a: 1, d: {AA: 11}}
@@ -3943,7 +3306,7 @@ define('Object', function (require, module, exports) {
         * 跨浏览器的 Object.create 方法。
         * 该方法会优化使用原生的 Object.create 方法，当不存在时，才使用自己的实现。
         * @example
-            var obj = $.Object.create({
+            var obj = $Object.create({
                 name: 'micty',
                 sayHi: function() {
                     console.log( this.name );
@@ -3990,7 +3353,7 @@ define('Object', function (require, module, exports) {
     
             //或 samples = ['a', 'b'];
     
-            var obj = $.Object.filter(src, samples);
+            var obj = $Object.filter(src, samples);
             console.dir(obj); //得到 obj = { a: 100, b: 200 }; 只保留 samples 中指定的成员，其他的去掉.
         */
         filter: function (src, samples) {
@@ -4056,7 +3419,7 @@ define('Object', function (require, module, exports) {
     
             //或 samples = ['a', 'b'];
     
-            $.Object.filterTo(target, src, samples);
+            $Object.filterTo(target, src, samples);
             console.dir(target); //得到 target = { myName: 'micty', a: 100, b: 200 };
         */
         filterTo: function (target, src, samples) {
@@ -4107,7 +3470,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var found = $.Object.find(obj, function (key, value) {
+            var found = $Object.find(obj, function (key, value) {
                 if (key == 'b' && value == 1) {
                     return true;
                 }
@@ -4147,7 +3510,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var item = $.Object.findItem(obj, function (key, value) {
+            var item = $Object.findItem(obj, function (key, value) {
                 return value == 20;
             }, true);
             console.log(item); //['c', 20]
@@ -4187,7 +3550,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var key = $.Object.findKey(obj, function (key, value) {
+            var key = $Object.findKey(obj, function (key, value) {
                 return value == 20;
             }, true);
             console.log(key); // 'c'
@@ -4216,7 +3579,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var value = $.Object.findValue(obj, function (key, value) {
+            var value = $Object.findValue(obj, function (key, value) {
                 return key == 'cc';
             }, true);
             console.log(value); //20
@@ -4234,13 +3597,13 @@ define('Object', function (require, module, exports) {
         * @param backupValue 备用值。。
         * @return 如果对象中存在该成员，则返回该成员所对应的值；否则，返回备用值。
         * @example
-            var value = $.Object.get({}, 'a', 2);
+            var value = $Object.get({}, 'a', 2);
             console.log(value); //得到 2;
     
-            var value = $.Object.get({a: 1 }, 'a', 2);
+            var value = $Object.get({a: 1 }, 'a', 2);
             console.log(value); //得到 1;
     
-            var value = $.Object.get(null, 'a', 1);
+            var value = $Object.get(null, 'a', 1);
             console.log(value); //得到 1;
         */
         get: function (obj, key, backupValue) {
@@ -4263,7 +3626,7 @@ define('Object', function (require, module, exports) {
         * @param value 设置对象所用的值。
         * @return {Object} 返回第一个参数 obj，即设置的对象。
         * @example
-            var obj = $.Object.set({}, 'a', 1);
+            var obj = $Object.set({}, 'a', 1);
             console.dir(obj); //得到 obj = { a: 1 };
         */
         set: function (obj, key, value) {
@@ -4280,11 +3643,11 @@ define('Object', function (require, module, exports) {
         * @example
     
             //单个操作
-            var obj = $.Object.make('a', 1);
+            var obj = $Object.make('a', 1);
             console.dir(obj); //得到 obj = { a: 1 };
     
             //批量操作
-            var obj = $.Object.make( 
+            var obj = $Object.make( 
                 ['a', 1], 
                 ['b', 2], 
                 ['c', 3]
@@ -4298,7 +3661,7 @@ define('Object', function (require, module, exports) {
             var obj = {};
 
             if (exports.isArray(key)) {
-                $Array(arguments).each(function (pair, index) {
+                $Array.each(arguments, function (pair, index) {
                     obj[pair[0]] = pair[1];
                 });
             }
@@ -4380,7 +3743,6 @@ define('Object', function (require, module, exports) {
         * @return 返回一个由二元组 [key, value] 组成的数组。
         */
         getItems: function (obj, isDeep) {
-
             return exports.toArray(obj, true, isDeep);
         },
 
@@ -4393,8 +3755,8 @@ define('Object', function (require, module, exports) {
             如果不指定则默认为 "&" 号
         * @return {String} 用分隔符进行连接的字符串。
         * @example 
-            var a = $.Object.join( {a:1, b:2, c:3}, '=', '&' ); //得到 'a=1&b=2&c=3'
-            var b = $.Object.join( {a:1, b:2, c:3} );   //得到 'a=1&b=2&c=3'
+            var a = $Object.join( {a:1, b:2, c:3}, '=', '&' ); //得到 'a=1&b=2&c=3'
+            var b = $Object.join( {a:1, b:2, c:3} );   //得到 'a=1&b=2&c=3'
         */
         join: function (nameValues, nameValueSeparator, pairSeparator) {
             nameValueSeparator = nameValueSeparator || '=';
@@ -4417,7 +3779,7 @@ define('Object', function (require, module, exports) {
         * @example 
             var a = { a: 1, b: 2, c: 3 };
             var b = { d: 4, e: 5 };
-            var c = $.Object.overwrite(a, b);
+            var c = $Object.overwrite(a, b);
     
             console.log(a === b); //false
             console.log(a === c); //true
@@ -4440,7 +3802,7 @@ define('Object', function (require, module, exports) {
         * @return {Array} 返回一个线性化表示的一维数组。
         *   数组的每项都为一个 { keys: [], value: ... } 的结构。
         * @example
-            var list = $.Object.linearize({
+            var list = $Object.linearize({
 	            name: {
 	                a: 1,
                     b: 2,
@@ -4514,259 +3876,9 @@ define('Object', function (require, module, exports) {
         },
 
 
-    });
-
-});
-
-
-
-
-define('Object.prototype', function (require, module, exports) {
-
-
-    var $ = require('$');
-    var $Object = require('Object');
-
-
-    function init(obj) {
-        this.value = Object(obj);
-    }
-
-
-    module.exports =
-    init.prototype =
-    $Object.prototype = { /**@inner*/
-
-        constructor: $Object,
-        init: init,
-        value: {},
-
-        /**
-        * 拆包装，获取 Object 对象。
-        */
-        valueOf: function () {
-            return this.value;
-        },
-
-
-        clone: function () {
-            return $Object.clone(this.value);
-        },
-
-
-        each: function (fn, isDeep) {
-
-            var args = $.concat([this.value], arguments);
-            $Object.each.apply(null, args);
-
-            return this;
-        },
-
-
-        extend: function () {
-
-            var args = $.concat([this.value], arguments);
-
-            this.value = $Object.extend.apply(null, args);
-            return this;
-        },
-
-        extendSafely: function () {
-
-            var args = $.concat([this.value], arguments);
-
-            this.value = $Object.extendSafely.apply(null, args);
-            return this;
-        },
-
-
-        getType: function () {
-            return $Object.getType(this.value);
-        },
-
-
-        isArray: function (isStrict) {
-            return $Object.isArray(this.value, isStrict);
-        },
-
-
-        isBuiltinType: function () {
-            return $Object.isBuiltinType(this.value);
-        },
-
-
-        isEmpty: function () {
-            return $Object.isEmpty(this.value);
-        },
-
-
-        isPlain: function () {
-            return $Object.isPlain(this.value);
-        },
-
-
-        isValueType: function () {
-            return $Object.isValueType(this.value);
-        },
-
-
-        isWindow: function () {
-            return $Object.isWindow(this.value);
-        },
-
-
-        isWrappedType: function () {
-            return $Object.isWrappedType(this.value);
-        },
-
-
-        map: function (fn, isDeep) {
-
-            var args = $.concat([this.value], arguments);
-
-            this.value = $Object.map.apply(null, args);
-            return this;
-        },
-
-
-        namespace: function (path, value) {
-
-            var args = $.concat([this.value], arguments);
-
-            this.value = $Object.namespace.apply(null, args);
-            return this;
-        },
-
-
-        parseJson: function (data) {
-            this.value = $Object.parseJson(data);
-            return this;
-        },
-
-
-        parseQueryString: function (url, isShallow, isCompatible) {
-
-            var args = $.toArray(arguments);
-
-            this.value = $Object.parseQueryString.apply(null, args);
-            return this;
-        },
-
-
-        remove: function (keys) {
-            this.value = $Object.remove(this.value, keys);
-            return this;
-        },
-
-
-        replaceValues: function (nameValues, isShallow) {
-
-            var args = $.concat([this.value], arguments);
-
-            this.value = $Object.replaceValues.apply(null, args);
-            return this;
-        },
-
-
-        toArray: function (rule, isDeep) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Object.toArray.apply(null, args);
-        },
-
-
-        toJson: function () {
-            return $Object.toJson(this.value);
-        },
-
-
-        toQueryString: function (isCompatible) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Object.toQueryString.apply(null, args);
-        },
-
-
-        join: function (innerSeparator, pairSeparator) {
-
-            var args = $.concat([this.value], arguments);
-
-            return $Object.join.apply(null, args);
-        },
-
-
-        trim: function (values, isDeep) {
-
-            var args = $.concat([this.value], arguments);
-
-            this.value = $Object.trim.apply(null, args);
-            return this;
-        },
-
-        filter: function (samples) {
-            this.value = $Object.filter(this.value, samples);
-            return this;
-        },
-
-        filterTo: function (src, samples) {
-            this.value = $Object.filterTo(this.value, src, samples);
-            return this;
-        },
-
-        grep: function (fn) {
-            this.value = $Object.grep(this.value, fn);
-            return this;
-        },
-
-        find: function (fn, isDeep) {
-            return $Object.find(this.value, fn, isDeep);
-        },
-
-        findItem: function (fn, isDeep) {
-            return $Object.findItem(this.value, fn, isDeep);
-        },
-
-        findKey: function (fn, isDeep) {
-            return $Object.findKey(this.value, fn, isDeep);
-        },
-
-        findValue: function (fn, isDeep) {
-            return $Object.findValue(this.value, fn, isDeep);
-
-        },
-
-        get: function (key, backupValue) {
-            return $Object.get(this.value, key, backupValue);
-        },
-
-        set: function (key, value) {
-            $Object.set(this.value, key, value);
-            return this;
-        },
-
-        make: function (key, value) {
-            this.value = $Object.make(key, value);
-            return this;
-        },
-
-        getKeys: function (isDeep) {
-            return $Object.getKeys(this.value, isDeep);
-        },
-
-        getValues: function (isDeep) {
-            return $Object.getValues(this.value, isDeep);
-        },
-
-        getItems: function (isDeep) {
-            return $Object.getItems(this.value, isDeep);
-        }
     };
 
-
 });
-
 
 
 
@@ -4777,16 +3889,7 @@ define('Object.prototype', function (require, module, exports) {
 */
 define('core/String', function (require, module, exports) {
 
-    var $ = require('$');
-
-
-    exports = function (string) {
-        var prototype = require('String.prototype');
-        return new prototype.init(string);
-    };
-
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.String */
+    module.exports = exports = { /**@lends MiniQuery.String */
 
         /**
         * 用指定的值去填充一个字符串。
@@ -4795,28 +3898,26 @@ define('core/String', function (require, module, exports) {
         * @param {Object} obj 要填充的键值对的对象。
         * @return 返回一个用值去填充后的字符串。
         * @example
-            $.String.format('{id}{type}', {id: 1, type: 'app'});
-            $.String.format('{2}{0}{1}', 'a', 'b', 'c');
+            $String.format('{id}{type}', {id: 1, type: 'app'});
+            $String.format('{2}{0}{1}', 'a', 'b', 'c');
         */
         format: function (string, obj, arg2) {
-
             var s = string;
+            var replaceAll = exports.replaceAll;
 
             if (typeof obj == 'object') {
                 for (var key in obj) {
-                    s = exports.replaceAll(s, '{' + key + '}', obj[key]);
+                    s = replaceAll(s, '{' + key + '}', obj[key]);
                 }
-
             }
             else {
-                var args = Array.prototype.slice.call(arguments, 1);
+                var args = [].slice.call(arguments, 1);
                 for (var i = 0, len = args.length; i < len; i++) {
-                    s = exports.replaceAll(s, '{' + i + '}', args[i]);
+                    s = replaceAll(s, '{' + i + '}', args[i]);
                 }
             }
 
             return s;
-
         },
 
 
@@ -4828,7 +3929,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} dest 要进行替换的新子串，新值。
         * @return {String} 返回一个替换后的字符串。
         * @example
-            $.String.replaceAll('abcdeabc', 'bc', 'BC') //结果为 aBCdeBC
+            $String.replaceAll('abcdeabc', 'bc', 'BC') //结果为 aBCdeBC
         */
         replaceAll: function (target, src, dest) {
             return target.split(src).join(dest);
@@ -4845,7 +3946,7 @@ define('core/String', function (require, module, exports) {
         * @return {String} 返回一个替换后的字符串。<br />
         *   当不存在开始标记或结束标记时，都会不进行任何处理而直接返回原字符串。
         * @example
-            $.String.replaceBetween('hello #--world--# this is #--good--#', '#--', '--#', 'javascript') 
+            $String.replaceBetween('hello #--world--# this is #--good--#', '#--', '--#', 'javascript') 
             //结果为 'hello javascript this is javascript'
         */
         replaceBetween: function (string, startTag, endTag, newString) {
@@ -4873,7 +3974,7 @@ define('core/String', function (require, module, exports) {
             支持批量的形式，传一个数组。
         * @return {String} 返回一个替换后的字符串。
         * @example
-            $.String.removeAll('hi js hi abc', 'hi') 
+            $String.removeAll('hi js hi abc', 'hi') 
             //结果为 ' js  abc'
         */
         removeAll: function (target, src) {
@@ -4897,7 +3998,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} 要进行操作的字符串。
         * @return {String} 返回一个新的字符串。
         * @expample
-            $.String.trim('  abc def mm  '); //结果为 'abc def mm'
+            $String.trim('  abc def mm  '); //结果为 'abc def mm'
         */
         trim: function (string) {
             return string.replace(/(^\s*)|(\s*$)/g, '');
@@ -4908,7 +4009,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} 要进行操作的字符串。
         * @return {String} 返回一个新的字符串。
         * @expample
-            $.String.trimStart('  abc def mm '); //结果为 'abc def mm  '
+            $String.trimStart('  abc def mm '); //结果为 'abc def mm  '
         */
         trimStart: function (string) {
             return string.replace(/(^\s*)/g, '');
@@ -4919,7 +4020,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} 要进行操作的字符串。
         * @return {String} 返回一个新的字符串。
         * @expample
-            $.String.trimEnd('  abc def mm '); //结果为 '  abc def mm'
+            $String.trimEnd('  abc def mm '); //结果为 '  abc def mm'
         */
         trimEnd: function (string) {
             return string.replace(/(\s*$)/g, '');
@@ -4933,15 +4034,14 @@ define('core/String', function (require, module, exports) {
         * @param {String} paddingChar 用来填充的模板字符串。
         * @return {String} 返回一个经过填充对齐后的新字符串。
         * @example
-            $.String.padLeft('1234', 6, '0'); //结果为 '001234'，右对齐，从左边填充 '0'
-            $.String.padLeft('1234', 2, '0'); //结果为 '34'，右对齐，从左边开始截断
+            $String.padLeft('1234', 6, '0'); //结果为 '001234'，右对齐，从左边填充 '0'
+            $String.padLeft('1234', 2, '0'); //结果为 '34'，右对齐，从左边开始截断
         */
         padLeft: function (string, totalWidth, paddingChar) {
             string = String(string); //转成字符串
 
             var len = string.length;
-            if (totalWidth <= len) //需要的长度短于实际长度，做截断处理
-            {
+            if (totalWidth <= len) { //需要的长度短于实际长度，做截断处理
                 return string.substr(-totalWidth); //从后面算起
             }
 
@@ -4949,7 +4049,6 @@ define('core/String', function (require, module, exports) {
 
             var arr = [];
             arr.length = totalWidth - len + 1;
-
 
             return arr.join(paddingChar) + string;
         },
@@ -4963,8 +4062,8 @@ define('core/String', function (require, module, exports) {
         * @param {String} paddingChar 用来填充的模板字符串。
         * @return {String} 返回一个经过填充对齐后的新字符串。
         * @example
-            $.String.padLeft('1234', 6, '0'); //结果为 '123400'，左对齐，从右边填充 '0'
-            $.String.padLeft('1234', 2, '0'); //结果为 '12'，左对齐，从右边开始截断
+            $String.padLeft('1234', 6, '0'); //结果为 '123400'，左对齐，从右边填充 '0'
+            $String.padLeft('1234', 2, '0'); //结果为 '12'，左对齐，从右边开始截断
         */
         padRight: function (string, totalWidth, paddingChar) {
             string = String(string); //转成字符串
@@ -4986,21 +4085,21 @@ define('core/String', function (require, module, exports) {
         /**
         * 获取位于两个标记子串之间的子字符串。
         * @param {String} string 要进行获取的大串。
-        * @param {String} tag0 区间的开始标记。
-        * @param {String} tag1 区间的结束标记。
+        * @param {String} beginTag 区间的开始标记。
+        * @param {String} endTag 区间的结束标记。
         * @return {String} 返回一个子字符串。当获取不能结果时，统一返回空字符串。
         * @example
-            $.String.between('abc{!hello!} world', '{!', '!}'); //结果为 'hello' 
+            $String.between('abc{!hello!} world', '{!', '!}'); //结果为 'hello' 
         */
-        between: function (string, tag0, tag1) {
-            var startIndex = string.indexOf(tag0);
+        between: function (string, beginTag, endTag) {
+            var startIndex = string.indexOf(beginTag);
             if (startIndex < 0) {
                 return '';
             }
 
-            startIndex += tag0.length;
+            startIndex += beginTag.length;
 
-            var endIndex = string.indexOf(tag1, startIndex);
+            var endIndex = string.indexOf(endTag, startIndex);
             if (endIndex < 0) {
                 return '';
             }
@@ -5014,9 +4113,9 @@ define('core/String', function (require, module, exports) {
             格式中的每个随机字符用 'x' 来占位，如 'xxxx-1x2x-xx'
         * @return {string} 返回一个指定长度的随机字符串。
         * @example
-            $.String.random();      //返回一个 12 位的随机字符串
-            $.String.random(64);    //返回一个 64 位的随机字符串
-            $.String.random('xxxx-你好xx-xx'); //类似 'A3EA-你好B4-DC'
+            $String.random();      //返回一个 12 位的随机字符串
+            $String.random(64);    //返回一个 64 位的随机字符串
+            $String.random('xxxx-你好xx-xx'); //类似 'A3EA-你好B4-DC'
         */
         random: function (formater) {
             if (formater === undefined) {
@@ -5038,14 +4137,9 @@ define('core/String', function (require, module, exports) {
                 var r = Math.random() * 16 | 0;
                 return r.toString(16);
             }).toUpperCase();
-        }
+        },
 
-    });//--------------------------------------------------------------------------------------
-
-
-
-    //---------------判断部分 -----------------------------------------------------
-    $.extend(exports, { /**@lends MiniQuery.String */
+        //---------------判断部分 -----------------------------------------------------
 
         /**
         * 确定一个字符串的开头是否与指定的字符串匹配。
@@ -5054,8 +4148,8 @@ define('core/String', function (require, module, exports) {
         * @param {boolean} [ignoreCase=false] 指示是否忽略大小写。默认不忽略。
         * @return {boolean} 返回一个bool值，如果大串中是以小串开头，则返回 true；否则返回 false。
         * @example
-            $.String.startsWith('abcdef', 'abc') //结果为 true。
-            $.String.startsWith('abcdef', 'Abc', true) //结果为 true。
+            $String.startsWith('abcdef', 'abc') //结果为 true。
+            $String.startsWith('abcdef', 'Abc', true) //结果为 true。
         */
         startsWith: function (str, dest, ignoreCase) {
             if (ignoreCase) {
@@ -5074,8 +4168,8 @@ define('core/String', function (require, module, exports) {
         * @param {boolean} [ignoreCase=false] 指示是否忽略大小写。默认不忽略。
         * @return {boolean} 返回一个bool值，如果大串中是以小串结尾，则返回 true；否则返回 false。
         * @example
-            $.String.endsWith('abcdef', 'def') //结果为 true。
-            $.String.endsWith('abcdef', 'DEF', true) //结果为 true。
+            $String.endsWith('abcdef', 'def') //结果为 true。
+            $String.endsWith('abcdef', 'DEF', true) //结果为 true。
         */
         endsWith: function (str, dest, ignoreCase) {
             var len0 = str.length;
@@ -5091,13 +4185,13 @@ define('core/String', function (require, module, exports) {
         },
 
         /**
-        * 确定一个字符串是否包含指定的子字符串。
+        * 检测一个字符串是否包含指定的子字符串。
         * @param {String} src 要进行检测的大串。
         * @param {String} target 要进行检测模式子串。
         * @return {boolean} 返回一个 bool 值。如果大串中包含模式子串，则返回 true；否则返回 false。
         * @example
-            $.String.contains('javascript is ok', 'scr');   //true
-            $.String.contains('javascript is ok', 'iis');      //false
+            $String.contains('javascript is ok', 'scr');    //true
+            $String.contains('javascript is ok', 'iis');    //false
         */
         contains: function (src, target, useOr) {
 
@@ -5133,29 +4227,17 @@ define('core/String', function (require, module, exports) {
             }
 
             return src.indexOf(target) > -1;
-        }
+        },
 
+        //---------------转换部分 -----------------------------------------------------
 
-    });//--------------------------------------------------------------------------------------
-
-
-
-
-    //---------------转换部分 -----------------------------------------------------
-    $.extend(exports, { /**@lends MiniQuery.String */
-
-
-        /**
-        * 转成骆驼命名法。
-        * 
-        */
         /**
         * 把一个字符串转成骆驼命名法。。
         * 如 'font-size' 转成 'fontSize'。
         * @param {String} string 要进行转换的字符串。
         * @return 返回一个骆驼命名法的新字符串。
         * @example
-            $.String.toCamelCase('background-item-color') //结果为 'backgroundItemColor'
+            $String.toCamelCase('background-item-color') //结果为 'backgroundItemColor'
         */
         toCamelCase: function (string) {
             var rmsPrefix = /^-ms-/;
@@ -5178,7 +4260,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} string 要进行转换的字符串。
         * @return 返回一个用短线连接起来的新字符串。
         * @example
-            $.String.toHyphenate('backgroundItemColor') //结果为 'background-item-color'
+            $String.toHyphenate('backgroundItemColor') //结果为 'background-item-color'
         */
         toHyphenate: function (string) {
             return string.replace(/[A-Z]/g, function (match) {
@@ -5191,30 +4273,30 @@ define('core/String', function (require, module, exports) {
         * @param {String} string 要进行编码的字符串。
         * @return {String} 返回一个 UTF8 编码的新字符串。
         * @example
-            $.String.toUtf8('你好'); //结果为 ''
+            $String.toUtf8('你好'); //结果为 ''
         */
         toUtf8: function (string) {
 
             var $Array = require('Array');
-            var encodes = [];
+            var a = [];
 
             $Array.each(string.split(''), function (ch, index) {
                 var code = ch.charCodeAt(0);
                 if (code < 0x80) {
-                    encodes.push(code);
+                    a.push(code);
                 }
                 else if (code < 0x800) {
-                    encodes.push(((code & 0x7C0) >> 6) | 0xC0);
-                    encodes.push((code & 0x3F) | 0x80);
+                    a.push(((code & 0x7C0) >> 6) | 0xC0);
+                    a.push((code & 0x3F) | 0x80);
                 }
                 else {
-                    encodes.push(((code & 0xF000) >> 12) | 0xE0);
-                    encodes.push(((code & 0x0FC0) >> 6) | 0x80);
-                    encodes.push(((code & 0x3F)) | 0x80);
+                    a.push(((code & 0xF000) >> 12) | 0xE0);
+                    a.push(((code & 0x0FC0) >> 6) | 0x80);
+                    a.push(((code & 0x3F)) | 0x80);
                 }
             });
 
-            return '%' + $Array.keep(encodes, function (item, index) {
+            return '%' + $Array.keep(a, function (item, index) {
                 return item.toString(16);
             }).join('%');
         },
@@ -5227,16 +4309,16 @@ define('core/String', function (require, module, exports) {
         * @param {Object} value 要进行转换的值，可以是任何类型。
         * @return {Object} 返回一个等价的值。
         * @example
-            $.String.toValue('NaN') //NaN
-            $.String.toValue('null') //null
-            $.String.toValue('true') //true
-            $.String.toValue({}) //不作转换，直接原样返回
+            $String.toValue('NaN') //NaN
+            $String.toValue('null') //null
+            $String.toValue('true') //true
+            $String.toValue('false') //false
+            $String.toValue({}) //不作转换，直接原样返回
         */
         toValue: function (value) {
             if (typeof value != 'string') { //拦截非字符串类型的参数
                 return value;
             }
-
 
             var maps = {
                 //'0': 0,
@@ -5250,18 +4332,9 @@ define('core/String', function (require, module, exports) {
 
             return value in maps ? maps[value] : value;
 
-        }
+        },
 
-
-    });//--------------------------------------------------------------------------------------
-
-
-
-
-
-    //---------------分裂和提取部分 -----------------------------------------------------
-    $.extend(exports, { /**@lends MiniQuery.String */
-
+        //---------------分裂和提取部分 -----------------------------------------------------
 
         /**
         * 对一个字符串进行多层次分裂，返回一个多维数组。
@@ -5271,7 +4344,7 @@ define('core/String', function (require, module, exports) {
         * @example
             var string = 'a=1&b=2|a=100&b=200;a=111&b=222|a=10000&b=20000';
             var separators = [';', '|', '&', '='];
-            var a = $.String.split(string, separators);
+            var a = $String.split(string, separators);
             //结果 a 为
             a = 
             [                           // ';' 分裂的结果
@@ -5334,7 +4407,7 @@ define('core/String', function (require, module, exports) {
         * @param {number} [stepSize=1] 滑动步长。默认为1。
         * @return {Array} 返回一个经过滑动窗口方式得到的子串数组。
         * @example
-        *   $.String.slide('012345678', 4, 3); //滑动窗口大小为4，滑动步长为3
+        *   $String.slide('012345678', 4, 3); //滑动窗口大小为4，滑动步长为3
             //得到 [ '0123', '3456', '678' ] //最后一组不足一组
         */
         slide: function (string, windowSize, stepSize) {
@@ -5342,12 +4415,11 @@ define('core/String', function (require, module, exports) {
             var $Array = require('Array');
 
             var chars = String(string).split(''); //按字符切成单个字符的数组
+            chars = $Array.slide(chars, windowSize, stepSize);
 
-            return $Array(chars).slide(windowSize, stepSize).map(function (group, index) {
-
+            return $Array.keep(chars, function (group, index) {
                 return group.join('');
-
-            }).valueOf();
+            });
 
         },
 
@@ -5357,19 +4429,13 @@ define('core/String', function (require, module, exports) {
         * @param {number} size 分段的大小。
         * @return {Array} 返回一个分段后的子串数组。
         * @example
-        *   $.String.segment('0123456789', 3); //进行分段，每段大小为3
+        *   $String.segment('0123456789', 3); //进行分段，每段大小为3
             //得到 [ '012', '345', '678', '9' ] //最后一组不足一组
         */
         segment: function (string, size) {
             return exports.slide(string, size, size);
-        }
+        },
 
-
-    });//--------------------------------------------------------------------------------------
-
-
-
-    $.extend(exports, { /**@lends MiniQuery.String */
 
         /**
         * 对一个字符串进行多层级模板解析，返回一个带有多个子名称的模板。
@@ -5423,7 +4489,6 @@ define('core/String', function (require, module, exports) {
 
             samples[item0.name] = s; //所有的子模板处理完后，就是最外层的结果
 
-
             return samples;
 
         },
@@ -5441,7 +4506,7 @@ define('core/String', function (require, module, exports) {
 
             return s.toString().replace(/[\u0100-\uffff]/g, '  ').length;
         }
-    });
+    };
 
 
 
@@ -5459,152 +4524,80 @@ define('String', function (require, module, exports) {
 
 
 
-define('String.prototype', function (require, module, exports) {
+/**
+* Emitter/Tree 模块。
+* @class
+*/
+define('Emitter/Tree', function (require, module, exports) {
 
-    var $ = require('$');
-    var $String = require('String');
+    var $Array = require('Array');
 
 
-    function init(string) {
-        this.value = String(string);
-    }
+    module.exports = exports = {
 
-    module.exports =
-    init.prototype =
-    $String.prototype = { /**@inner*/
+        add: function (name$node, names, item) {
 
-        constructor: $String,
-        init: init,
-        value: '',
+            var lastIndex = names.length - 1;
 
-        toString: function () {
-            return this.value;
+            $Array.each(names, function (name, index) {
+
+                var node = name$node[name];
+                if (!node) {
+                    node = name$node[name] = {
+                        'list': [],
+                        'tree': {}
+                    };
+                }
+
+                if (index < lastIndex) {
+                    name$node = node.tree;
+                }
+                else { //最后一项
+                    node.list.push(item);
+                }
+
+            });
+
         },
 
-        valueOf: function () {
-            return this.value;
+        getNode: function (name$node, names) {
+
+            var lastIndex = names.length - 1;
+
+            for (var i = 0; i <= lastIndex; i++) {
+                var name = names[i];
+                var node = name$node[name];
+
+                if (!node || i == lastIndex) { //最后一项
+                    return node;
+                }
+
+                name$node = node.tree;
+            }
+
         },
 
-        format: function (arg1, arg2) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $String.format.apply(null, args);
-
-            return this;
-        },
-
-        replaceAll: function (src, dest) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $String.replaceAll.apply(null, args);
-
-            return this;
-        },
-
-        replaceBetween: function (startTag, endTag, newString) {
-
-            var args = $.concat([this.value], arguments);
-            this.value = $String.replaceBetween.apply(null, args);
-
-            return this;
-        },
-
-
-        removeAll: function (src) {
-
-            this.value = $String.replaceAll(this.value, src, '');
-            return this;
-        },
-
-        random: function (size) {
-            this.value = $String.random(size);
-            return this;
-        },
-
-        trim: function () {
-            this.value = $String.trim(this.value);
-            return this;
-        },
-
-
-        trimStart: function () {
-            this.value = $String.trimStart(this.value);
-            return this;
-        },
-
-        trimEnd: function () {
-            this.value = $String.trimEnd(this.value);
-            return this;
-        },
-
-        split: function (separators) {
-            return $String.split(this.value, separators);
-        },
-
-
-        startsWith: function (dest, ignoreCase) {
-            return $String.startsWith(this.value, dest, ignoreCase);
-        },
-
-
-        endsWith: function (dest, ignoreCase) {
-            return $String.endsWith(this.value, dest, ignoreCase);
-        },
-
-        contains: function (target, useOr) {
-            return $String.contains(this.value, target, useOr);
-        },
-
-        padLeft: function (totalWidth, paddingChar) {
-            this.value = $String.padLeft(this.value, totalWidth, paddingChar);
-            return this;
-        },
-
-        padRight: function (totalWidth, paddingChar) {
-            this.value = $String.padRight(this.value, totalWidth, paddingChar);
-            return this;
-        },
-
-        toCamelCase: function () {
-            this.value = $String.toCamelCase(this.value);
-            return this;
-        },
-
-        toHyphenate: function () {
-            this.value = $String.toHyphenate(this.value);
-            return this;
-        },
-
-        between: function (tag0, tag1) {
-            this.value = $String.between(this.value, tag0, tag1);
-            return this;
-        },
-
-        toUtf8: function () {
-            this.value = $String.toUtf8(this.value);
-            return this;
-        },
-
-        toValue: function (value) {
-            return $String.toValue(this.value);
-        },
-
-        slide: function (windowSize, stepSize) {
-            return $String.slide(this.value, windowSize, stepSize);
-        },
-
-        segment: function (size) {
-            return $String.segment(this.value, size, size);
+        getList: function (name$node, names) {
+            var node = exports.getNode(name$node, names);
+            return node ? node.list : null;
         }
+
     };
+
 
 });
 
 
 
 
+
+
+
+
+
+
 /**
-* 自定义多级事件类。
+* 自定义多级事件类
 * @class
 */
 define('Emitter', function (require, module, exports) {
@@ -5615,57 +4608,11 @@ define('Emitter', function (require, module, exports) {
     var $String = require('String');
     var Mapper = require('Mapper');
 
-    var guidKey = Mapper.getGuidKey();
+    var Tree = require('/Tree'); //完整名称为 Emitter/Tree
+
     var mapper = new Mapper();
 
 
-    function add(name$node, names, item) {
-
-        var lastIndex = names.length - 1;
-
-        $Array.each(names, function (name, index) {
-
-            var node = name$node[name];
-            if (!node) {
-                node = name$node[name] = {
-                    'list': [],
-                    'tree': {}
-                };
-            }
-
-            if (index < lastIndex) {
-                name$node = node.tree;
-            }
-            else { //最后一项
-                node.list.push(item);
-            }
-
-        });
-
-    }
-
-    function getNode(name$node, names) {
-       
-        var lastIndex = names.length - 1;
-
-        for (var i = 0; i <= lastIndex; i++) {
-            var name = names[i];
-            var node = name$node[name];
-
-            if (!node || i == lastIndex) { //最后一项
-                return node;
-            }
-
-            name$node = node.tree;
-        }
-
-    }
-
-
-    function getList(name$node, names) {
-        var node = getNode(name$node, names);
-        return node ? node.list : null;
-    }
 
     //绑定事件。
     //实例的私有方法，必须用 bind.apply(this, []) 的方式来调用。
@@ -5676,7 +4623,7 @@ define('Emitter', function (require, module, exports) {
 
         // 单名称情况 on(name, fn)，专门成一个分支，为了优化
         if (typeof name == 'string' && typeof fn == 'function') {
-            add(all, [name], {
+            Tree.add(all, [name], {
                 'fn': fn,
                 'isOneOff': isOneOff,
             });
@@ -5701,7 +4648,7 @@ define('Emitter', function (require, module, exports) {
 
                 var keys = names.concat(item.keys);
 
-                add(all, keys, {
+                Tree.add(all, keys, {
                     'fn': item.value,
                     'isOneOff': isOneOff,
                 });
@@ -5723,7 +4670,7 @@ define('Emitter', function (require, module, exports) {
         fn = args[index]; //回调函数
         var names = args.slice(0, index); //前面的都当作是名称
 
-        add(all, names, {
+        Tree.add(all, names, {
             'fn': fn,
             'isOneOff': isOneOff,
         });
@@ -5740,7 +4687,8 @@ define('Emitter', function (require, module, exports) {
     */
     function Emitter(context) {
 
-        this[guidKey] = $String.random();
+        var id = 'Emitter-' + $String.random();
+        Mapper.setGuid(this, id);
 
         var meta = {
             'context': context,
@@ -5818,7 +4766,7 @@ define('Emitter', function (require, module, exports) {
             fn = args[index];
 
             var names = args.slice(0, index);
-            var node = getNode(all, names);
+            var node = Tree.getNode(all, names);
             if (!node) { //尚未存在该名称所对应的节点
                 return;
             }
@@ -5866,7 +4814,7 @@ define('Emitter', function (require, module, exports) {
             params = args[index] || [];
 
             var names = args.slice(0, index);
-            var list = getList(all, names);
+            var list = Tree.getList(all, names);
             var returns = [];
 
             if (!list || list.length == 0) {
@@ -5930,7 +4878,7 @@ define('Emitter', function (require, module, exports) {
             fn = args[index];
 
             var names = args.slice(0, index);
-            var list = getList(all, names);
+            var list = Tree.getList(all, names);
 
             if (!list || list.length == 0) { //尚未存在该名称所对应的节点
                 return false;
@@ -5966,52 +4914,21 @@ define('Emitter', function (require, module, exports) {
 
 
 
-
-
-
 /**
 * 映射器工具类。
 * 实现任意类型的两个变量的关联。
 * @class
-* @param
 * @example
     var mapper = new $.Mapper();
 */
-
-
 define('Mapper', function (require, module, exports) {
 
     var $ = require('$');
     var $String = require('String');
+    var $Array = require('Array');
 
-
-    var guidKey = '__guid__' + $String.random();
-    var guid$type$object = {}; //容纳所有 Mapper 实例的数据
-
-
-    /**@inner*/
-    function Mapper(key, value) {
-
-        //分配本实例对应的容器
-        var guid = $String.random();
-        this[guidKey] = guid;
-
-        guid$type$object[guid] = {
-            'guid': {},     //针对有 guid 属性的对象作特殊存取，以求一步定位。
-            'false': {},    //针对 false|null|undefined|''|0|NaN
-            'string': {},
-            'number': {},
-            'boolean': {}, //只针对 true
-            'object': {},
-            'function': {},
-            'undefined': {} //这个用不到
-        };
-
-        if (arguments.length > 0) { //这里不要判断 key，因为 key 可以为任何值。
-            this.set(key, value);
-        }
-    }
-
+    var guidKey = '__guid-' + $String.random();
+    var guid$all = {}; //容纳所有 Mapper 实例的数据
 
 
     function getString(obj) {
@@ -6047,16 +4964,37 @@ define('Mapper', function (require, module, exports) {
 
     
 
+    /**
+    * 构造器。
+    * @inner
+    */
+    function Mapper() {
 
+        //分配本实例对应的容器
+        var guid = $String.random();
+        this[guidKey] = guid;
+
+        guid$all[guid] = {
+            'guid': {},     //针对有 guid 属性的对象作特殊存取，以求一步定位。
+            'false': {},    //针对 false|null|undefined|''|0|NaN
+            'string': {},
+            'number': {},
+            'boolean': {},  //只针对 true
+            'object': {},
+            'function': {},
+            'undefined': {} //这个用不到
+        };
+    }
 
     //实例方法
-    $.extend(Mapper.prototype, { /**@lends MiniQuery.Mapper# */
+    Mapper.prototype = { /**@lends MiniQuery.Mapper# */
 
+        constructor: Mapper,
         /**
         * 设置一对映射关系。
-        * @param src 映射关系的键，可以是任何类型。
-        * @param target 映射关系要关联的值，可是任何类型。
-        * @return 返回第二个参数 target。
+        * @param key 映射关系的键，可以是任何类型。
+        * @param value 映射关系要关联的值，可是任何类型。
+        * @return 返回第二个参数 value。
         * @example
             var obj = { a: 1, b: 2 };
             var fn = function(a, b) {
@@ -6070,83 +5008,65 @@ define('Mapper', function (require, module, exports) {
             mapper.set(null, 'abc');
             
         */
-        set: function (src, target) {
+        set: function (key, value) {
 
-            var all = guid$type$object[this[guidKey]];
+            var guid = this[guidKey];
+            var all = guid$all[guid]; //当前实例的容器
 
-            if (!src) { // false|null|undefined|''|0|NaN
-                all['false'][String(src)] = target;
-                return target;
+            var type = typeof key;
+
+            //针对含有 guid 属性的对象作优先处理
+            if (key && type == 'object' && guidKey in key) { 
+                var guid = key[guidKey];
+                all['guid'][guid] = value; //一步定位
+                return value;
             }
 
-            var type = typeof src;
+            //false
+            if (!key) { // false|null|undefined|''|0|NaN
+                all['false'][String(key)] = value;
+                return value;
+            }
 
-            if (type == 'object' && guidKey in src) { //针对含有 guid 属性的对象作优先处理
-                var guid = src[guidKey];
-                all['guid'][guid] = target; //一步定位
-                return;
+            //值类型
+            if ((/^(string|number|boolean)$/g).test(type)) {
+                all[type][String(key)] = value;
+                return value;
+            }
+
+            //引用类型: object|function
+
+            var key$list = all[type];
+            key = getString(key); //这里确保 key 一定是一个 string
+            var list = key$list[key];
+
+            //未存在对应字符串的列表，则创建并添加
+            if (!list) {
+                key$list[key] = [[key, value]];
+                return value;
             }
 
 
-            switch (type) {
-                case 'string':
-                case 'number':
-                case 'boolean':
-                    all[type][String(src)] = target;
-                    break;
-
-                case 'object':
-                case 'function':
-                    var key = getString(src); //这里确保 key 一定是一个 string
-                    var list = all[type][key];
-                    if (list) { //已存在对应字符串的列表
-                        var $Array = require('Array');
-                        var pair = $Array.findItem(list, function (pair, index) {
-                            return pair[0] === src;
-                        });
-
-                        if (pair) { //已存在，
-                            pair[1] = target; //改写值
-                        }
-                        else { //未找到，创建新的，添加进去一对二元组 [src, target]
-                            list.push([src, target]);
-                        }
-                    }
-                    else { //未存在，则创建并添加
-                        list = [[src, target]];
-                    }
-
-                    all[type][key] = list; //回写
-            }
-
-            return target;
-        },
-
-        /**
-        * 批量设置映射关系。
-        * @param {Array} list 映射关系的列表，是一个二维数组，每个数组项为[src, target] 的格式。
-        * @example
-            var mapper = new $.Mapper();
-            mapper.setBatch([
-                ['a', 100],
-                ['b', 200]
-                ['c', false]
-            ]);
-        */
-        setBatch: function (list) {
-            var $Array = require('Array');
-
-            var self = this;
-
-            $Array.each(list, function (item, index) {
-                self.set(item[0], item[1]);
+            //已存在对应字符串的列表
+            var pair = $Array.findItem(list, function (pair, index) {
+                return pair[0] === key;
             });
+
+            if (pair) { //已存在，
+                pair[1] = value; //改写值
+            }
+            else { //未找到，创建新的，添加进去一对二元组 [key, value]
+                list.push([key, value]);
+            }
+
+            return value;
         },
+
 
         /**
         * 获取一对映射关系所关联的值。<br />
         * 注意：根据映射关系的键查找所关联的值时，对键使用的是全等比较，即区分数据类型。
-        * @param src 映射关系的键，可以是任何类型。
+        * @param key 映射关系的键，可以是任何类型。
         * @return 返回映射关系所关联的值。
         * @example
             var obj = { a: 1, b: 2 };
@@ -6160,58 +5080,54 @@ define('Mapper', function (require, module, exports) {
             var myFn = mapper.get(obj); //获取到之前关联的 fn
             myFn(100, 200);
         */
-        get: function (src) {
+        get: function (key) {
 
-            var all = guid$type$object[this[guidKey]];
+            var guid = this[guidKey];
+            var all = guid$all[guid];
 
-            // false|null|undefined|''|0|NaN
-            if (!src) {
-                return all['false'][String(src)];
-            }
+            var type = typeof key;
 
-
-            var type = typeof src;
-
-            if (type == 'object' && guidKey in src) { //针对含有 guid 属性的对象作优先处理
-                var guid = src[guidKey];
+            //针对含有 guid 属性的对象作优先处理
+            if (key && type == 'object' && guidKey in key) { 
+                var guid = key[guidKey];
                 return all['guid'][guid]; //一步定位
             }
 
-
-
-            switch (type) {
-                //值类型的，直接映射
-                case 'string':
-                case 'number':
-                case 'boolean':
-                    return all[type][String(src)];
-
-
-                    //引用类型的，通过 key 映射到一个二维数组，每个二维数组项为 [src, target]
-                case 'object':
-                case 'function':
-                    var key = getString(src);
-                    var list = all[type][key];
-                    if (list) { //已存在对应字符串的列表
-                        var $Array = require('Array');
-                        var pair = $Array.findItem(list, function (pair, index) {
-                            return pair[0] === src;
-                        });
-
-                        if (pair) {
-                            return pair[1];
-                        }
-                    }
+            //false
+            if (!key) { // false|null|undefined|''|0|NaN
+                return all['false'][String(key)];
             }
 
-            return undefined;
+
+            //值类型，直接映射
+            if ((/^(string|number|boolean)$/g).test(type)) {
+                return all[type][String(key)];
+            }
+
+            //引用类型: object|function
+            //通过 key 映射到一个二维数组，每个二维数组项为 [key, value]
+            key = getString(key);
+            var list = all[type][key];
+
+            if (!list) {
+                return;
+            }
+
+
+            //已存在对应字符串的列表
+            var pair = $Array.findItem(list, function (pair, index) {
+                return pair[0] === key;
+            });
+
+            return pair ? pair[1] : undefined;
+
         },
 
 
         /**
         * 根据给定的键移除一对映射关系。
         * 注意：根据映射关系的键查找所关联的值时，对键使用的是全等比较，即区分数据类型。
-        * @param src 映射关系的键，可以是任何类型。
+        * @param key 映射关系的键，可以是任何类型。
         * @example
             var obj = { a: 1, b: 2 };
             var fn = function(a, b) {
@@ -6225,46 +5141,48 @@ define('Mapper', function (require, module, exports) {
             fn = mapper.get(obj);
             console.log( typeof fn); // undefined
         */
-        remove: function (src) {
+        remove: function (key) {
 
-            var all = guid$type$object[this[guidKey]];
+            var guid = this[guidKey];
+            var all = guid$all[guid];
 
-            // false|null|undefined|''|0|NaN
-            if (!src) {
-                delete all['false'][String(src)];
-                return;
-            }
+            var type = typeof key;
 
-            var type = typeof src;
-
-            if (type == 'object' && guidKey in src) { //针对含有 guid 属性的对象作优先处理
-                var guid = src[guidKey];
+            //针对含有 guid 属性的对象作优先处理
+            if (key && type == 'object' && guidKey in key) { 
+                var guid = key[guidKey];
                 delete all['guid'][guid]; //一步定位
                 return;
             }
 
-
-            switch (type) {
-                //值类型的，直接映射
-                case 'string':
-                case 'number':
-                case 'boolean':
-                    delete all[type][String(src)];
-                    break;
-
-                    //引用类型的，通过 key 映射到一个二维数组，每个二维数组项为 [src, target]
-                case 'object':
-                case 'function':
-                    var key = getString(src);
-                    var list = all[type][key];
-                    if (list) { //已存在对应字符串的列表
-                        //移除 src 的项
-                        var $Array = require('Array');
-                        all[type][key] = $Array.grep(list, function (pair, index) {
-                            return pair[0] !== src;
-                        });
-                    }
+            //false
+            if (!key) { // false|null|undefined|''|0|NaN
+                delete all['false'][String(key)];
+                return;
             }
+
+
+            //值类型
+            if ((/^(string|number|boolean)$/g).test(type)) {
+                delete all[type][String(key)];
+                return;
+            }
+
+            //引用类型: object|function
+            var key$list = all[type];
+            key = getString(key);
+            var list = key$list[key];
+
+            if (!list) {
+                return;
+            }
+
+            //已存在对应字符串的列表
+            //移除 key 的项
+            key$list[key] = $Array.grep(list, function (pair, index) {
+                return pair[0] !== key;
+            });
+
         },
 
 
@@ -6272,22 +5190,36 @@ define('Mapper', function (require, module, exports) {
         * 销毁本实例。
         * 这会移除所有的映射关系，并且移除本实例内部使用的存放映射关系的容器对象。
         */
-        dispose: function () {
-
-            guid$type$object[this[guidKey]] = null;
-            delete this[guidKey];
+        destroy: function () {
+            var guid = this[guidKey];
+            delete guid$all[guid];
+            delete this[guidKey]; //把 guid 掉，无法再访问数据
         }
 
-    });
+    };
 
-    //for test
-    //Mapper.guid$type$object = guid$type$object;
+   
+    //Mapper.guid$all = guid$all;  //for test
+
 
     //静态方法
     $.extend(Mapper, { /**@lends MiniQuery.Mapper */
+
         getGuidKey: function () {
             return guidKey;
-        }
+        },
+
+        setGuid: function (obj, guid) {
+            if (guid === undefined) {
+                guid = 'default-' + $String.random();
+            }
+
+            obj[guidKey] = guid;
+        },
+
+        getGuid: function (obj) {
+            return obj[guidKey];
+        },
     });
 
     module.exports = Mapper;
@@ -6306,124 +5238,6 @@ define('Mapper', function (require, module, exports) {
 define('Module', function (require, module, exports) {
 
     var $ = require('$');
-    var $String = require('String');
-    var $Object = require('Object');
-    var Mapper = require('Mapper');
-
-    var guidKey = Mapper.getGuidKey();
-    var mapper = new Mapper();
-
-
-
-    //根据工厂函数反向查找对应的模块 id。
-    function getId(id$module, factory) {
-
-        return $Object.findKey(id$module, function (id, module) {
-            return module.factory === factory;
-        });
-    }
-
-
-    /**
-    * 构造器。
-    */
-    function Module() {
-
-        this[guidKey] = $String.random();
-
-        var meta = {
-            id$module: {},
-        };
-
-        mapper.set(this, meta);
-
-    }
-
-
-    //实例方法
-    Module.prototype = {
-        constructor: Module,
-
-        /**
-        * 定义指定名称的模块。
-        * @param {string} id 模块的名称。
-        * @param {Object|function} factory 模块的导出函数或对象。
-        */
-        define: function define(id, factory) {
-
-            var meta = mapper.get(this);
-            var id$module = meta.id$module;
-
-            id$module[id] = {
-                factory: factory,
-                exports: null,      //这个值在 require 后可能会给改写
-                required: false,    //指示是否已经 require 过
-                exposed: false,     //默认对外不可见
-            };
-        
-        },
-
-
-        /**
-        * 加载指定的模块。
-        * @param {string} id 模块的名称。
-        * @return 返回指定的模块。
-        */
-        require: function (id) {
-
-            var meta = mapper.get(this);
-            var id$module = meta.id$module;
-
-            if (id.indexOf('/') == 0) { //以 '/' 开头，如　'/API'
-                var parentId = getId(id$module, arguments.callee.caller); //如 'List'
-                if (!parentId) {
-                    throw new Error('require 时如果指定了以 "/" 开头的短名称，则必须用在 define 的函数体内');
-                }
-
-                id = parentId + id; //完整名称，如 'List/API'
-            }
-
-
-            var module = id$module[id];
-            if (!module) { //不存在该模块
-                return;
-            }
-
-            if (module.required) { //已经 require 过了
-                return module.exports;
-            }
-
-
-            //首次 require
-
-            module.required = true; //更改标志，指示已经 require 过一次
-
-            var factory = module.factory;
-
-            if (typeof factory != 'function') { //非工厂函数，则直接导出
-                module.exports = factory;
-                return factory;
-            }
-
-            //factory 是个工厂函数
-            var require = arguments.callee.bind(this); //引用自身，并且作为静态方法调用
-            var exports = {};
-            var mod = {
-                id: id,
-                exports: exports,
-            };
-
-            exports = factory(require, mod, exports);
-            if (exports === undefined) {    //没有通过 return 来返回值，
-                exports = mod.exports;      //则要导出的值只能在 mod.exports 里
-            }
-
-            module.exports = exports;
-            return exports;
-            
-        },
-    };
-
 
     var mod = new Module(); //默认的、静态的
 
@@ -6431,8 +5245,6 @@ define('Module', function (require, module, exports) {
         'define': mod.define.bind(mod),
         'require': mod.require.bind(mod),
     });
-
-
 
 });
 
@@ -6442,9 +5254,7 @@ define('Module', function (require, module, exports) {
 * Url 工具类
 * @namespace
 */
-
 define('excore/Url', function (require, module, exports) {
-
 
     module.exports = exports =  {  /**@lends MiniQuery.Url */
 
@@ -6459,15 +5269,15 @@ define('excore/Url', function (require, module, exports) {
             当不指定参数 key 时，则获取全部查询字符串，返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部查询字符串，返回一个 string 类型值。
         * @example
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 '1'
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 undefined
-            $.Url.getQueryString('http://www.demo.com?a=1&A=2#hash', 'A');  //返回 2
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true);//返回 1
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', '');   //返回 'a=1&b=2'
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 {a: '1', b: '2'}
-            $.Url.getQueryString('http://www.demo.com?a=&b=');              //返回 {a: '', b: ''}
-            $.Url.getQueryString('http://www.demo.com?a&b');                //返回 {a: '', b: ''}
-            $.Url.getQueryString('http://www.demo.com?a', 'a');             //返回 ''
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 '1'
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 undefined
+            Url.getQueryString('http://www.demo.com?a=1&A=2#hash', 'A');  //返回 2
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true);//返回 1
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', '');   //返回 'a=1&b=2'
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 {a: '1', b: '2'}
+            Url.getQueryString('http://www.demo.com?a=&b=');              //返回 {a: '', b: ''}
+            Url.getQueryString('http://www.demo.com?a&b');                //返回 {a: '', b: ''}
+            Url.getQueryString('http://www.demo.com?a', 'a');             //返回 ''
         */
         getQueryString: function (url, key, ignoreCase) {
 
@@ -6520,10 +5330,10 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url。
         * @example
             //返回 'http://www.demo.com?a=1&b=2&c=3#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
             
             //返回 'http://www.demo.com?a=3&b=2&d=4#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
         */
         addQueryString: function (url, key, value) {
 
@@ -6568,10 +5378,10 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url。
         * @example
             //返回值类似 'http://www.demo.com?a=1&b=2&7A8CEBAFC6B4=#hash'
-            $.Url.randomQueryString('http://www.demo.com?a=1&b=2#hash');  
+            Url.randomQueryString('http://www.demo.com?a=1&b=2#hash');  
             
             //返回值类似 'http://www.demo.com?a=1&b=2&7A8CE=#hash' 
-            $.Url.randomQueryString('http://www.demo.com?a=1&b=2#hash', 5); //随机键的长度为 5
+            Url.randomQueryString('http://www.demo.com?a=1&b=2#hash', 5); //随机键的长度为 5
     
         */
         randomQueryString: function (url, len) {
@@ -6592,10 +5402,10 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url。
         * @example
             //返回 'http://www.demo.com?c=3#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
             
             //返回 'http://www.demo.com?a=3&d=4#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
         */
         setQueryString: function (url, key, value) {
 
@@ -6649,11 +5459,11 @@ define('excore/Url', function (require, module, exports) {
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的查询字符串，则返回 true；否则返回 false。
         * @example
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
         */
         hasQueryString: function (url, key, ignoreCase) {
 
@@ -6701,15 +5511,15 @@ define('excore/Url', function (require, module, exports) {
             然后返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部哈希(不解码)，返回一个 string 类型值。
         * @example
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a');  //返回 '1'
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'c');  //返回 undefined
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26A%3D2', 'A');  //返回 2
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'A', true);//返回 1
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', '');   //返回 'a%3D1%26b%3D2'
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2');       //返回 {a: '1', b: '2'}
-            $.Url.getHash('http://www.demo.com?query#a%3D%26b%3D');         //返回 {a: '', b: ''}
-            $.Url.getHash('http://www.demo.com??query#a%26b');              //返回 {a: '', b: ''}
-            $.Url.getHash('http://www.demo.com?query#a', 'a');              //返回 ''
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a');  //返回 '1'
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'c');  //返回 undefined
+            Url.getHash('http://www.demo.com?query#a%3D1%26A%3D2', 'A');  //返回 2
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'A', true);//返回 1
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', '');   //返回 'a%3D1%26b%3D2'
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2');       //返回 {a: '1', b: '2'}
+            Url.getHash('http://www.demo.com?query#a%3D%26b%3D');         //返回 {a: '', b: ''}
+            Url.getHash('http://www.demo.com??query#a%26b');              //返回 {a: '', b: ''}
+            Url.getHash('http://www.demo.com?query#a', 'a');              //返回 ''
         */
         getHash: function (url, key, ignoreCase) {
 
@@ -6762,13 +5572,13 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url 字符串。
         * @example
             //返回 'http://www.demo.com?#a%3D1'
-            $.Url.setHash('http://www.demo.com', 'a', 1);  
+            Url.setHash('http://www.demo.com', 'a', 1);  
             
             //返回 'http://www.demo.com?query#a%3D3%26d%3D4'
-            $.Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', {a: 3, d: 4});  
+            Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', {a: 3, d: 4});  
     
             //返回 'http://www.demo.com?query#a%3D3%26d%3D4'
-            $.Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a=3&b=4'); 
+            Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a=3&b=4'); 
             
         */
         setHash: function (url, key, value) {
@@ -6812,14 +5622,13 @@ define('excore/Url', function (require, module, exports) {
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的查询字符串，则返回 true；否则返回 false。
         * @example
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
         */
         hasHash: function (url, key, ignoreCase) {
-
             
             var obj = exports.getHash(url); //获取全部哈希字符串的 Object 形式
 
@@ -6868,47 +5677,39 @@ define('Url', function (require, module, exports) {
 
 
 /**
-* Cookie 工具
+* Cookie/Expires 工具
 * @namespace
 */
-define('Cookie', function (require, module, exports) {
+define('Cookie/Expires', function (require, module, exports) {
 
-    //缓存 toObject 中的结果
-    var cookie$object = {
-        'true': {},
-        'false': {}
+    var $Date = require('Date');
+
+    var reg = /^\d+([y|M|w|d|h|m|s]|ms)$/; //这里不要使用 /g
+
+    var fns = {
+        y: 'Year',
+        M: 'Month',
+        w: 'Week',
+        d: 'Day',
+        h: 'Hour',
+        m: 'Minute',
+        s: 'Second',
+        ms: 'Millisecond'
     };
 
-    /**
-    * 解析字符串描述的 expires 字段
-    * @inner
-    */
-    var parseExpires = (function () {
 
-        var $Date = require('Date');
+    module.exports = exports = {
 
-        var reg = /^\d+([y|M|w|d|h|m|s]|ms)$/; //这里不要使用 /g
-
-        var fns = {
-            y: 'Year',
-            M: 'Month',
-            w: 'Week',
-            d: 'Day',
-            h: 'Hour',
-            m: 'Minute',
-            s: 'Second',
-            ms: 'Millisecond'
-        };
-
-        //parseExpires = 
-        return function (s) {
+        /**
+        * 解析字符串描述的 expires 字段
+        */
+        parse: function (s) {
 
             var now = new Date();
 
             if (typeof s == 'number') {
                 return $Date.addMilliseconds(now, s);
             }
-
 
             if (reg.test(s)) {
                 var value = parseInt(s);
@@ -6917,11 +5718,29 @@ define('Cookie', function (require, module, exports) {
             }
 
             return $Date.parse(s);
-        };
+        }
+    };
 
 
-    })();
 
+});
+
+
+
+
+
+/**
+* Cookie 工具
+* @namespace
+*/
+define('Cookie', function (require, module, exports) {
+
+
+    //缓存 toObject 中的结果
+    var cookie$object = {
+        'true': {},
+        'false': {}
+    };
 
 
     module.exports = exports = { /**@lends MiniQuery.Cookie*/
@@ -6934,29 +5753,18 @@ define('Cookie', function (require, module, exports) {
             否则请指定 false 或不指定。
         * @return {Object} 返回一个解析后的等价的 Object 对象。
         * @example 
-            var obj = $.Cookie.toObject('A=1; B=2; C=a=100&b=200', true); //深层次解析
+            var obj = Cookie.toObject('A=1; B=2; C=a=100&b=200', true); //深层次解析
             //得到
-            obj = {
-                A: 1,
-                B: 2,
-                C: {
-                    a: 100,
-                    b: 200
-                }
-            };
+            obj = {A: 1, B: 2, C: {a: 100, b: 200}};
     
-            var obj = $.Cookie.toObject('A=1; B=2; C=a=100&b=200'); //浅解析
+            var obj = Cookie.toObject('A=1; B=2; C=a=100&b=200'); //浅解析
             //得到
-            obj = {
-                A: 1,
-                B: 2,
-                C: 'a=100&b=200'
-            };
-    
-            $.Cookie.toObject('a=1; b=2');
-            $.Cookie.toObject('a=1; b=2', true);
-            $.Cookie.toObject();
-            $.Cookie.toObject(true);
+            obj = {A: 1, B: 2, C: 'a=100&b=200'};
+
+            Cookie.toObject('a=1; b=2');
+            Cookie.toObject('a=1; b=2', true);
+            Cookie.toObject();
+            Cookie.toObject(true);
     
         */
         toObject: function (cookie, deep) {
@@ -7032,11 +5840,11 @@ define('Cookie', function (require, module, exports) {
             当不指定该参数时，返回参数 name 对应的项。
         * @return 返回指定项的值。
         * @example 
-            $.Cookie.get();
-            $.Cookie.get(true);
-            $.Cookie.get('A');
-            $.Cookie.get('A', true);
-            $.Cookie.get('A', 'b');
+            Cookie.get();
+            Cookie.get(true);
+            Cookie.get('A');
+            Cookie.get('A', true);
+            Cookie.get('A', 'b');
         */
         get: function (name, key) {
 
@@ -7119,15 +5927,15 @@ define('Cookie', function (require, module, exports) {
             或传入一个 $.Date.parse 识别的格式字符串，并会被解析成一个实际的日期实例。
         * @example 
             //设置一个 A=100 的 Cookie，过期时间为12天后
-            $.Cookie.set('A', 100, '12d'); 
+            Cookie.set('A', 100, '12d'); 
     
             //设置一个 B=200 的 Cookie，过期时间为2周后
-            $.Cookie.set('B', 200, '2w'); 
+            Cookie.set('B', 200, '2w'); 
     
             //设置一个 C=300 的 Cookie，过期时间为 '2014-9-10'
-            $.Cookie.set('C', 300, '2014-9-10'); 
+            Cookie.set('C', 300, '2014-9-10'); 
     
-            $.Cookie.set({
+            Cookie.set({
                 name: 'A',
                 value: 100,
                 expires: '2w',
@@ -7167,7 +5975,8 @@ define('Cookie', function (require, module, exports) {
             var cookie = name + '=' + value + '; ';
 
             if (expires) {
-                expires = parseExpires(expires);
+                var Expires = require('/Expires');
+                expires = Expires.parse(expires);
                 cookie += 'expires=' + expires.toGMTString() + '; '; //不推荐使用 toGMTString 方法
             }
 
@@ -7193,10 +6002,10 @@ define('Cookie', function (require, module, exports) {
             当不指定参数 name 时，则会把所有的 Cookie 都移除。
         * @example 
             //给 document 名称为 A 的 Cookie 移除
-            $.Cookie.remove(document, 'A'); 
+            Cookie.remove(document, 'A'); 
     
             //把 document 的所有 Cookie 都移除
-            $.Cookie.remove(document); 
+            Cookie.remove(document); 
         */
         remove: function (name, path, domain, secure) {
 
@@ -7254,84 +6063,64 @@ define('LocalStorage', function (require, module, exports) {
     all = JSON.parse(all) || {};
 
 
-    function set(key, value) {
 
-        if (key in all && all[key] === value) { //已存在
-            return;
+    module.exports = exports = {
+
+        set: function (key, value) {
+
+            if (key in all && all[key] === value) { //已存在
+                return;
+            }
+
+            all[key] = value;
+
+            var json = JSON.stringify(all);
+            localStorage.setItem(id, json);
+
+        },
+
+        get: function (key) {
+            return all[key];
+        },
+
+        remove: function (key) {
+            delete all[key];
+            var json = JSON.stringify(all);
+            localStorage.setItem(id, json);
+        },
+
+        clear: function () {
+            all = {};
+            var json = JSON.stringify(all);
+            localStorage.setItem(id, json);
+        },
+
+        each: function (fn) {
+            for (var key in all) {
+                fn(key, all[key]);
+            }
+        },
+
+        length: function () {
+            return exports.keys().length;
+        },
+
+        keys: function () {
+            if (typeof Object.keys == 'function') {
+                return Object.keys(all);
+            }
+
+            var a = [];
+            for (var key in all) {
+                a.push(key);
+            }
+
+            return a;
+        },
+
+        key: function (index) {
+            return exports.keys()[index];
         }
-
-        all[key] = value;
-
-        var json = JSON.stringify(all);
-        localStorage.setItem(id, json);
-
-    }
-
-
-
-    function get(key) {
-
-        return all[key];
-
-    }
-
-    function remove(key) {
-        delete all[key];
-        var json = JSON.stringify(all);
-        localStorage.setItem(id, json);
-    }
-
-    function clear() {
-        all = {};
-        var json = JSON.stringify(all);
-        localStorage.setItem(id, json);
-    }
-
-
-    function each(fn) {
-
-        for (var key in all) {
-            fn(key, all[key]);
-        }
-
-    }
-
-    function length() {
-        return keys().length;
-    }
-
-    function keys() {
-        if (typeof Object.keys == 'function') {
-            return Object.keys(all);
-        }
-
-        var a = [];
-        for (var key in all) {
-            a.push(key);
-        }
-
-        return a;
-    }
-
-    function key(index) {
-
-        return keys()[index];
-    }
-
-
-
-
-
-
-    module.exports = {
-        set: set,
-        get: get,
-        remove: remove,
-        clear: clear,
-        each: each,
-        length: length,
-        keys: keys,
-        key: key
     };
 
 
@@ -7352,87 +6141,68 @@ define('SessionStorage', function (require, module, exports) {
         return null; //须显式的返回 null，以告诉 require 加载器已加载过
     }
 
-
-
     var id = '__MiniQuery.SessionStorage__';
     var all = sessionStorage.getItem(id) || null;
     all = JSON.parse(all) || {};
 
 
-    function set(key, value) {
+    module.exports = exports = {
 
-        if (key in all && all[key] === value) { //已存在
-            return;
+        set: function (key, value) {
+
+            if (key in all && all[key] === value) { //已存在
+                return;
+            }
+
+            all[key] = value;
+
+            var json = JSON.stringify(all);
+            sessionStorage.setItem(id, json);
+
+        },
+
+        get: function (key) {
+            return all[key];
+        },
+
+        remove: function (key) {
+            delete all[key];
+            var json = JSON.stringify(all);
+            sessionStorage.setItem(id, json);
+        },
+
+        clear: function () {
+            all = {};
+            var json = JSON.stringify(all);
+            sessionStorage.setItem(id, json);
+        },
+
+        each: function (fn) {
+            for (var key in all) {
+                fn(key, all[key]);
+            }
+        },
+
+        length: function () {
+            return exports.keys().length;
+        },
+
+        keys: function () {
+            if (typeof Object.keys == 'function') {
+                return Object.keys(all);
+            }
+
+            var a = [];
+            for (var key in all) {
+                a.push(key);
+            }
+
+            return a;
+        },
+
+        key: function key(index) {
+            return exports.keys()[index];
         }
-
-        all[key] = value;
-
-        var json = JSON.stringify(all);
-        sessionStorage.setItem(id, json);
-
-    }
-
-
-
-    function get(key) {
-        return all[key];
-    }
-
-    function remove(key) {
-        delete all[key];
-        var json = JSON.stringify(all);
-        sessionStorage.setItem(id, json);
-    }
-
-    function clear() {
-        all = {};
-        var json = JSON.stringify(all);
-        sessionStorage.setItem(id, json);
-    }
-
-
-    function each(fn) {
-
-        for (var key in all) {
-            fn(key, all[key]);
-        }
-
-    }
-
-    function keys() {
-        if (typeof Object.keys == 'function') {
-            return Object.keys(all);
-        }
-
-        var a = [];
-        for (var key in all) {
-            a.push(key);
-        }
-
-        return a;
-    }
-
-    function key(index) {
-
-        return keys()[index];
-    }
-
-    function length() {
-        return keys().length;
-    }
-
-
-
-
-    return {
-        set: set,
-        get: get,
-        remove: remove,
-        clear: clear,
-        each: each,
-        length: length,
-        keys: keys,
-        key: key
     };
 
 });
@@ -7561,8 +6331,6 @@ define('Script', function (require, module, exports) {
         document.write(html);
     }
 
-
-
     
     module.exports = exports = { /**@lends MiniQuery.Script*/
 
@@ -7578,7 +6346,7 @@ define('Script', function (require, module, exports) {
         * @param {function} [params.onload] 
             加载成功后的回调函数。
         * @example
-            $.Script.load({
+            Script.load({
                 url: 'a.js',
                 charset: 'utf-8',
                 document: document,
@@ -7586,13 +6354,13 @@ define('Script', function (require, module, exports) {
                 onload: function (){ }
             });
 
-            $.Script.load('a.js', 'utf-8', document, function(){});
-            $.Script.load('a.js', 'utf-8', function(){});
-            $.Script.load('a.js', document, function(){});
-            $.Script.load('a.js', function(){});
+            Script.load('a.js', 'utf-8', document, function(){});
+            Script.load('a.js', 'utf-8', function(){});
+            Script.load('a.js', document, function(){});
+            Script.load('a.js', function(){});
 
             //批量加载
-            $.Script.load(['a.js', 'b.js'], function(){});
+            Script.load(['a.js', 'b.js'], function(){});
         */
         load: function (params) {
 
@@ -7605,7 +6373,6 @@ define('Script', function (require, module, exports) {
                 $Object.extend(obj, params);
             }
             else {
-
                 obj.url = params;
 
                 switch (typeof arguments[1]) {
@@ -7634,9 +6401,6 @@ define('Script', function (require, module, exports) {
                 }
             }
 
-
-
-
             var url = obj.url;
 
             if (typeof url == 'string') {
@@ -7659,14 +6423,14 @@ define('Script', function (require, module, exports) {
         * @param {Document} [params.document=window.document] 
             创建的 script 标签的上下文环境的 document。默认为当前窗口的 document 对象。
         * @example
-            $.Script.insert({
+            Script.insert({
                 code: 'alert(0);',
                 id: 'myScript',
                 document: document
             });
-            $.Script.insert('alert(0);', 'myScript', document);
-            $.Script.insert('alert(0);', 'myScript');
-            $.Script.insert('alert(0);', document);
+            Script.insert('alert(0);', 'myScript', document);
+            Script.insert('alert(0);', 'myScript');
+            Script.insert('alert(0);', document);
         */
         insert: function (params) {
             var obj = {
@@ -7725,14 +6489,14 @@ define('Script', function (require, module, exports) {
         * @param {Document} [params.document=window.document] 
             要加载的 JS 文件的上下文环境的 document，默认为当前窗口的 document 对象。
         * @example
-            $.Script.write({
+            Script.write({
                 url: 'a.js',
                 charset: 'utf-8',
                 document: document
             });
-            $.Script.write('a.js', 'utf-8', document);
-            $.Script.write('a.js', 'utf-8');
-            $.Script.write('a.js', document);
+            Script.write('a.js', 'utf-8', document);
+            Script.write('a.js', 'utf-8');
+            Script.write('a.js', document);
         */
         write: function (params) {
             var obj = {
@@ -7790,16 +6554,15 @@ define('browser/Url', function (require, module, exports) {
     var Url = require('excore/Url');
 
     //用来记录 window 是否已绑定了 hashchange 事件 
-    var window$hashchange = new Mapper();
+    var mapper = new Mapper();
 
     //避免意外绑定到 window 中同名的事件。 
     //也可阻止用户手动去触发该事件，因为外部无法得知该事件名。
-    var hashchangeEventName = '__hashchange__' + $String.random();
+    var hashchangeEventName = '__hashchange-' + $String.random();
 
 
 
     module.exports = exports = {  /**@lends MiniQuery.Url */
-
 
         /**
         * 获取指定窗口的查询字符串中指定的键所对应的值。
@@ -7880,7 +6643,6 @@ define('browser/Url', function (require, module, exports) {
             args[0] = url;
 
             return Url.hasQueryString.apply(null, args);
-
         },
 
         /**
@@ -7907,9 +6669,7 @@ define('browser/Url', function (require, module, exports) {
             args[0] = url;
 
             return Url.getHash.apply(null, args);
-
         },
-
 
         /**
         * 给指定窗口的 Url 设置哈希。
@@ -7933,7 +6693,6 @@ define('browser/Url', function (require, module, exports) {
                 return Url.setHash.apply(null, args);
             }
 
-
             var location = window.location;
             var url = location.href;
             args[0] = url;
@@ -7945,9 +6704,7 @@ define('browser/Url', function (require, module, exports) {
             location.hash = hash; //不要设置整个 location.href，否则会刷新
 
             return location.href;
-
         },
-
 
         /**
         * 判断指定窗口的 Url 是否包含特定名称的哈希。
@@ -7970,12 +6727,7 @@ define('browser/Url', function (require, module, exports) {
             args[0] = url;
 
             return Url.hasHash.apply(null, args);
-
         },
-
-
-
-
 
         /**
         * 监听指定窗口 Url 的 Hash 变化，并触发一个回调函数。
@@ -7993,7 +6745,6 @@ define('browser/Url', function (require, module, exports) {
                 console.log('new hash: ' + newHash);
                 console.log('old hash: ' + oldHash);
                 console.log(this === top); //true
-    
             });
         */
         hashchange: function (window, fn, immediate) {
@@ -8010,7 +6761,7 @@ define('browser/Url', function (require, module, exports) {
                 fn.call(window, hash, null); //不要用 trigger，因为可能会影响之前绑定的
             }
 
-            if (window$hashchange.get(window)) { // window 所对应的窗口已绑定 hashchange
+            if (mapper.get(window)) { // window 所对应的窗口已绑定 hashchange
                 return;
             }
 
@@ -8032,10 +6783,7 @@ define('browser/Url', function (require, module, exports) {
                 }, 200);
             }
 
-            window$hashchange.set(window, true);
-
-
-
+            mapper.set(window, true);
         },
 
         /**
@@ -8072,13 +6820,10 @@ define('browser/Url', function (require, module, exports) {
                     fn.call(window, newHash, oldHash);
                 }
             });
-
-
         }
 
 
     };
-
 
 });
 
@@ -8147,9 +6892,7 @@ define('MiniQuery', function (require, module, exports) {
 
 
 //设置对外暴露的模块
-Module.expose({
-
-
+expose({
     'Array': true,
     'Boolean': true,
     'Date': true,

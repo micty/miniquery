@@ -30,15 +30,15 @@ define('Function', function (require, module, exports) {
                     console.log(a, b, c);
                 }
             };
-            $.Function.bind(p, obj.hi, 1, 2)(3); //传递附加参数
-            $.Function.bind(p, obj.hi)(4, 5, 6); //传递附加参数
+            $Function.bind(p, obj.hi, 1, 2)(3); //传递附加参数
+            $Function.bind(p, obj.hi)(4, 5, 6); //传递附加参数
         */
         bind: function (obj, fn) {
 
-            var args = Array.prototype.slice.call(arguments, 2); //通过 bind 传进来的参数(除了 obj 和 fn)
+            var args = [].slice.call(arguments, 2); //通过 bind 传进来的参数(除了 obj 和 fn)
 
             return function () {
-                var list = Array.prototype.slice.call(arguments, 0); //return 的这个函数传进来的参数
+                var list = [].slice.call(arguments, 0); //return 的这个函数传进来的参数
                 list = args.concat(list); //合并外层的，即 bind 传进来的参数
                 fn.apply(obj, list);
             }
@@ -53,12 +53,12 @@ define('Function', function (require, module, exports) {
         * @param {number|int} [count] 要执行的次数，如果指定了，则在执行到该次数后自动停止。
         * @example
             //每隔 500ms执行一次，最多执行 23 次
-            $.Function.setInterval(function(index) {
+            $Function.setInterval(function(index) {
                 console.log('A: ', index);
             }, 500, 23);
                 
             //每隔 200ms 执行一次，当次数达到 15 以上时，停止
-            $.Function.setInterval(function(index) {
+            $Function.setInterval(function(index) {
                 console.log('B: ', index);
                 if(index >=15) {
                     return null; //返回 null 以停止

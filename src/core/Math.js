@@ -15,18 +15,21 @@ define('Math', function (require, module, exports) {
         * @return 返回一个整数。<br />
             当不指定任何参数时，则用 Math.random() 产生一个已移除了小数点的随机整数。
         * @example
-            $.Math.randomInt(100, 200); //产生一个区间为 [100, 200] 的随机整数。
-            $.Math.randomInt(100); //产生一个区间为 [0, 200] 的随机整数。
-            $.Math.randomInt(); //产生一个随机整数。
+            $Math.randomInt(100, 200); //产生一个区间为 [100, 200] 的随机整数。
+            $Math.randomInt(100); //产生一个区间为 [0, 200] 的随机整数。
+            $Math.randomInt(); //产生一个随机整数。
         */
         randomInt: function (minValue, maxValue) {
-            if (minValue === undefined && maxValue === undefined) { // 此时为  Math.randomInt()
 
+            var len = arguments.length;
+
+            if (len == 0) { //重载 Math.randomInt()
                 //先称除小数点，再去掉所有前导的 0，最后转为 number
                 return Number(String(Math.random()).replace('.', '').replace(/^0*/g, ''));
             }
-            else if (maxValue === undefined) {
-                maxValue = minValue;    //此时相当于 Math.randomInt(minValue)
+
+            if (len == 1) { //重载 Math.randomInt(maxValue)
+                maxValue = minValue;    
                 minValue = 0;
             }
 
@@ -81,14 +84,19 @@ define('Math', function (require, module, exports) {
             如果解析失败，则返回 NaN。
         */
         parsePercent: function (v) {
-
-            var $String = require('String');
-
-            if (typeof v == 'string' && $String(v).trim().endsWith('%')) {
-                return parseInt(v) / 100;
+            if (typeof v != 'string') {
+                return v;
             }
 
-            return v;
+            var $String = require('String');
+            var s = $String.trim(v);
+
+            if (s.slide(-1) != '%') {
+                return v;
+            }
+
+            return parseFloat(s) / 100;
+           
         }
 
     };

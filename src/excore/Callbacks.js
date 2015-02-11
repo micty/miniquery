@@ -1,11 +1,8 @@
 ﻿
-
-
 /**
-* 回调列表类。
+* 回调列表类
 * @class
 */
-
 define('Callbacks', function (require, module, exports) {
 
     var $ = require('$');

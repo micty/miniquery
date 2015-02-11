@@ -3,9 +3,7 @@
 * Url 工具类
 * @namespace
 */
-
 define('excore/Url', function (require, module, exports) {
-
 
     module.exports = exports =  {  /**@lends MiniQuery.Url */
 
@@ -20,15 +18,15 @@ define('excore/Url', function (require, module, exports) {
             当不指定参数 key 时，则获取全部查询字符串，返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部查询字符串，返回一个 string 类型值。
         * @example
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 '1'
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 undefined
-            $.Url.getQueryString('http://www.demo.com?a=1&A=2#hash', 'A');  //返回 2
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true);//返回 1
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash', '');   //返回 'a=1&b=2'
-            $.Url.getQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 {a: '1', b: '2'}
-            $.Url.getQueryString('http://www.demo.com?a=&b=');              //返回 {a: '', b: ''}
-            $.Url.getQueryString('http://www.demo.com?a&b');                //返回 {a: '', b: ''}
-            $.Url.getQueryString('http://www.demo.com?a', 'a');             //返回 ''
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 '1'
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 undefined
+            Url.getQueryString('http://www.demo.com?a=1&A=2#hash', 'A');  //返回 2
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true);//返回 1
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash', '');   //返回 'a=1&b=2'
+            Url.getQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 {a: '1', b: '2'}
+            Url.getQueryString('http://www.demo.com?a=&b=');              //返回 {a: '', b: ''}
+            Url.getQueryString('http://www.demo.com?a&b');                //返回 {a: '', b: ''}
+            Url.getQueryString('http://www.demo.com?a', 'a');             //返回 ''
         */
         getQueryString: function (url, key, ignoreCase) {
 
@@ -81,10 +79,10 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url。
         * @example
             //返回 'http://www.demo.com?a=1&b=2&c=3#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
             
             //返回 'http://www.demo.com?a=3&b=2&d=4#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
         */
         addQueryString: function (url, key, value) {
 
@@ -129,10 +127,10 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url。
         * @example
             //返回值类似 'http://www.demo.com?a=1&b=2&7A8CEBAFC6B4=#hash'
-            $.Url.randomQueryString('http://www.demo.com?a=1&b=2#hash');  
+            Url.randomQueryString('http://www.demo.com?a=1&b=2#hash');  
             
             //返回值类似 'http://www.demo.com?a=1&b=2&7A8CE=#hash' 
-            $.Url.randomQueryString('http://www.demo.com?a=1&b=2#hash', 5); //随机键的长度为 5
+            Url.randomQueryString('http://www.demo.com?a=1&b=2#hash', 5); //随机键的长度为 5
     
         */
         randomQueryString: function (url, len) {
@@ -153,10 +151,10 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url。
         * @example
             //返回 'http://www.demo.com?c=3#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', 'c', 3);  
             
             //返回 'http://www.demo.com?a=3&d=4#hash'
-            $.Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
+            Url.setQueryString('http://www.demo.com?a=1&b=2#hash', {a: 3, d: 4});  
         */
         setQueryString: function (url, key, value) {
 
@@ -210,11 +208,11 @@ define('excore/Url', function (require, module, exports) {
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的查询字符串，则返回 true；否则返回 false。
         * @example
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
         */
         hasQueryString: function (url, key, ignoreCase) {
 
@@ -262,15 +260,15 @@ define('excore/Url', function (require, module, exports) {
             然后返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部哈希(不解码)，返回一个 string 类型值。
         * @example
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a');  //返回 '1'
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'c');  //返回 undefined
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26A%3D2', 'A');  //返回 2
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'A', true);//返回 1
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', '');   //返回 'a%3D1%26b%3D2'
-            $.Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2');       //返回 {a: '1', b: '2'}
-            $.Url.getHash('http://www.demo.com?query#a%3D%26b%3D');         //返回 {a: '', b: ''}
-            $.Url.getHash('http://www.demo.com??query#a%26b');              //返回 {a: '', b: ''}
-            $.Url.getHash('http://www.demo.com?query#a', 'a');              //返回 ''
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a');  //返回 '1'
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'c');  //返回 undefined
+            Url.getHash('http://www.demo.com?query#a%3D1%26A%3D2', 'A');  //返回 2
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', 'A', true);//返回 1
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2', '');   //返回 'a%3D1%26b%3D2'
+            Url.getHash('http://www.demo.com?query#a%3D1%26b%3D2');       //返回 {a: '1', b: '2'}
+            Url.getHash('http://www.demo.com?query#a%3D%26b%3D');         //返回 {a: '', b: ''}
+            Url.getHash('http://www.demo.com??query#a%26b');              //返回 {a: '', b: ''}
+            Url.getHash('http://www.demo.com?query#a', 'a');              //返回 ''
         */
         getHash: function (url, key, ignoreCase) {
 
@@ -323,13 +321,13 @@ define('excore/Url', function (require, module, exports) {
         * @retun {string} 返回组装后的新的 Url 字符串。
         * @example
             //返回 'http://www.demo.com?#a%3D1'
-            $.Url.setHash('http://www.demo.com', 'a', 1);  
+            Url.setHash('http://www.demo.com', 'a', 1);  
             
             //返回 'http://www.demo.com?query#a%3D3%26d%3D4'
-            $.Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', {a: 3, d: 4});  
+            Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', {a: 3, d: 4});  
     
             //返回 'http://www.demo.com?query#a%3D3%26d%3D4'
-            $.Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a=3&b=4'); 
+            Url.setHash('http://www.demo.com?query#a%3D1%26b%3D2', 'a=3&b=4'); 
             
         */
         setHash: function (url, key, value) {
@@ -373,14 +371,13 @@ define('excore/Url', function (require, module, exports) {
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的查询字符串，则返回 true；否则返回 false。
         * @example
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
-            $.Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'a');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'b');  //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'c');  //返回 false
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash', 'A', true); //返回 true
+            Url.hasQueryString('http://www.demo.com?a=1&b=2#hash');       //返回 true
         */
         hasHash: function (url, key, ignoreCase) {
-
             
             var obj = exports.getHash(url); //获取全部哈希字符串的 Object 形式
 

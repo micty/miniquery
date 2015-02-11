@@ -5,55 +5,12 @@
 */
 define('Cookie', function (require, module, exports) {
 
+
     //缓存 toObject 中的结果
     var cookie$object = {
         'true': {},
         'false': {}
     };
-
-    /**
-    * 解析字符串描述的 expires 字段
-    * @inner
-    */
-    var parseExpires = (function () {
-
-        var $Date = require('Date');
-
-        var reg = /^\d+([y|M|w|d|h|m|s]|ms)$/; //这里不要使用 /g
-
-        var fns = {
-            y: 'Year',
-            M: 'Month',
-            w: 'Week',
-            d: 'Day',
-            h: 'Hour',
-            m: 'Minute',
-            s: 'Second',
-            ms: 'Millisecond'
-        };
-
-        //parseExpires = 
-        return function (s) {
-
-            var now = new Date();
-
-            if (typeof s == 'number') {
-                return $Date.addMilliseconds(now, s);
-            }
-
-
-            if (reg.test(s)) {
-                var value = parseInt(s);
-                var unit = s.replace(/^\d+/g, '');
-                return $Date['add' + fns[unit] + 's'](now, value);
-            }
-
-            return $Date.parse(s);
-        };
-
-
-    })();
-
 
 
     module.exports = exports = { /**@lends MiniQuery.Cookie*/
@@ -66,29 +23,18 @@ define('Cookie', function (require, module, exports) {
             否则请指定 false 或不指定。
         * @return {Object} 返回一个解析后的等价的 Object 对象。
         * @example 
-            var obj = $.Cookie.toObject('A=1; B=2; C=a=100&b=200', true); //深层次解析
+            var obj = Cookie.toObject('A=1; B=2; C=a=100&b=200', true); //深层次解析
             //得到
-            obj = {
-                A: 1,
-                B: 2,
-                C: {
-                    a: 100,
-                    b: 200
-                }
-            };
+            obj = {A: 1, B: 2, C: {a: 100, b: 200}};
     
-            var obj = $.Cookie.toObject('A=1; B=2; C=a=100&b=200'); //浅解析
+            var obj = Cookie.toObject('A=1; B=2; C=a=100&b=200'); //浅解析
             //得到
-            obj = {
-                A: 1,
-                B: 2,
-                C: 'a=100&b=200'
-            };
-    
-            $.Cookie.toObject('a=1; b=2');
-            $.Cookie.toObject('a=1; b=2', true);
-            $.Cookie.toObject();
-            $.Cookie.toObject(true);
+            obj = {A: 1, B: 2, C: 'a=100&b=200'};
+
+            Cookie.toObject('a=1; b=2');
+            Cookie.toObject('a=1; b=2', true);
+            Cookie.toObject();
+            Cookie.toObject(true);
     
         */
         toObject: function (cookie, deep) {
@@ -164,11 +110,11 @@ define('Cookie', function (require, module, exports) {
             当不指定该参数时，返回参数 name 对应的项。
         * @return 返回指定项的值。
         * @example 
-            $.Cookie.get();
-            $.Cookie.get(true);
-            $.Cookie.get('A');
-            $.Cookie.get('A', true);
-            $.Cookie.get('A', 'b');
+            Cookie.get();
+            Cookie.get(true);
+            Cookie.get('A');
+            Cookie.get('A', true);
+            Cookie.get('A', 'b');
         */
         get: function (name, key) {
 
@@ -251,15 +197,15 @@ define('Cookie', function (require, module, exports) {
             或传入一个 $.Date.parse 识别的格式字符串，并会被解析成一个实际的日期实例。
         * @example 
             //设置一个 A=100 的 Cookie，过期时间为12天后
-            $.Cookie.set('A', 100, '12d'); 
+            Cookie.set('A', 100, '12d'); 
     
             //设置一个 B=200 的 Cookie，过期时间为2周后
-            $.Cookie.set('B', 200, '2w'); 
+            Cookie.set('B', 200, '2w'); 
     
             //设置一个 C=300 的 Cookie，过期时间为 '2014-9-10'
-            $.Cookie.set('C', 300, '2014-9-10'); 
+            Cookie.set('C', 300, '2014-9-10'); 
     
-            $.Cookie.set({
+            Cookie.set({
                 name: 'A',
                 value: 100,
                 expires: '2w',
@@ -299,7 +245,8 @@ define('Cookie', function (require, module, exports) {
             var cookie = name + '=' + value + '; ';
 
             if (expires) {
-                expires = parseExpires(expires);
+                var Expires = require('/Expires');
+                expires = Expires.parse(expires);
                 cookie += 'expires=' + expires.toGMTString() + '; '; //不推荐使用 toGMTString 方法
             }
 
@@ -325,10 +272,10 @@ define('Cookie', function (require, module, exports) {
             当不指定参数 name 时，则会把所有的 Cookie 都移除。
         * @example 
             //给 document 名称为 A 的 Cookie 移除
-            $.Cookie.remove(document, 'A'); 
+            Cookie.remove(document, 'A'); 
     
             //把 document 的所有 Cookie 都移除
-            $.Cookie.remove(document); 
+            Cookie.remove(document); 
         */
         remove: function (name, path, domain, secure) {
 

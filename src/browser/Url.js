@@ -8,16 +8,15 @@ define('browser/Url', function (require, module, exports) {
     var Url = require('excore/Url');
 
     //用来记录 window 是否已绑定了 hashchange 事件 
-    var window$hashchange = new Mapper();
+    var mapper = new Mapper();
 
     //避免意外绑定到 window 中同名的事件。 
     //也可阻止用户手动去触发该事件，因为外部无法得知该事件名。
-    var hashchangeEventName = '__hashchange__' + $String.random();
+    var hashchangeEventName = '__hashchange-' + $String.random();
 
 
 
     module.exports = exports = {  /**@lends MiniQuery.Url */
-
 
         /**
         * 获取指定窗口的查询字符串中指定的键所对应的值。
@@ -98,7 +97,6 @@ define('browser/Url', function (require, module, exports) {
             args[0] = url;
 
             return Url.hasQueryString.apply(null, args);
-
         },
 
         /**
@@ -125,9 +123,7 @@ define('browser/Url', function (require, module, exports) {
             args[0] = url;
 
             return Url.getHash.apply(null, args);
-
         },
-
 
         /**
         * 给指定窗口的 Url 设置哈希。
@@ -151,7 +147,6 @@ define('browser/Url', function (require, module, exports) {
                 return Url.setHash.apply(null, args);
             }
 
-
             var location = window.location;
             var url = location.href;
             args[0] = url;
@@ -163,9 +158,7 @@ define('browser/Url', function (require, module, exports) {
             location.hash = hash; //不要设置整个 location.href，否则会刷新
 
             return location.href;
-
         },
-
 
         /**
         * 判断指定窗口的 Url 是否包含特定名称的哈希。
@@ -188,12 +181,7 @@ define('browser/Url', function (require, module, exports) {
             args[0] = url;
 
             return Url.hasHash.apply(null, args);
-
         },
-
-
-
-
 
         /**
         * 监听指定窗口 Url 的 Hash 变化，并触发一个回调函数。
@@ -211,7 +199,6 @@ define('browser/Url', function (require, module, exports) {
                 console.log('new hash: ' + newHash);
                 console.log('old hash: ' + oldHash);
                 console.log(this === top); //true
-    
             });
         */
         hashchange: function (window, fn, immediate) {
@@ -228,7 +215,7 @@ define('browser/Url', function (require, module, exports) {
                 fn.call(window, hash, null); //不要用 trigger，因为可能会影响之前绑定的
             }
 
-            if (window$hashchange.get(window)) { // window 所对应的窗口已绑定 hashchange
+            if (mapper.get(window)) { // window 所对应的窗口已绑定 hashchange
                 return;
             }
 
@@ -250,10 +237,7 @@ define('browser/Url', function (require, module, exports) {
                 }, 200);
             }
 
-            window$hashchange.set(window, true);
-
-
-
+            mapper.set(window, true);
         },
 
         /**
@@ -290,13 +274,10 @@ define('browser/Url', function (require, module, exports) {
                     fn.call(window, newHash, oldHash);
                 }
             });
-
-
         }
 
 
     };
-
 
 });
 

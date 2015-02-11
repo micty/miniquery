@@ -1,32 +1,14 @@
 ﻿
-
-/**
-* @fileOverview 对象工具
-*/
-
-
-
 /**
 * 对象工具
-* @class
-* @param {Object} obj 要进行包装的对象
-* @return {MiniQuery.Object} 返回一个经过包装后的 MiniQuery.Object 对象
-* @example
-    $.Object( {a:1, b:2} );
-或  new $.Object( {a:1, b:2} );
+* @namespace
 */
-
 define('Object', function (require, module, exports) {
 
     var $ = require('$');
 
 
-    exports = function (obj) {
-        var prototype = require('Object.prototype');
-        return new prototype.init(obj);
-    };
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Object */
+    module.exports = exports = { /**@lends MiniQuery.Object */
 
         /**
         * 用一个或多个其他对象来扩展一个对象，返回被扩展的对象。
@@ -39,14 +21,10 @@ define('Object', function (require, module, exports) {
             如果只有一个参数，则直接返回该参数。
             否则：把第二个参数到最后一个参数的成员拷贝到第一个参数对应中去，并返回第一个参数。
         * @example 
-            var obj = {
-                a: 1, 
-                b: 2
-            };
-            var obj2 = $.Object.extend(obj, {b:3}, {c:4});
+            var obj = { a: 1,  b: 2 };
+            var obj2 = $Object.extend(obj, {b:3}, {c:4});
             //结果：
             obj = {a:1, b:3, c:4}; 
-            //并且 
             obj === obj2 //为 true
         */
         extend: $.extend,
@@ -139,7 +117,7 @@ define('Object', function (require, module, exports) {
         * @return {Object|Array} 克隆后的对象或数组。
         * @example
             var obj = {a: 1, b: 2, c: {a: 10, b: 20} };
-            var obj2 = $.Object.clone( obj );
+            var obj2 = $Object.clone( obj );
             console.dir( obj2 );          //与 obj 一致
             console.log( obj2 === obj );  //false
         */
@@ -212,7 +190,7 @@ define('Object', function (require, module, exports) {
                 } 
             };
 
-            $.Object.each(obj, function(key, value) {
+            $Object.each(obj, function(key, value) {
                 console.log(key, ': ', value);
             }, true);
         输出：
@@ -246,19 +224,19 @@ define('Object', function (require, module, exports) {
         * 获取一个对象的真实类型的字符串描述。
         * @param obj 要检测的对象，可以是任何类型。
         * @return {String} 返回该对象的类型的字符串描述。
-            当参数为 null、undefined 时，返回 null、undefined；<br />
-            当参数为 string、number、boolean 的值类型时，返回 string、number、boolean；<br />
-            否则返回参数的实际类型的字符串描述(构造函数的名称)：<br />
+            当参数为 null、undefined 时，返回 null、undefined；
+            当参数为 string、number、boolean 的值类型时，返回 string、number、boolean；
+            否则返回参数的实际类型的字符串描述(构造函数的名称)：
             如 Array、String、Number、Boolean、Object、Function、RegExp、Date 等
         * @example
-            $.Object.getType();         //'undefined'
-            $.Object.getType(null);     //'null'
-            $.Object.getType('hello');  //'string'
-            $.Object.getType(100);      //'number'
-            $.Object.getType(false);    //'boolean'
-            $.Object.getType({});       //'Object'
-            $.Object.getType(function(){});//'Function'
-            $.Object.getType([0, 1, 2]);   //'Array'
+            $Object.getType();         //'undefined'
+            $Object.getType(null);     //'null'
+            $Object.getType('hello');  //'string'
+            $Object.getType(100);      //'number'
+            $Object.getType(false);    //'boolean'
+            $Object.getType({});       //'Object'
+            $Object.getType(function(){});//'Function'
+            $Object.getType([0, 1, 2]); //'Array'
         */
         getType: function (obj) {
             return obj === null ? 'null' :
@@ -270,19 +248,19 @@ define('Object', function (require, module, exports) {
                 typeof obj == 'boolean' ? 'boolean' :
 
                 //处理对象类型、包装类型
-                Object.prototype.toString.call(obj).slice(8, -1); //去掉 "[object" 和 "]"
+                ({}).toString.call(obj).slice(8, -1); //去掉 "[object" 和 "]"
         },
 
         /**
-        * 判断一个对象是否为数组类型。<br />
-        * 注意：如果是跨窗口取得的数组，请使用非严格判断。<br />
+        * 判断一个对象是否为数组类型。
+        * 注意：如果是跨窗口取得的数组，请使用非严格判断。
         * 由于 IE 的兼容性问题，对于跨窗口取得的数组，请在使用其实例方法之前把它转成真正的数组，否则会报错。
         * @param {Object} obj 要进行判断的对象，可以是任何类型
         * @param {boolean} [useStrict] 指定是否要进行严格判断，如果是请传入 true；否则当成非严格判断
         * @return {boolean} 一个判断结果，如果为数组则返回 true；否则返回 false
         * @example
-            $.Object.isArray([]) //true
-            $.Object.isArray({}) //false
+            $Object.isArray([]) //true
+            $Object.isArray({}) //false
         */
         isArray: function (obj, useStrict) {
             if (useStrict === true) { //指定了要严格判断
@@ -304,8 +282,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行判断的对象，可以是任何类型。
         * @return {boolean} 一个判断结果，如果为字符串则返回 true；否则返回 false。
         * @example
-            $.Object.isString( new String(100) ) //false
-            $.Object.isString( '100' ) //true
+            $Object.isString( new String(100) ) //false
+            $Object.isString( '100' ) //true
         */
         isString: function (obj) {
             return typeof obj == 'string';
@@ -316,8 +294,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行判断的对象，可以是任何类型。
         * @return {boolean} 一个判断结果，如果为数字则返回 true；否则返回 false。
         * @example
-            $.Object.isNumber( new Number(100) ) //false
-            $.Object.isNumber( 100 ) //true
+            $Object.isNumber( new Number(100) ) //false
+            $Object.isNumber( 100 ) //true
         */
         isNumber: function (obj) {
             return typeof obj == 'number';
@@ -328,8 +306,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行判断的对象，可以是任何类型。
         * @return {boolean} 一个判断结果，如果为函数则返回 true；否则返回 false。
         * @example
-            $.Object.isFunction([]) //false
-            $.Object.isFunction(function(){}) //true
+            $Object.isFunction([]) //false
+            $Object.isFunction(function(){}) //true
         */
         isFunction: function (obj) {
             return typeof obj == 'function';
@@ -337,15 +315,15 @@ define('Object', function (require, module, exports) {
 
 
         /**
-        * 判断一个对象是否为内置类型。<br />
+        * 判断一个对象是否为内置类型。
         * 内置类型是指 String, Number, Boolean, Array, Date, RegExp, Function。
         * @param {Object} obj 要进行判断的对象，可以是任何类型
         * @return {boolean} 一个判断结果，如果为内置类型则返回 true；否则返回 false
         * @example
-            $.Object.isBuiltinType( 100 );   //false
-            $.Object.isBuiltinType( new Number(100) ); //true
-            $.Object.isBuiltinType( {} );    //false
-            $.Object.isBuiltinType( [] );    //true
+            $Object.isBuiltinType( 100 );   //false
+            $Object.isBuiltinType( new Number(100) ); //true
+            $Object.isBuiltinType( {} );    //false
+            $Object.isBuiltinType( [] );    //true
         */
         isBuiltinType: function (obj) {
             var types = [String, Number, Boolean, Array, Date, RegExp, Function];
@@ -361,18 +339,18 @@ define('Object', function (require, module, exports) {
 
 
         /**
-        * 检测对象是否是空对象(不包含任何属性)。<br />
-        * 该方法既检测对象本身的属性，也检测从原型继承的属性(因此没有使用 hasOwnProperty )。<br />
+        * 检测对象是否是空对象(不包含任何属性)。
+        * 该方法既检测对象本身的属性，也检测从原型继承的属性(因此没有使用 hasOwnProperty )。
         * 该实现为 jQuery 的版本。
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为空对象则返回 true；否则返回 false
         * @example
-            $.Object.isEmpty( {} );      //true
+            $Object.isEmpty({});      //true
             
             function Person(){ }
             Person.prototype.name = 'abc';
             var p = new Person();
-            $.Object.isEmpty( p );   //false
+            $Object.isEmpty( p );   //false
         */
         isEmpty: function (obj) {
             for (var name in obj) {
@@ -388,12 +366,12 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为纯粹的对象则返回 true；否则返回 false
         * @example
-            $.Object.isPlain( {} );             //true
-            $.Object.isPlain( {a: 1, b: {} } );  //true
+            $Object.isPlain( {} );             //true
+            $Object.isPlain( {a: 1, b: {} } );  //true
             
             function Person(){ }
             var p = new Person();
-            $.Object.isPlain( p );   //false
+            $Object.isPlain( p );   //false
         */
         isPlain: function (obj) {
             if (!obj || typeof obj != 'object' /*|| obj.nodeType || exports.isWindow(obj) */) {
@@ -426,13 +404,13 @@ define('Object', function (require, module, exports) {
         },
 
         /**
-        * 判断一个对象是否为值类型。<br />
+        * 判断一个对象是否为值类型。
         * 即 typeof 的结果是否为 string、number、boolean 中的一个。
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为 值类型则返回 true；否则返回 false
         * @example
-            $.Object.isValueType(100);              //true
-            $.Object.isValueType( new Number(100) );//false
+            $Object.isValueType(100);              //true
+            $Object.isValueType( new Number(100) );//false
         */
         isValueType: function (obj) {
             //不要用这种，否则在 rhino 的 js 引擎中会不稳定
@@ -442,17 +420,17 @@ define('Object', function (require, module, exports) {
         },
 
         /**
-        * 判断一个对象是否为包装类型。<br />
+        * 判断一个对象是否为包装类型。
         * 包装类型是指 String, Number, Boolean 的 new 的实例。
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果包装类型则返回 true；否则返回 false
         * @example
-            console.log( $.Object.isWrappedType(100) ); //false
-            console.log( $.Object.isWrappedType( new Number(100) ) );  //true
-            console.log( $.Object.isWrappedType('abc') );  //false
-            console.log( $.Object.isWrappedType( new String('abc') ) );  //true
-            console.log( $.Object.isWrappedType(true) );  //false
-            console.log( $.Object.isWrappedType( new Boolean(true) ) );  //true
+            console.log( $Object.isWrappedType(100) ); //false
+            console.log( $Object.isWrappedType( new Number(100) ) );  //true
+            console.log( $Object.isWrappedType('abc') );  //false
+            console.log( $Object.isWrappedType( new String('abc') ) );  //true
+            console.log( $Object.isWrappedType(true) );  //false
+            console.log( $Object.isWrappedType( new Boolean(true) ) );  //true
         */
         isWrappedType: function (obj) {
             var types = [String, Number, Boolean];
@@ -471,14 +449,14 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果是非空的对象则返回 true；否则返回 false。
         * @example
-            console.log( $.Object.isNonNull( null ) );  //false
-            console.log( $.Object.isNonNull( {} ) );  //true
-            console.log( $.Object.isNonNull(100) ); //false
-            console.log( $.Object.isNonNull( new Number(100) ) );  //true
-            console.log( $.Object.isNonNull('abc') );  //false
-            console.log( $.Object.isNonNull( new String('abc') ) );  //true
-            console.log( $.Object.isNonNull(true) );  //false
-            console.log( $.Object.isNonNull( new Boolean(true) ) );  //true
+            console.log( $Object.isNonNull( null ) );  //false
+            console.log( $Object.isNonNull( {} ) );  //true
+            console.log( $Object.isNonNull(100) ); //false
+            console.log( $Object.isNonNull( new Number(100) ) );  //true
+            console.log( $Object.isNonNull('abc') );  //false
+            console.log( $Object.isNonNull( new String('abc') ) );  //true
+            console.log( $Object.isNonNull(true) );  //false
+            console.log( $Object.isNonNull( new Boolean(true) ) );  //true
         */
         isNonNull: function (obj) {
             if (!obj) { //false、null、undefined、''、NaN、0
@@ -495,8 +473,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为 window 窗口则返回 true；否则返回 false
         * @example
-            $.Object.isWindow( {} ); //false
-            $.Object.isWindow(top);  //true
+            $Object.isWindow( {} ); //false
+            $Object.isWindow(top);  //true
         */
         isWindow: function (obj) {
             return obj &&
@@ -509,8 +487,8 @@ define('Object', function (require, module, exports) {
         * @param {Object} obj 要进行检测的对象，可以是任何类型
         * @return {boolean} 一个检测结果，如果为  document 对象则返回 true；否则返回 false
         * @example
-            $.Object.isDocument( {} );      //false
-            $.Object.isDocument(document);  //true
+            $Object.isDocument( {} );      //false
+            $Object.isDocument(document);  //true
         */
         isDocument: function (obj) {
             return obj &&
@@ -529,7 +507,7 @@ define('Object', function (require, module, exports) {
         * @return {Object} 返回一个新的对象，key 仍为原来的 key，value 由回调函数得到
         * @example
             var obj = {a: 1, b: 2, c: {A: 11, B: 22} };
-            var obj2 = $.Object.map(obj, function(key, value) {
+            var obj2 = $Object.map(obj, function(key, value) {
                 return value * 100;
             }, true);
             console.dir(obj2);
@@ -538,12 +516,14 @@ define('Object', function (require, module, exports) {
         */
         map: function (obj, fn, isDeep) {
             var map = arguments.callee; //引用自身，用于递归
+            var isPlain = exports.isPlain;
+
             var target = {};
 
             for (var key in obj) {
                 var value = obj[key];
 
-                if (isDeep && exports.isPlain(value)) { //指定了深迭代，并且当前 value 为纯对象
+                if (isDeep && isPlain(value)) { //指定了深迭代，并且当前 value 为纯对象
                     target[key] = map(value, fn, isDeep); //递归
                 }
                 else {
@@ -563,21 +543,21 @@ define('Object', function (require, module, exports) {
         * @return {Object} 返回创建后的最内层的命名空间所指的对象
         * @example
             //给 obj 对象创建一个 A.B.C 的命名空间，其值为 {a:1, b:2}
-            $.Object.namespace(obj, 'A.B.C', {a:1, b:2});
+            $Object.namespace(obj, 'A.B.C', {a:1, b:2});
             console.dir( obj.A.B.C ); //结果为 {a:1, b:2}
             
             //给当前的 global 对象创建一个 A.B.C 的命名空间，其值为 {a:1, b:2}
-            $.Object.namespace('A.B.C', {a:1, b:2});
+            $Object.namespace('A.B.C', {a:1, b:2});
             console.dir( A.B.C ); //结果为 {a:1, b:2}
             
-            //给当前的 global 象分别创建一个 $.AA 和 $.BB 的命名空间，其值为分别 source.A 和 source.B
-            $.Object.namespace(source, {
-                'A': '$.AA', //source.AA -> $.A
-                'B': '$.BB'  //source.BB -> $.B
+            //给当前的 global 象分别创建一个 $AA 和 $BB 的命名空间，其值为分别 source.A 和 source.B
+            $Object.namespace(source, {
+                'A': '$AA', //source.AA -> $A
+                'B': '$BB'  //source.BB -> $B
             });
             
             //给 obj 对象分别创建 obj.A 和 obj.B 命名空间，其值分别为  source.A 和 source.B
-            $.Object.namespace(obj, source, ['A', 'B']);
+            $Object.namespace(obj, source, ['A', 'B']);
         * 
         */
         namespace: function (arg0, arg1, arg2) {
@@ -592,8 +572,8 @@ define('Object', function (require, module, exports) {
 
                 var isGet = value === undefined; //指示是否为取值操作，当不指定 value 时，则认为是取值操作
 
-                for (var i = 0; i < len; i++) //迭代路径
-                {
+                for (var i = 0; i < len; i++) { //迭代路径
+                
                     var key = list[i];
 
                     //是获取操作，但不存在该级别
@@ -605,16 +585,13 @@ define('Object', function (require, module, exports) {
                         obj[key] = obj[key] || {};
                         obj = obj[key]; //为下一轮做准备
                     }
-                    else //最后一项
-                    {
-                        if (value === undefined) //不指定值时，则为获取
-                        {
+                    else { //最后一项
+                        if (value === undefined) { //不指定值时，则为获取
                             return obj[key];
                         }
 
                         //指定了值
                         obj[key] = value; //全量赋值
-
                     }
                 }
 
@@ -644,12 +621,12 @@ define('Object', function (require, module, exports) {
             /*
             此时为：
                 exports.namespace(source, {
-                    'Object': '$.Object',   //source.Object -> $.Object
-                    'Array': '$.Array'      //source.Array -> $.Array
+                    'Object': '$Object',   //source.Object -> $Object
+                    'Array': '$Array'      //source.Array -> $Array
                 });
             要实现的功能：
-                $.Object = source.Object;
-                $.Array = source.Array;
+                $Object = source.Object;
+                $Array = source.Array;
             */
             if (exports.isPlain(arg1) && arg2 === undefined) {
                 //换个名称更容易理解
@@ -746,7 +723,7 @@ define('Object', function (require, module, exports) {
             当参数 url 非法时，返回空对象 {}。
         * @example
             var url = 'a=1&b=2&c=A%3D100%26B%3D200';
-            var obj = $.Object.parseQueryString(url);
+            var obj = $Object.parseQueryString(url);
         得到 obj = {a: 1, b:2, c: {A: 100, B: 200}};
         */
         parseQueryString: function (url, isShallow, isCompatible) {
@@ -812,10 +789,10 @@ define('Object', function (require, module, exports) {
                 c: 3
             };
     
-            var o = $.Object.remove(obj, ['a', 'c']); //移除成员 a 和 c 
+            var o = $Object.remove(obj, ['a', 'c']); //移除成员 a 和 c 
             console.dir(o); //得到 o = { b: 2 };
     
-            o = $.Object.remove(obj, {a: 1, b: 2});
+            o = $Object.remove(obj, {a: 1, b: 2});
             console.dir(o); //得到 o = { c: 3 };
         */
         remove: function (obj, keys) {
@@ -867,15 +844,15 @@ define('Object', function (require, module, exports) {
         /**
         * 把一个 Object 对象转成一个数组。
         * @param {Object} obj 要进行转换的对象
-        * @param {Array|boolean|function} [rule=undefined] 转换映射规则。<br />
-        *   当未指定参数 rule 时，则使用 for in 迭代收集 obj 中的值，返回一个一维的值数组；<br />
-        *   当指定参数 rule 为一个数组时，则按 rule 中的顺序迭代收集 obj 中的值，返回一个一维的值的数组；<br />
-        *   当指定参数 rule 为 true 时，则使用 for in 迭代收集 obj 中的名称和值，返回一个[key, value] 的二维数组，<br />
-        *       即该数组中的每一项的第0个元素为名称，第1个元素为值。<br />
-        *   当指定参数 rule 为一个处理函数时，将使用该处理函数的返回值作为收集到数组的值，<br />
-        *       处理函数会接收到两个参数：该对象迭代的 key 和 value。<br />
-        *       当返回值为 null 时，将忽略它（相当于 continue）；<br />
-        *       当返回值为 undefined 时，将停止迭代（相当于 break）；<br />
+        * @param {Array|boolean|function} [rule=undefined] 转换映射规则。
+        *   当未指定参数 rule 时，则使用 for in 迭代收集 obj 中的值，返回一个一维的值数组；
+        *   当指定参数 rule 为一个数组时，则按 rule 中的顺序迭代收集 obj 中的值，返回一个一维的值的数组；
+        *   当指定参数 rule 为 true 时，则使用 for in 迭代收集 obj 中的名称和值，返回一个[key, value] 的二维数组，
+        *       即该数组中的每一项的第0个元素为名称，第1个元素为值。
+        *   当指定参数 rule 为一个处理函数时，将使用该处理函数的返回值作为收集到数组的值，
+        *       处理函数会接收到两个参数：该对象迭代的 key 和 value。
+        *       当返回值为 null 时，将忽略它（相当于 continue）；
+        *       当返回值为 undefined 时，将停止迭代（相当于 break）；
         * @param {boolean} [isDeep=false] 指定是否递归处理。
             若要递归转换，请指定 true；否则请指定 false 或不指定
         * @return 返回一个数组
@@ -893,16 +870,16 @@ define('Object', function (require, module, exports) {
                 } 
             };
             
-            var a = $.Object.toArray(obj, null, true);
+            var a = $Object.toArray(obj, null, true);
             console.dir(a);
             
-            var b = $.Object.toArray(obj, ['b', 'c', 'a']);
+            var b = $Object.toArray(obj, ['b', 'c', 'a']);
             console.dir(b);
             
-            var c = $.Object.toArray(obj, true, true);
+            var c = $Object.toArray(obj, true, true);
             console.dir(c);
             
-            var d = $.Object.toArray(obj, function(key, value) {
+            var d = $Object.toArray(obj, function(key, value) {
                 return value + 1000;
             }, true);
             
@@ -922,14 +899,12 @@ define('Object', function (require, module, exports) {
 
             // 传进来的是一个 key 数组
             if (rule instanceof Array) {
-                //注意，这里不要用 $.Array.map 来过滤，
+                //注意，这里不要用 $Array.map 来过滤，
                 //因为 map 会忽略掉 null 和 undefined 的值，这是不合适的
-
                 var keys = rule; //换个名称更好理解
                 var a = [];
 
-                for (var i = 0, len = keys.length; i < len; i++) //此时没有深迭代，因为 keys 只用于第一层
-                {
+                for (var i = 0, len = keys.length; i < len; i++) { //此时没有深迭代，因为 keys 只用于第一层
                     var value = obj[keys[i]]; //取得当前 key 所对应的 value
                     a.push(value); // keys[i] -> key -> value
                 }
@@ -1044,8 +1019,8 @@ define('Object', function (require, module, exports) {
         * 把一个对象编码成等价结构的 Url 查询字符串。
         * @param {Object} obj 要进行编码的对象
         * @param {boolean} [isCompatible=false] 
-            指定是否要使用兼容模式进行编码。<br />
-            当需要使用 escape 进行编码时，请指定 true；<br />
+            指定是否要使用兼容模式进行编码。
+            当需要使用 escape 进行编码时，请指定 true；
             否则要使用 encodeURIComponent 进行编码，请指定 false 或不指定。
         * @return {string} 返回一个经过编码的 Url 查询字符串
         * @example
@@ -1057,7 +1032,7 @@ define('Object', function (require, module, exports) {
                 e: undefined,
                 f: ['a', 'b', 'c']
             };
-            var s = $.Object.toQueryString(obj);
+            var s = $Object.toQueryString(obj);
             console.log(s); 
             //结果 a=1&b=2&c=A%3D100%26B%3D200&d=null&e=undefined&f=%5Ba%2C%20b%5D
         */
@@ -1118,7 +1093,7 @@ define('Object', function (require, module, exports) {
                 c: undefined, 
                 d: d
             };
-            var obj2 = $.Object.trim(obj, [null, undefined, '0'], true );
+            var obj2 = $Object.trim(obj, [null, undefined, '0'], true );
             
             console.dir(obj);   //结果没变
             console.dir(obj2);  //结果为 {a: 1, d: {AA: 11}}
@@ -1180,7 +1155,7 @@ define('Object', function (require, module, exports) {
         * 跨浏览器的 Object.create 方法。
         * 该方法会优化使用原生的 Object.create 方法，当不存在时，才使用自己的实现。
         * @example
-            var obj = $.Object.create({
+            var obj = $Object.create({
                 name: 'micty',
                 sayHi: function() {
                     console.log( this.name );
@@ -1227,7 +1202,7 @@ define('Object', function (require, module, exports) {
     
             //或 samples = ['a', 'b'];
     
-            var obj = $.Object.filter(src, samples);
+            var obj = $Object.filter(src, samples);
             console.dir(obj); //得到 obj = { a: 100, b: 200 }; 只保留 samples 中指定的成员，其他的去掉.
         */
         filter: function (src, samples) {
@@ -1293,7 +1268,7 @@ define('Object', function (require, module, exports) {
     
             //或 samples = ['a', 'b'];
     
-            $.Object.filterTo(target, src, samples);
+            $Object.filterTo(target, src, samples);
             console.dir(target); //得到 target = { myName: 'micty', a: 100, b: 200 };
         */
         filterTo: function (target, src, samples) {
@@ -1344,7 +1319,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var found = $.Object.find(obj, function (key, value) {
+            var found = $Object.find(obj, function (key, value) {
                 if (key == 'b' && value == 1) {
                     return true;
                 }
@@ -1384,7 +1359,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var item = $.Object.findItem(obj, function (key, value) {
+            var item = $Object.findItem(obj, function (key, value) {
                 return value == 20;
             }, true);
             console.log(item); //['c', 20]
@@ -1424,7 +1399,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var key = $.Object.findKey(obj, function (key, value) {
+            var key = $Object.findKey(obj, function (key, value) {
                 return value == 20;
             }, true);
             console.log(key); // 'c'
@@ -1453,7 +1428,7 @@ define('Object', function (require, module, exports) {
                 }
             };
     
-            var value = $.Object.findValue(obj, function (key, value) {
+            var value = $Object.findValue(obj, function (key, value) {
                 return key == 'cc';
             }, true);
             console.log(value); //20
@@ -1471,13 +1446,13 @@ define('Object', function (require, module, exports) {
         * @param backupValue 备用值。。
         * @return 如果对象中存在该成员，则返回该成员所对应的值；否则，返回备用值。
         * @example
-            var value = $.Object.get({}, 'a', 2);
+            var value = $Object.get({}, 'a', 2);
             console.log(value); //得到 2;
     
-            var value = $.Object.get({a: 1 }, 'a', 2);
+            var value = $Object.get({a: 1 }, 'a', 2);
             console.log(value); //得到 1;
     
-            var value = $.Object.get(null, 'a', 1);
+            var value = $Object.get(null, 'a', 1);
             console.log(value); //得到 1;
         */
         get: function (obj, key, backupValue) {
@@ -1500,7 +1475,7 @@ define('Object', function (require, module, exports) {
         * @param value 设置对象所用的值。
         * @return {Object} 返回第一个参数 obj，即设置的对象。
         * @example
-            var obj = $.Object.set({}, 'a', 1);
+            var obj = $Object.set({}, 'a', 1);
             console.dir(obj); //得到 obj = { a: 1 };
         */
         set: function (obj, key, value) {
@@ -1517,11 +1492,11 @@ define('Object', function (require, module, exports) {
         * @example
     
             //单个操作
-            var obj = $.Object.make('a', 1);
+            var obj = $Object.make('a', 1);
             console.dir(obj); //得到 obj = { a: 1 };
     
             //批量操作
-            var obj = $.Object.make( 
+            var obj = $Object.make( 
                 ['a', 1], 
                 ['b', 2], 
                 ['c', 3]
@@ -1535,7 +1510,7 @@ define('Object', function (require, module, exports) {
             var obj = {};
 
             if (exports.isArray(key)) {
-                $Array(arguments).each(function (pair, index) {
+                $Array.each(arguments, function (pair, index) {
                     obj[pair[0]] = pair[1];
                 });
             }
@@ -1617,7 +1592,6 @@ define('Object', function (require, module, exports) {
         * @return 返回一个由二元组 [key, value] 组成的数组。
         */
         getItems: function (obj, isDeep) {
-
             return exports.toArray(obj, true, isDeep);
         },
 
@@ -1630,8 +1604,8 @@ define('Object', function (require, module, exports) {
             如果不指定则默认为 "&" 号
         * @return {String} 用分隔符进行连接的字符串。
         * @example 
-            var a = $.Object.join( {a:1, b:2, c:3}, '=', '&' ); //得到 'a=1&b=2&c=3'
-            var b = $.Object.join( {a:1, b:2, c:3} );   //得到 'a=1&b=2&c=3'
+            var a = $Object.join( {a:1, b:2, c:3}, '=', '&' ); //得到 'a=1&b=2&c=3'
+            var b = $Object.join( {a:1, b:2, c:3} );   //得到 'a=1&b=2&c=3'
         */
         join: function (nameValues, nameValueSeparator, pairSeparator) {
             nameValueSeparator = nameValueSeparator || '=';
@@ -1654,7 +1628,7 @@ define('Object', function (require, module, exports) {
         * @example 
             var a = { a: 1, b: 2, c: 3 };
             var b = { d: 4, e: 5 };
-            var c = $.Object.overwrite(a, b);
+            var c = $Object.overwrite(a, b);
     
             console.log(a === b); //false
             console.log(a === c); //true
@@ -1677,7 +1651,7 @@ define('Object', function (require, module, exports) {
         * @return {Array} 返回一个线性化表示的一维数组。
         *   数组的每项都为一个 { keys: [], value: ... } 的结构。
         * @example
-            var list = $.Object.linearize({
+            var list = $Object.linearize({
 	            name: {
 	                a: 1,
                     b: 2,
@@ -1751,7 +1725,7 @@ define('Object', function (require, module, exports) {
         },
 
 
-    });
+    };
 
 });
 

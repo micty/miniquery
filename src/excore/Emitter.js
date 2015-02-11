@@ -1,6 +1,6 @@
 ﻿
 /**
-* 自定义多级事件类。
+* 自定义多级事件类
 * @class
 */
 define('Emitter', function (require, module, exports) {
@@ -11,57 +11,11 @@ define('Emitter', function (require, module, exports) {
     var $String = require('String');
     var Mapper = require('Mapper');
 
-    var guidKey = Mapper.getGuidKey();
+    var Tree = require('/Tree'); //完整名称为 Emitter/Tree
+
     var mapper = new Mapper();
 
 
-    function add(name$node, names, item) {
-
-        var lastIndex = names.length - 1;
-
-        $Array.each(names, function (name, index) {
-
-            var node = name$node[name];
-            if (!node) {
-                node = name$node[name] = {
-                    'list': [],
-                    'tree': {}
-                };
-            }
-
-            if (index < lastIndex) {
-                name$node = node.tree;
-            }
-            else { //最后一项
-                node.list.push(item);
-            }
-
-        });
-
-    }
-
-    function getNode(name$node, names) {
-       
-        var lastIndex = names.length - 1;
-
-        for (var i = 0; i <= lastIndex; i++) {
-            var name = names[i];
-            var node = name$node[name];
-
-            if (!node || i == lastIndex) { //最后一项
-                return node;
-            }
-
-            name$node = node.tree;
-        }
-
-    }
-
-
-    function getList(name$node, names) {
-        var node = getNode(name$node, names);
-        return node ? node.list : null;
-    }
 
     //绑定事件。
     //实例的私有方法，必须用 bind.apply(this, []) 的方式来调用。
@@ -72,7 +26,7 @@ define('Emitter', function (require, module, exports) {
 
         // 单名称情况 on(name, fn)，专门成一个分支，为了优化
         if (typeof name == 'string' && typeof fn == 'function') {
-            add(all, [name], {
+            Tree.add(all, [name], {
                 'fn': fn,
                 'isOneOff': isOneOff,
             });
@@ -97,7 +51,7 @@ define('Emitter', function (require, module, exports) {
 
                 var keys = names.concat(item.keys);
 
-                add(all, keys, {
+                Tree.add(all, keys, {
                     'fn': item.value,
                     'isOneOff': isOneOff,
                 });
@@ -119,7 +73,7 @@ define('Emitter', function (require, module, exports) {
         fn = args[index]; //回调函数
         var names = args.slice(0, index); //前面的都当作是名称
 
-        add(all, names, {
+        Tree.add(all, names, {
             'fn': fn,
             'isOneOff': isOneOff,
         });
@@ -136,7 +90,8 @@ define('Emitter', function (require, module, exports) {
     */
     function Emitter(context) {
 
-        this[guidKey] = $String.random();
+        var id = 'Emitter-' + $String.random();
+        Mapper.setGuid(this, id);
 
         var meta = {
             'context': context,
@@ -214,7 +169,7 @@ define('Emitter', function (require, module, exports) {
             fn = args[index];
 
             var names = args.slice(0, index);
-            var node = getNode(all, names);
+            var node = Tree.getNode(all, names);
             if (!node) { //尚未存在该名称所对应的节点
                 return;
             }
@@ -262,7 +217,7 @@ define('Emitter', function (require, module, exports) {
             params = args[index] || [];
 
             var names = args.slice(0, index);
-            var list = getList(all, names);
+            var list = Tree.getList(all, names);
             var returns = [];
 
             if (!list || list.length == 0) {
@@ -326,7 +281,7 @@ define('Emitter', function (require, module, exports) {
             fn = args[index];
 
             var names = args.slice(0, index);
-            var list = getList(all, names);
+            var list = Tree.getList(all, names);
 
             if (!list || list.length == 0) { //尚未存在该名称所对应的节点
                 return false;

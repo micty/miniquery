@@ -4,7 +4,6 @@
  *BASE64 Encode and Decode By UTF-8 unicode
  *可以和java的BASE64编码和解码互相转化
  */
-
 define('Base64', function (require, module, exports) {
 
 

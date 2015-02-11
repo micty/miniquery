@@ -4,128 +4,199 @@
 */
 var Module = (function () {
 
-    var id$module = {};
+    var guidKey = '__guid__';
+    var guid$meta = {};
 
-    /**
-    * 定义指定名称的模块。
-    * @param {string} id 模块的名称。
-    * @param {Object|function} exports 模块的导出函数。
-    */
-    function define(id, exports) {
-        id$module[id] = {
-            required: false,
-            exports: exports,
-            exposed: false      //默认对外不可见
-        };
+
+    //根据工厂函数反向查找对应的模块 id。
+    function findId(id$module, factory) {
+        for (var id in id$module) {
+            if (id$module[id].factory === factory) {
+                return id;
+            }
+        }
     }
 
+
+
     /**
-    * 加载指定的模块。
-    * @param {string} id 模块的名称。
-    * @return 返回指定的模块。
+    * 构造器。
     */
-    function require(id) {
+    function Module() {
 
-        var module = id$module[id];
-        if (!module) { //不存在该模块
-            return;
-        }
+        var guid = Math.random().toString().slice(2);
+        this[guidKey] = guid;
 
-        var exports = module.exports;
+        var meta = {
+            id$module: {},
+        };
 
-        if (module.required) { //已经 require 过了
-            return exports;
-        }
+        guid$meta[guid] = meta;
 
-        //首次 require
-        if (typeof exports == 'function') {
+    }
 
-            var fn = exports;
-            exports = {};
 
+    //实例方法
+    Module.prototype = {
+        constructor: Module,
+
+        /**
+        * 定义指定名称的模块。
+        * @param {string} id 模块的名称。
+        * @param {Object|function} factory 模块的导出函数或对象。
+        */
+        define: function define(id, factory) {
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+
+            var id$module = meta.id$module;
+
+            id$module[id] = {
+                factory: factory,
+                exports: null,      //这个值在 require 后可能会给改写
+                required: false,    //指示是否已经 require 过
+                exposed: false,     //默认对外不可见
+            };
+
+        },
+
+
+        /**
+        * 加载指定的模块。
+        * @param {string} id 模块的名称。
+        * @return 返回指定的模块。
+        */
+        require: function (id) {
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+
+            var id$module = meta.id$module;
+
+            if (id.indexOf('/') == 0) { //以 '/' 开头，如　'/API'
+                var parentId = findId(id$module, arguments.callee.caller); //如 'List'
+                if (!parentId) {
+                    throw new Error('require 时如果指定了以 "/" 开头的短名称，则必须用在 define 的函数体内');
+                }
+
+                id = parentId + id; //完整名称，如 'List/API'
+            }
+
+
+            var module = id$module[id];
+            if (!module) { //不存在该模块
+                return;
+            }
+
+            if (module.required) { //已经 require 过了
+                return module.exports;
+            }
+
+
+            //首次 require
+
+            module.required = true; //更改标志，指示已经 require 过一次
+
+            var factory = module.factory;
+
+            if (typeof factory != 'function') { //非工厂函数，则直接导出
+                module.exports = factory;
+                return factory;
+            }
+
+            //factory 是个工厂函数
+            var require = arguments.callee.bind(this); //引用自身，并且作为静态方法调用
+            var exports = {};
             var mod = {
                 id: id,
                 exports: exports,
             };
 
-            var value = fn(require, mod, exports);
+            exports = factory(require, mod, exports);
+            if (exports === undefined) {    //没有通过 return 来返回值，
+                exports = mod.exports;      //则要导出的值只能在 mod.exports 里
+            }
 
-            //没有通过 return 来返回值，则要导出的值在 mod.exports 里
-            exports = value === undefined ? mod.exports : value;
             module.exports = exports;
-        }
+            return exports;
 
-        module.required = true; //指示已经 require 过一次
+        },
 
-        return exports;
+        
+        /**
+        * 设置或获取对外暴露的模块。
+        * 通过此方法，可以控制指定的模块是否可以通过 KERP.require(id) 来加载到。
+        * @param {string|Object} id 模块的名称。
+            当指定为一个 {} 时，则表示批量设置。
+            当指定为一个字符串时，则单个设置。
+        * @param {boolean} [exposed] 模块是否对外暴露。
+            当参数 id 为字符串时，且不指定该参数时，表示获取操作，
+            即获取指定 id 的模块是否对外暴露。
+        * @return {boolean}
+        */
+        expose: function (id, exposed) {
 
-    }
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+            var id$module = meta.id$module;
 
+            //内部方法: get 操作
+            function get(id) {
+                var module = id$module[id];
+                if (!module) {
+                    return;
+                }
 
-    /**
-    * 设置或获取对外暴露的模块。
-    * 通过此方法，可以控制指定的模块是否可以通过 KERP.require(id) 来加载到。
-    * @param {string|Object} id 模块的名称。
-        当指定为一个 {} 时，则表示批量设置。
-        当指定为一个字符串时，则单个设置。
-    * @param {boolean} [exposed] 模块是否对外暴露。
-        当参数 id 为字符串时，且不指定该参数时，表示获取操作，
-        即获取指定 id 的模块是否对外暴露。
-    * @return {boolean}
-    */
-    function expose(id, exposed) {
+                return module.exposed;
+            }
 
-        if (typeof id == 'object') { // expose({ })，批量 set
+            //内部方法: set 操作
+            function set(id, exposed) {
+                var module = id$module[id];
+                if (module) {
+                    module.exposed = !!exposed;
+                }
+            }
 
-            var id$exposed = id;
+            //set 操作
+            if (typeof id == 'object') { // expose({ })，批量 set
+                var id$exposed = id;
+                for (var id in id$exposed) {
+                    var exposed = id$exposed[id];
+                    set(id, exposed);
+                }
+                return;
+            }
 
-            for (var id in id$exposed) {
-                var exposed = id$exposed[id];
+            if (arguments.length == 2) { // expose('', true|false)，单个 set
                 set(id, exposed);
+                return;
             }
 
-            return;
-        }
+            //get 操作
+            return get(id);
+        },
 
-        if (arguments.length == 2) { // expose('', true|false)，单个 set
-            set(id, exposed);
-            return;
-        }
-
-        //get
-        return get(id);
-
-
-        //内部方法
-        function get(id) {
-            var module = id$module[id];
-            if (!module) {
-                return false;
-            }
-
-            return module.exposed;
-        }
-
-        function set(id, exposed) {
-            var module = id$module[id];
-            if (module) {
-                module.exposed = !!exposed;
-            }
-        }
-    }
-
-
-
-    return {
-        define: define,
-        require: require,
-        expose: expose
+        /**
+        * 销毁本实例。
+        */
+        destroy: function () {
+            var guid = this[guidKey];
+            delete this[guidKey];
+            delete guid$meta[guid];
+        },
     };
+
+
+
+    return Module;
 
 
 })();
 
-
 //提供快捷方式
-var define = Module.define;
-var require = Module.require;
+var mod = new Module();
+var define = mod.define.bind(mod);
+var require = mod.require.bind(mod);
+var expose = mod.expose.bind(mod);

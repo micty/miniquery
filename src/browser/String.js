@@ -5,30 +5,24 @@
 */
 define('browser/String', function (require, module, exports) {
 
-    var $ = require('$');
-
-
     module.exports = exports = {
         /**
         * 用做过滤直接放到HTML里的
         * @return {String}
         */
         escapeHtml: function (string) {
-            string = String(string);
+            var s = String(string);
 
             var reg = /[&'"<>\/\\\-\x00-\x09\x0b-\x0c\x1f\x80-\xff]/g;
-            string = string.replace(reg, function (r) {
+            s = s.replace(reg, function (r) {
                 return "&#" + r.charCodeAt(0) + ";"
-
             });
+            s = s.replace(/ /g, "&nbsp;");
+            s = s.replace(/\r\n/g, "<br />");
+            s = s.replace(/\n/g, "<br />");
+            s = s.replace(/\r/g, "<br />");
 
-            string = string.replace(/ /g, "&nbsp;");
-            string = string.replace(/\r\n/g, "<br />");
-            string = string.replace(/\n/g, "<br />");
-            string = string.replace(/\r/g, "<br />");
-
-            return string;
-
+            return s;
         },
 
         /**
@@ -36,13 +30,12 @@ define('browser/String', function (require, module, exports) {
         * @return {String}
         */
         escapeElementAttribute: function (string) {
-            string = String(string);
+            var s = String(string);
             var reg = /[&'"<>\/\\\-\x00-\x1f\x80-\xff]/g;
 
-            return string.replace(reg, function (r) {
+            return s.replace(reg, function (r) {
                 return "&#" + r.charCodeAt(0) + ";"
             });
-
         },
 
         /**
@@ -50,19 +43,19 @@ define('browser/String', function (require, module, exports) {
         * @return {String}
         */
         escapeScript: function (string) {
-            string = String(string);
+            var s = String(string);
             var reg = /[\\"']/g;
 
-            string = string.replace(reg, function (r) {
+            s = s.replace(reg, function (r) {
                 return "\\" + r;
-            })
+            });
 
-            string = string.replace(/%/g, "\\x25");
-            string = string.replace(/\n/g, "\\n");
-            string = string.replace(/\r/g, "\\r");
-            string = string.replace(/\x01/g, "\\x01");
+            s = s.replace(/%/g, "\\x25");
+            s = s.replace(/\n/g, "\\n");
+            s = s.replace(/\r/g, "\\r");
+            s = s.replace(/\x01/g, "\\x01");
 
-            return string;
+            return s;
         },
 
         /**
@@ -70,8 +63,8 @@ define('browser/String', function (require, module, exports) {
         * @return {String}
         */
         escapeQueryString: function (string) {
-            string = String(string);
-            return escape(string).replace(/\+/g, "%2B");
+            var s = String(string);
+            return escape(s).replace(/\+/g, "%2B");
         },
 
         /**
@@ -79,10 +72,10 @@ define('browser/String', function (require, module, exports) {
         * @return {String}
         */
         escapeHrefScript: function (string) {
-            string = exports.escapeScript(string);
-            string = string.replace(/%/g, "%25"); //escMiniUrl
-            string = exports.escapeElementAttribute(string);
-            return string;
+            var s = exports.escapeScript(string);
+            s = s.replace(/%/g, "%25"); //escMiniUrl
+            s = exports.escapeElementAttribute(s);
+            return s;
 
         },
 
@@ -91,11 +84,9 @@ define('browser/String', function (require, module, exports) {
         * @return {String}
         */
         escapeRegExp: function (string) {
-            string = String(string);
-
+            var s = String(string);
             var reg = /[\\\^\$\*\+\?\{\}\.\(\)\[\]]/g;
-
-            return string.replace(reg, function (a, b) {
+            return s.replace(reg, function (a, b) {
                 return "\\" + a;
             });
         }
@@ -109,7 +100,7 @@ define('String', function (require, module, exports) {
     var $ = require('$');
     var coreString = require('core/String');
     var browserString = require('browser/String');
-    module.exports = $.extend(coreString, browserString); //这里要覆盖回去，因为 $String.prototype 的原因
+    module.exports = $.extend({}, coreString, browserString);
 
 });
 

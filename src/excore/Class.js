@@ -3,7 +3,6 @@
 * 提供创建类的工厂方法
 * @namespace
 */
-
 define('Class', function (require, module, exports) {
 
 

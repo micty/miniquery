@@ -53,22 +53,23 @@ module.exports = function (grunt) {
                             'Module.js',
                             '$.js',
                             'Array.js',
-                            'Array.prototype.js',
                             'Boolean.js',
-                            'Boolean.prototype.js',
                             'Date.js',
-                            'Date.prototype.js',
-                            'Function.js',
+                            //'Function.js',
                             'Math.js',
                             'Object.js',
-                            'Object.prototype.js',
                             'String.js',
-                            'String.prototype.js',
                         ]
                     },
                     {
                         dir: 'excore',
                         files: [
+                            {
+                                dir: 'Emitter',
+                                files: [
+                                    'Tree.js'
+                                ],
+                            },
                             'Emitter.js',
                             'Mapper.js',
                             'Module.js',
@@ -78,6 +79,12 @@ module.exports = function (grunt) {
                     {
                         dir: 'browser',
                         files: [
+                            {
+                                dir: 'Cookie',
+                                files: [
+                                    'Expires.js'
+                                ],
+                            },
                             'Cookie.js',
                             'LocalStorage.js',
                             'SessionStorage.js',

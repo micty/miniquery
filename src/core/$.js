@@ -6,7 +6,7 @@
 */
 define('$', function (require, module, exports) {
 
-    var slice = Array.prototype.slice;
+    var slice = [].slice;
 
     //兼容性写法
     var toArray = slice.call.bind ? slice.call.bind(slice) : function ($arguments) {
@@ -64,7 +64,6 @@ define('$', function (require, module, exports) {
         concat: function () {
 
             var a = [];
-
             var args = toArray(arguments);
 
             for (var i = 0, len = args.length; i < len; i++) {
@@ -78,13 +77,11 @@ define('$', function (require, module, exports) {
             }
 
             return a;
-
         },
 
-        
 
         require: function (id) {
-            return Module.expose(id) ? require(id) : null;
+            return expose(id) ? require(id) : null;
         },
     };
 

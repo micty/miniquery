@@ -1,9 +1,7 @@
 ﻿
 
 //设置对外暴露的模块
-Module.expose({
-
-
+expose({
     'Array': true,
     'Boolean': true,
     'Date': true,

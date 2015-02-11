@@ -117,8 +117,6 @@ define('Script', function (require, module, exports) {
         document.write(html);
     }
 
-
-
     
     module.exports = exports = { /**@lends MiniQuery.Script*/
 
@@ -134,7 +132,7 @@ define('Script', function (require, module, exports) {
         * @param {function} [params.onload] 
             加载成功后的回调函数。
         * @example
-            $.Script.load({
+            Script.load({
                 url: 'a.js',
                 charset: 'utf-8',
                 document: document,
@@ -142,13 +140,13 @@ define('Script', function (require, module, exports) {
                 onload: function (){ }
             });
 
-            $.Script.load('a.js', 'utf-8', document, function(){});
-            $.Script.load('a.js', 'utf-8', function(){});
-            $.Script.load('a.js', document, function(){});
-            $.Script.load('a.js', function(){});
+            Script.load('a.js', 'utf-8', document, function(){});
+            Script.load('a.js', 'utf-8', function(){});
+            Script.load('a.js', document, function(){});
+            Script.load('a.js', function(){});
 
             //批量加载
-            $.Script.load(['a.js', 'b.js'], function(){});
+            Script.load(['a.js', 'b.js'], function(){});
         */
         load: function (params) {
 
@@ -161,7 +159,6 @@ define('Script', function (require, module, exports) {
                 $Object.extend(obj, params);
             }
             else {
-
                 obj.url = params;
 
                 switch (typeof arguments[1]) {
@@ -190,9 +187,6 @@ define('Script', function (require, module, exports) {
                 }
             }
 
-
-
-
             var url = obj.url;
 
             if (typeof url == 'string') {
@@ -215,14 +209,14 @@ define('Script', function (require, module, exports) {
         * @param {Document} [params.document=window.document] 
             创建的 script 标签的上下文环境的 document。默认为当前窗口的 document 对象。
         * @example
-            $.Script.insert({
+            Script.insert({
                 code: 'alert(0);',
                 id: 'myScript',
                 document: document
             });
-            $.Script.insert('alert(0);', 'myScript', document);
-            $.Script.insert('alert(0);', 'myScript');
-            $.Script.insert('alert(0);', document);
+            Script.insert('alert(0);', 'myScript', document);
+            Script.insert('alert(0);', 'myScript');
+            Script.insert('alert(0);', document);
         */
         insert: function (params) {
             var obj = {
@@ -281,14 +275,14 @@ define('Script', function (require, module, exports) {
         * @param {Document} [params.document=window.document] 
             要加载的 JS 文件的上下文环境的 document，默认为当前窗口的 document 对象。
         * @example
-            $.Script.write({
+            Script.write({
                 url: 'a.js',
                 charset: 'utf-8',
                 document: document
             });
-            $.Script.write('a.js', 'utf-8', document);
-            $.Script.write('a.js', 'utf-8');
-            $.Script.write('a.js', document);
+            Script.write('a.js', 'utf-8', document);
+            Script.write('a.js', 'utf-8');
+            Script.write('a.js', document);
         */
         write: function (params) {
             var obj = {

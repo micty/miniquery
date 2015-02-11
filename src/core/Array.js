@@ -1,20 +1,15 @@
 ﻿
 /**
 * 数组工具
-* @class
+* @namespace
 */
 define('Array', function (require, module, exports) {
 
     var $ = require('$');
 
 
-    exports = function (array) {
-        var prototype = require('Array.prototype');
-        return new prototype.init(array);
-    };
 
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Array*/
+    module.exports = exports = { /**@lends MiniQuery.Array*/
 
         /**
         * 把数组、类数组合并成一个真正的数组。
@@ -32,7 +27,7 @@ define('Array', function (require, module, exports) {
             如果要进行深层次迭代，即对数组元素为数组继续迭代的，请指定 true；否则为浅迭代。
         * @return {Array} 返回当前数组。
         * @example
-            $.Array.each([0, 1, 2, ['a', 'b']], function(item, index) {
+            $Array.each([0, 1, 2, ['a', 'b']], function(item, index) {
                 console.log(index + ': ' + item);
             }, true);
         */
@@ -78,10 +73,9 @@ define('Array', function (require, module, exports) {
         */
         parse: function (obj, useForIn) {
             //本身就是数组。
-            //这里不要用 $.Object.isArray(obj)，因为跨页面得到的obj，即使 $.Object.getType(obj) 返回 'Array'，
+            //这里不要用 $Object.isArray(obj)，因为跨页面得到的obj，即使 $Object.getType(obj) 返回 'Array'，
             //但在 IE 下 obj instanceof Array 仍为 false，从而对 obj 调用数组实例的方法就会出错。
             //即使该方法确实存在于 obj 中，但 IE 仍会报“意外地调用了方法或属性访问”的错误。
-            //
             if (obj instanceof Array) {
                 return obj;
             }
@@ -90,29 +84,21 @@ define('Array', function (require, module, exports) {
             var a = [];
 
             if (useForIn === true) { //没有 length 属性，或者不方便使用 length，则使用 for in
-
                 for (var name in obj) {
-                    if (name === 'length') //忽略掉 length 属性
-                    {
+                    if (name === 'length') { //忽略掉 length 属性
                         continue;
                     }
-
                     a.push(obj[name]);
                 }
-
                 return a;
             }
-
 
             if (!obj || !obj.length) { //参数非法
                 return [];
             }
 
-
-
             try { //标准方法
-
-                a = Array.prototype.slice.call(obj, 0);
+                a = $.toArray(obj);
             }
             catch (ex) {
                 for (var i = 0, len = obj.length; i < len; i++) {
@@ -142,7 +128,7 @@ define('Array', function (require, module, exports) {
         * @return {Object} 返回一个 Object 对象，该对象上包含数组的处理结果，并且包含一个 length 成员。
         * @example
             //例子1: 不指定第二个参数 maps，得到一个类数组的对象（arguments 就是这样的对象）。
-            var obj = $.Array.toObject(array);
+            var obj = $Array.toObject(array);
             //等价于：
             var obj = {
                 0: array[0],
@@ -152,7 +138,7 @@ define('Array', function (require, module, exports) {
             };
             
             //例子2: maps 为数组，则作为键的列表[key0,…, keyN]一一对应去建立键值映射关系，即{keyN: array[N]}
-            var obj = $.Array.toObject(array, ['a', 'b', 'c']);
+            var obj = $Array.toObject(array, ['a', 'b', 'c']);
             //等价于
             var obj = {
                 a: array[0], //maps[0] --> array[0]
@@ -161,7 +147,7 @@ define('Array', function (require, module, exports) {
             };
             
             //例子3:  maps 为对象，则作为键-索引的映射关系去建立对象
-            var obj = $.Array.toObject(array, {
+            var obj = $Array.toObject(array, {
                 a: 1,
                 b: 1,
                 c: 2
@@ -174,7 +160,7 @@ define('Array', function (require, module, exports) {
             };
             
             //例子4: maps 为函数，则会调用该函数取得一个处理结果
-            var obj = $.Array.toObject(['a', 'b', 'c'], function(item, index) {
+            var obj = $Array.toObject(['a', 'b', 'c'], function(item, index) {
                 return [item, index + 1000]; //第1个元素作为键，第2个元素作为值
             });
             //得到 
@@ -185,7 +171,7 @@ define('Array', function (require, module, exports) {
             };
             
             //又如：
-            var obj = $.Array.toObject(['a', 'b', 'c'], function(item, index) {
+            var obj = $Array.toObject(['a', 'b', 'c'], function(item, index) {
                 //处理函数返回一个对象，则第1个成员的键作为键，第1个成员的值作为值，存到目标对象上，其他的忽略。
                 var obj = {};
                 obj[item] = index + 1000;
@@ -293,7 +279,6 @@ define('Array', function (require, module, exports) {
 
         /**
         * 把一个数组中的元素转换到另一个数组中，返回一个新的数组。
-        * 重载了map(startIndex, endIndex, fn) 使其具有 pad 和 map 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -305,15 +290,6 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个转换后的新数组。
         */
         map: function (array, fn, isDeep) {
-
-            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
-                var startIndex = array;
-                var endIndex = fn;
-                fn = isDeep;
-                array = exports.pad(startIndex, endIndex);
-                isDeep = false;
-            }
-
 
             var map = arguments.callee; //引用自身，用于递归
             var a = [];
@@ -337,7 +313,6 @@ define('Array', function (require, module, exports) {
                     }
                 }
 
-
                 a.push(value);
             }
 
@@ -348,7 +323,6 @@ define('Array', function (require, module, exports) {
         * 将一个数组中的元素转换到另一个数组中，并且保留所有的元素，返回一个新数组。
         * 作为参数的转换函数会为每个数组元素调用，并把当前元素和索引作为参数传给转换函数。
         * 该方法与 map 的区别在于本方法会保留所有的元素，而不管它的返回是什么。
-        * 重载了keep(startIndex, endIndex, fn) 使其具有 pad 和 keep 的功能。
         * @param {Array} array 要进行转换的数组。
         * @param {function} fn 转换函数。
             该转换函数会为每个数组元素调用，它会接收到两个参数：当前迭代的数组元素和该元素的索引。
@@ -359,27 +333,15 @@ define('Array', function (require, module, exports) {
         */
         keep: function (array, fn, isDeep) {
 
-            if (typeof array == 'number') { //重载 keep(startIndex, endIndex, fn)
-                var startIndex = array;
-                var endIndex = fn;
-                fn = isDeep;
-                array = exports.pad(startIndex, endIndex);
-                isDeep = false;
-            }
-
             var keep = arguments.callee; //引用自身，用于递归
             var a = [];
-            var value;
 
             for (var i = 0, len = array.length; i < len; i++) {
                 var item = array[i];
 
-                if (isDeep && (item instanceof Array)) {
-                    value = keep(item, fn, true);
-                }
-                else {
-                    value = fn(item, i);
-                }
+                var value = isDeep && (item instanceof Array) ?
+                        keep(item, fn, true) :
+                        fn(item, i);
 
                 a.push(value);
             }
@@ -430,7 +392,7 @@ define('Array', function (require, module, exports) {
         * @return 返回一个整数，表示检索项在数组第一次出现的索引位置。
         *   如果不存在该元素，则返回 -1。
         * @example
-            $.Array.indexOf(['a', '10', 10, 'b'], 10); //使用的是全等比较，结果为 2
+            $Array.indexOf(['a', '10', 10, 'b'], 10); //使用的是全等比较，结果为 2
             
         */
         indexOf: function (array, item) {
@@ -559,7 +521,6 @@ define('Array', function (require, module, exports) {
                 list.push(item);
                 return list;
             }
-
         },
 
 
@@ -611,7 +572,7 @@ define('Array', function (require, module, exports) {
         * @param {Array} list 要进行排序的数组。
         * @return {Array} 返回一个随机排序的新数组。
         * @example
-            $.Array.random( ['a', 'b', 'c', 'd'] ); 
+            $Array.random( ['a', 'b', 'c', 'd'] ); 
         */
         random: function (list) {
             var array = list.slice(0);
@@ -632,7 +593,7 @@ define('Array', function (require, module, exports) {
         * @return 随机返回一个数组项。
             当数组为空时，返回 undefined。
         * @example
-            $.Array.randomItem( ['a', 'b', 'c', 'd'] ); 
+            $Array.randomItem( ['a', 'b', 'c', 'd'] ); 
         */
         randomItem: function (array) {
             var $Math = require('Math');
@@ -664,7 +625,6 @@ define('Array', function (require, module, exports) {
             }
 
             if (index == null) { // undefined 或 null
-
                 return array.slice(0);
             }
         },
@@ -766,7 +726,7 @@ define('Array', function (require, module, exports) {
         * @return {Number} 返回数组所有元素之和。
         * @example
             var a = [1, 2, 3, 4];
-            var sum = $.Array.sum(a); //得到 10
+            var sum = $Array.sum(a); //得到 10
             //又如
             var a = [
                 { value: 1 },
@@ -774,7 +734,7 @@ define('Array', function (require, module, exports) {
                 { value: 3 },
                 { value: 4 },
             ];
-            var sum = $.Array.sum(a, true, 'value'); //得到 8
+            var sum = $Array.sum(a, true, 'value'); //得到 8
     
         */
         sum: function (array, ignoreNaN, key) {
@@ -870,15 +830,15 @@ define('Array', function (require, module, exports) {
         * @example： 
             var A = [a, b]; 
             var B = [0, 1, 2]; 求积后结果为：
-            var C = $.Array.descartes(A, B);
+            var C = $Array.descartes(A, B);
             //得到 
             C = [ 
                 [a, 0], [a, 1], [a, 2], 
                 [b, 0], [b, 1], [b, 2] 
             ];
         * 注意：
-        *   $.Array.descartes(A, B, C)并不等于（但等于$.Array(A).descartes(B, C)的结果）
-        *   $.Array.descartes($.Array.descartes(A, B), C)（但等于$.Array(A).descartes(B).descartes(C)的结果）
+        *   $Array.descartes(A, B, C)并不等于（但等于$Array(A).descartes(B, C)的结果）
+        *   $Array.descartes($Array.descartes(A, B), C)（但等于$Array(A).descartes(B).descartes(C)的结果）
         */
         descartes: function (arrayA, arrayB) {
             var list = fn(arrayA, arrayB); //常规情况，两个数组
@@ -952,7 +912,7 @@ define('Array', function (require, module, exports) {
                 ['a', 'b', 'c'],
                 [100, 200, 300]
             ];
-            var B = $.Array.transpose(A);
+            var B = $Array.transpose(A);
             //得到
             C = [
                 ['a', 100],
@@ -999,7 +959,6 @@ define('Array', function (require, module, exports) {
             }
 
             return list;
-
 
             function fn(A, B) {
                 var list = [];
@@ -1102,33 +1061,52 @@ define('Array', function (require, module, exports) {
         * @param {number} start 半开区间的开始值。
         * @param {number} end 半开区间的结束值。
         * @param {number} [step=1] 填充的步长，默认值为 1。可以指定为负数。
+        * @param {function} [fn] 转换函数。 会收到当前项和索引值作为参数。
         * @return {Array} 返回一个递增（减）的数组。
         *   当 start 与 end 相等时，返回一个空数组。
         * @example
-            $.Array.pad(1, 9, 2); //产生一个从1到9的数组，步长为2，结果为[1, 3, 5, 7]
-            $.Array.pad(5, 2, -1); //产生一个从5到2的数组，步长为-1，结果为[5, 4, 3]
+            $Array.pad(2, 5); //产生一个从2到5的数组，步长为1，结果为[2, 3, 4, 5]
+            $Array.pad(1, 9, 2); //产生一个从1到9的数组，步长为2，结果为[1, 3, 5, 7]
+            $Array.pad(5, 2, -1); //产生一个从5到2的数组，步长为-1，结果为[5, 4, 3]
+            //得到 [10, 20, 30]
+            $Array.pad(1, 3, function (item, index) {
+                return item * 10;
+            });
         */
-        pad: function (start, end, step) {
+        pad: function (start, end, step, fn) {
             if (start == end) {
                 return [];
             }
 
-            step = Math.abs(step || 1);
+            if (typeof step == 'function') { // 重载 pad(start, end, fn)
+                fn = step;
+                step = 1;
+            }
+            else {
+                step = Math.abs(step || 1);
+            }
+            
 
             var a = [];
+            var index = 0;
 
             if (start < end) { //升序
                 for (var i = start; i < end; i += step) {
-                    a.push(i);
+                    var item = fn ? fn(i, index) : i;
+                    a.push(item);
+                    index++;
                 }
             }
             else { //降序
                 for (var i = start; i > end; i -= step) {
-                    a.push(i);
+                    var item = fn ? fn(i, index) : i;
+                    a.push(item);
+                    index++;
                 }
             }
 
             return a;
+            
         },
 
         /**
@@ -1140,7 +1118,7 @@ define('Array', function (require, module, exports) {
             如果提供的是函数，则会在参数中接收到当前处理的数组项和索引。
         * @param {function} [getValue] 用于处理当前数组项的函数，返回一个新值代替原来的数组项。
             如果指定该参数，则会在参数中接收到当前处理的数组项和索引，然后返回一个新值来代替原来的数组项。
-            注意：类似于 $.Array.map 的规定用法，
+            注意：类似于 $Array.map 的规定用法，
                 当返回 null 时，则会 continue，忽略该返回值；
                 当返回 undefined 时，则会 break，停止再迭代数组；
         * @return {Object} 返回一个经过分类聚合的 Object 对象。
@@ -1156,10 +1134,10 @@ define('Array', function (require, module, exports) {
                 { name: '微积分', type: '数学', year: 2013 }
             ];
             //按 type 进行聚合(分组)
-            var byTypes = $.Array.aggregate( books, 'type' );  
+            var byTypes = $Array.aggregate( books, 'type' );  
             
             //按 year 进行聚合(分组)，并重新返回一个值。
-            var byYears = $.Array.aggregate( books, 'year', function(item, index) {
+            var byYears = $Array.aggregate( books, 'year', function(item, index) {
                 return { name: item.name, type: item.type, year: '出版年份：' + item.year };
             });   
         
@@ -1241,7 +1219,7 @@ define('Array', function (require, module, exports) {
         * @return {Array} 返回一个包含新添加的元素的新数组。
         * @example
             var a = ['a', 'b'];
-            var b = $.Array.add(a, 'c');
+            var b = $Array.add(a, 'c');
             console.dir(a); //结果没变，仍为 ['a', 'b']
             console.dir(b); //结果为 ['a', 'b', 'c'];
     
@@ -1276,6 +1254,6 @@ define('Array', function (require, module, exports) {
 
 
 
-    });
+    };
 
 });

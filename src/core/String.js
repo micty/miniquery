@@ -5,16 +5,7 @@
 */
 define('core/String', function (require, module, exports) {
 
-    var $ = require('$');
-
-
-    exports = function (string) {
-        var prototype = require('String.prototype');
-        return new prototype.init(string);
-    };
-
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.String */
+    module.exports = exports = { /**@lends MiniQuery.String */
 
         /**
         * 用指定的值去填充一个字符串。
@@ -23,28 +14,26 @@ define('core/String', function (require, module, exports) {
         * @param {Object} obj 要填充的键值对的对象。
         * @return 返回一个用值去填充后的字符串。
         * @example
-            $.String.format('{id}{type}', {id: 1, type: 'app'});
-            $.String.format('{2}{0}{1}', 'a', 'b', 'c');
+            $String.format('{id}{type}', {id: 1, type: 'app'});
+            $String.format('{2}{0}{1}', 'a', 'b', 'c');
         */
         format: function (string, obj, arg2) {
-
             var s = string;
+            var replaceAll = exports.replaceAll;
 
             if (typeof obj == 'object') {
                 for (var key in obj) {
-                    s = exports.replaceAll(s, '{' + key + '}', obj[key]);
+                    s = replaceAll(s, '{' + key + '}', obj[key]);
                 }
-
             }
             else {
-                var args = Array.prototype.slice.call(arguments, 1);
+                var args = [].slice.call(arguments, 1);
                 for (var i = 0, len = args.length; i < len; i++) {
-                    s = exports.replaceAll(s, '{' + i + '}', args[i]);
+                    s = replaceAll(s, '{' + i + '}', args[i]);
                 }
             }
 
             return s;
-
         },
 
 
@@ -56,7 +45,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} dest 要进行替换的新子串，新值。
         * @return {String} 返回一个替换后的字符串。
         * @example
-            $.String.replaceAll('abcdeabc', 'bc', 'BC') //结果为 aBCdeBC
+            $String.replaceAll('abcdeabc', 'bc', 'BC') //结果为 aBCdeBC
         */
         replaceAll: function (target, src, dest) {
             return target.split(src).join(dest);
@@ -73,7 +62,7 @@ define('core/String', function (require, module, exports) {
         * @return {String} 返回一个替换后的字符串。<br />
         *   当不存在开始标记或结束标记时，都会不进行任何处理而直接返回原字符串。
         * @example
-            $.String.replaceBetween('hello #--world--# this is #--good--#', '#--', '--#', 'javascript') 
+            $String.replaceBetween('hello #--world--# this is #--good--#', '#--', '--#', 'javascript') 
             //结果为 'hello javascript this is javascript'
         */
         replaceBetween: function (string, startTag, endTag, newString) {
@@ -101,7 +90,7 @@ define('core/String', function (require, module, exports) {
             支持批量的形式，传一个数组。
         * @return {String} 返回一个替换后的字符串。
         * @example
-            $.String.removeAll('hi js hi abc', 'hi') 
+            $String.removeAll('hi js hi abc', 'hi') 
             //结果为 ' js  abc'
         */
         removeAll: function (target, src) {
@@ -125,7 +114,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} 要进行操作的字符串。
         * @return {String} 返回一个新的字符串。
         * @expample
-            $.String.trim('  abc def mm  '); //结果为 'abc def mm'
+            $String.trim('  abc def mm  '); //结果为 'abc def mm'
         */
         trim: function (string) {
             return string.replace(/(^\s*)|(\s*$)/g, '');
@@ -136,7 +125,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} 要进行操作的字符串。
         * @return {String} 返回一个新的字符串。
         * @expample
-            $.String.trimStart('  abc def mm '); //结果为 'abc def mm  '
+            $String.trimStart('  abc def mm '); //结果为 'abc def mm  '
         */
         trimStart: function (string) {
             return string.replace(/(^\s*)/g, '');
@@ -147,7 +136,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} 要进行操作的字符串。
         * @return {String} 返回一个新的字符串。
         * @expample
-            $.String.trimEnd('  abc def mm '); //结果为 '  abc def mm'
+            $String.trimEnd('  abc def mm '); //结果为 '  abc def mm'
         */
         trimEnd: function (string) {
             return string.replace(/(\s*$)/g, '');
@@ -161,15 +150,14 @@ define('core/String', function (require, module, exports) {
         * @param {String} paddingChar 用来填充的模板字符串。
         * @return {String} 返回一个经过填充对齐后的新字符串。
         * @example
-            $.String.padLeft('1234', 6, '0'); //结果为 '001234'，右对齐，从左边填充 '0'
-            $.String.padLeft('1234', 2, '0'); //结果为 '34'，右对齐，从左边开始截断
+            $String.padLeft('1234', 6, '0'); //结果为 '001234'，右对齐，从左边填充 '0'
+            $String.padLeft('1234', 2, '0'); //结果为 '34'，右对齐，从左边开始截断
         */
         padLeft: function (string, totalWidth, paddingChar) {
             string = String(string); //转成字符串
 
             var len = string.length;
-            if (totalWidth <= len) //需要的长度短于实际长度，做截断处理
-            {
+            if (totalWidth <= len) { //需要的长度短于实际长度，做截断处理
                 return string.substr(-totalWidth); //从后面算起
             }
 
@@ -177,7 +165,6 @@ define('core/String', function (require, module, exports) {
 
             var arr = [];
             arr.length = totalWidth - len + 1;
-
 
             return arr.join(paddingChar) + string;
         },
@@ -191,8 +178,8 @@ define('core/String', function (require, module, exports) {
         * @param {String} paddingChar 用来填充的模板字符串。
         * @return {String} 返回一个经过填充对齐后的新字符串。
         * @example
-            $.String.padLeft('1234', 6, '0'); //结果为 '123400'，左对齐，从右边填充 '0'
-            $.String.padLeft('1234', 2, '0'); //结果为 '12'，左对齐，从右边开始截断
+            $String.padLeft('1234', 6, '0'); //结果为 '123400'，左对齐，从右边填充 '0'
+            $String.padLeft('1234', 2, '0'); //结果为 '12'，左对齐，从右边开始截断
         */
         padRight: function (string, totalWidth, paddingChar) {
             string = String(string); //转成字符串
@@ -214,21 +201,21 @@ define('core/String', function (require, module, exports) {
         /**
         * 获取位于两个标记子串之间的子字符串。
         * @param {String} string 要进行获取的大串。
-        * @param {String} tag0 区间的开始标记。
-        * @param {String} tag1 区间的结束标记。
+        * @param {String} beginTag 区间的开始标记。
+        * @param {String} endTag 区间的结束标记。
         * @return {String} 返回一个子字符串。当获取不能结果时，统一返回空字符串。
         * @example
-            $.String.between('abc{!hello!} world', '{!', '!}'); //结果为 'hello' 
+            $String.between('abc{!hello!} world', '{!', '!}'); //结果为 'hello' 
         */
-        between: function (string, tag0, tag1) {
-            var startIndex = string.indexOf(tag0);
+        between: function (string, beginTag, endTag) {
+            var startIndex = string.indexOf(beginTag);
             if (startIndex < 0) {
                 return '';
             }
 
-            startIndex += tag0.length;
+            startIndex += beginTag.length;
 
-            var endIndex = string.indexOf(tag1, startIndex);
+            var endIndex = string.indexOf(endTag, startIndex);
             if (endIndex < 0) {
                 return '';
             }
@@ -242,9 +229,9 @@ define('core/String', function (require, module, exports) {
             格式中的每个随机字符用 'x' 来占位，如 'xxxx-1x2x-xx'
         * @return {string} 返回一个指定长度的随机字符串。
         * @example
-            $.String.random();      //返回一个 12 位的随机字符串
-            $.String.random(64);    //返回一个 64 位的随机字符串
-            $.String.random('xxxx-你好xx-xx'); //类似 'A3EA-你好B4-DC'
+            $String.random();      //返回一个 12 位的随机字符串
+            $String.random(64);    //返回一个 64 位的随机字符串
+            $String.random('xxxx-你好xx-xx'); //类似 'A3EA-你好B4-DC'
         */
         random: function (formater) {
             if (formater === undefined) {
@@ -266,14 +253,9 @@ define('core/String', function (require, module, exports) {
                 var r = Math.random() * 16 | 0;
                 return r.toString(16);
             }).toUpperCase();
-        }
+        },
 
-    });//--------------------------------------------------------------------------------------
-
-
-
-    //---------------判断部分 -----------------------------------------------------
-    $.extend(exports, { /**@lends MiniQuery.String */
+        //---------------判断部分 -----------------------------------------------------
 
         /**
         * 确定一个字符串的开头是否与指定的字符串匹配。
@@ -282,8 +264,8 @@ define('core/String', function (require, module, exports) {
         * @param {boolean} [ignoreCase=false] 指示是否忽略大小写。默认不忽略。
         * @return {boolean} 返回一个bool值，如果大串中是以小串开头，则返回 true；否则返回 false。
         * @example
-            $.String.startsWith('abcdef', 'abc') //结果为 true。
-            $.String.startsWith('abcdef', 'Abc', true) //结果为 true。
+            $String.startsWith('abcdef', 'abc') //结果为 true。
+            $String.startsWith('abcdef', 'Abc', true) //结果为 true。
         */
         startsWith: function (str, dest, ignoreCase) {
             if (ignoreCase) {
@@ -302,8 +284,8 @@ define('core/String', function (require, module, exports) {
         * @param {boolean} [ignoreCase=false] 指示是否忽略大小写。默认不忽略。
         * @return {boolean} 返回一个bool值，如果大串中是以小串结尾，则返回 true；否则返回 false。
         * @example
-            $.String.endsWith('abcdef', 'def') //结果为 true。
-            $.String.endsWith('abcdef', 'DEF', true) //结果为 true。
+            $String.endsWith('abcdef', 'def') //结果为 true。
+            $String.endsWith('abcdef', 'DEF', true) //结果为 true。
         */
         endsWith: function (str, dest, ignoreCase) {
             var len0 = str.length;
@@ -319,13 +301,13 @@ define('core/String', function (require, module, exports) {
         },
 
         /**
-        * 确定一个字符串是否包含指定的子字符串。
+        * 检测一个字符串是否包含指定的子字符串。
         * @param {String} src 要进行检测的大串。
         * @param {String} target 要进行检测模式子串。
         * @return {boolean} 返回一个 bool 值。如果大串中包含模式子串，则返回 true；否则返回 false。
         * @example
-            $.String.contains('javascript is ok', 'scr');   //true
-            $.String.contains('javascript is ok', 'iis');      //false
+            $String.contains('javascript is ok', 'scr');    //true
+            $String.contains('javascript is ok', 'iis');    //false
         */
         contains: function (src, target, useOr) {
 
@@ -361,29 +343,17 @@ define('core/String', function (require, module, exports) {
             }
 
             return src.indexOf(target) > -1;
-        }
+        },
 
+        //---------------转换部分 -----------------------------------------------------
 
-    });//--------------------------------------------------------------------------------------
-
-
-
-
-    //---------------转换部分 -----------------------------------------------------
-    $.extend(exports, { /**@lends MiniQuery.String */
-
-
-        /**
-        * 转成骆驼命名法。
-        * 
-        */
         /**
         * 把一个字符串转成骆驼命名法。。
         * 如 'font-size' 转成 'fontSize'。
         * @param {String} string 要进行转换的字符串。
         * @return 返回一个骆驼命名法的新字符串。
         * @example
-            $.String.toCamelCase('background-item-color') //结果为 'backgroundItemColor'
+            $String.toCamelCase('background-item-color') //结果为 'backgroundItemColor'
         */
         toCamelCase: function (string) {
             var rmsPrefix = /^-ms-/;
@@ -406,7 +376,7 @@ define('core/String', function (require, module, exports) {
         * @param {String} string 要进行转换的字符串。
         * @return 返回一个用短线连接起来的新字符串。
         * @example
-            $.String.toHyphenate('backgroundItemColor') //结果为 'background-item-color'
+            $String.toHyphenate('backgroundItemColor') //结果为 'background-item-color'
         */
         toHyphenate: function (string) {
             return string.replace(/[A-Z]/g, function (match) {
@@ -419,30 +389,30 @@ define('core/String', function (require, module, exports) {
         * @param {String} string 要进行编码的字符串。
         * @return {String} 返回一个 UTF8 编码的新字符串。
         * @example
-            $.String.toUtf8('你好'); //结果为 ''
+            $String.toUtf8('你好'); //结果为 ''
         */
         toUtf8: function (string) {
 
             var $Array = require('Array');
-            var encodes = [];
+            var a = [];
 
             $Array.each(string.split(''), function (ch, index) {
                 var code = ch.charCodeAt(0);
                 if (code < 0x80) {
-                    encodes.push(code);
+                    a.push(code);
                 }
                 else if (code < 0x800) {
-                    encodes.push(((code & 0x7C0) >> 6) | 0xC0);
-                    encodes.push((code & 0x3F) | 0x80);
+                    a.push(((code & 0x7C0) >> 6) | 0xC0);
+                    a.push((code & 0x3F) | 0x80);
                 }
                 else {
-                    encodes.push(((code & 0xF000) >> 12) | 0xE0);
-                    encodes.push(((code & 0x0FC0) >> 6) | 0x80);
-                    encodes.push(((code & 0x3F)) | 0x80);
+                    a.push(((code & 0xF000) >> 12) | 0xE0);
+                    a.push(((code & 0x0FC0) >> 6) | 0x80);
+                    a.push(((code & 0x3F)) | 0x80);
                 }
             });
 
-            return '%' + $Array.keep(encodes, function (item, index) {
+            return '%' + $Array.keep(a, function (item, index) {
                 return item.toString(16);
             }).join('%');
         },
@@ -455,16 +425,16 @@ define('core/String', function (require, module, exports) {
         * @param {Object} value 要进行转换的值，可以是任何类型。
         * @return {Object} 返回一个等价的值。
         * @example
-            $.String.toValue('NaN') //NaN
-            $.String.toValue('null') //null
-            $.String.toValue('true') //true
-            $.String.toValue({}) //不作转换，直接原样返回
+            $String.toValue('NaN') //NaN
+            $String.toValue('null') //null
+            $String.toValue('true') //true
+            $String.toValue('false') //false
+            $String.toValue({}) //不作转换，直接原样返回
         */
         toValue: function (value) {
             if (typeof value != 'string') { //拦截非字符串类型的参数
                 return value;
             }
-
 
             var maps = {
                 //'0': 0,
@@ -478,18 +448,9 @@ define('core/String', function (require, module, exports) {
 
             return value in maps ? maps[value] : value;
 
-        }
+        },
 
-
-    });//--------------------------------------------------------------------------------------
-
-
-
-
-
-    //---------------分裂和提取部分 -----------------------------------------------------
-    $.extend(exports, { /**@lends MiniQuery.String */
-
+        //---------------分裂和提取部分 -----------------------------------------------------
 
         /**
         * 对一个字符串进行多层次分裂，返回一个多维数组。
@@ -499,7 +460,7 @@ define('core/String', function (require, module, exports) {
         * @example
             var string = 'a=1&b=2|a=100&b=200;a=111&b=222|a=10000&b=20000';
             var separators = [';', '|', '&', '='];
-            var a = $.String.split(string, separators);
+            var a = $String.split(string, separators);
             //结果 a 为
             a = 
             [                           // ';' 分裂的结果
@@ -562,7 +523,7 @@ define('core/String', function (require, module, exports) {
         * @param {number} [stepSize=1] 滑动步长。默认为1。
         * @return {Array} 返回一个经过滑动窗口方式得到的子串数组。
         * @example
-        *   $.String.slide('012345678', 4, 3); //滑动窗口大小为4，滑动步长为3
+        *   $String.slide('012345678', 4, 3); //滑动窗口大小为4，滑动步长为3
             //得到 [ '0123', '3456', '678' ] //最后一组不足一组
         */
         slide: function (string, windowSize, stepSize) {
@@ -570,12 +531,11 @@ define('core/String', function (require, module, exports) {
             var $Array = require('Array');
 
             var chars = String(string).split(''); //按字符切成单个字符的数组
+            chars = $Array.slide(chars, windowSize, stepSize);
 
-            return $Array(chars).slide(windowSize, stepSize).map(function (group, index) {
-
+            return $Array.keep(chars, function (group, index) {
                 return group.join('');
-
-            }).valueOf();
+            });
 
         },
 
@@ -585,19 +545,13 @@ define('core/String', function (require, module, exports) {
         * @param {number} size 分段的大小。
         * @return {Array} 返回一个分段后的子串数组。
         * @example
-        *   $.String.segment('0123456789', 3); //进行分段，每段大小为3
+        *   $String.segment('0123456789', 3); //进行分段，每段大小为3
             //得到 [ '012', '345', '678', '9' ] //最后一组不足一组
         */
         segment: function (string, size) {
             return exports.slide(string, size, size);
-        }
+        },
 
-
-    });//--------------------------------------------------------------------------------------
-
-
-
-    $.extend(exports, { /**@lends MiniQuery.String */
 
         /**
         * 对一个字符串进行多层级模板解析，返回一个带有多个子名称的模板。
@@ -651,7 +605,6 @@ define('core/String', function (require, module, exports) {
 
             samples[item0.name] = s; //所有的子模板处理完后，就是最外层的结果
 
-
             return samples;
 
         },
@@ -669,7 +622,7 @@ define('core/String', function (require, module, exports) {
 
             return s.toString().replace(/[\u0100-\uffff]/g, '  ').length;
         }
-    });
+    };
 
 
 
