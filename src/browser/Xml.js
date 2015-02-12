@@ -2,6 +2,7 @@
 /**
 * Xml 工具类
 * @namespace
+* @name Xml
 */
 define('Xml', function (require, module, exports) {
 
@@ -167,7 +168,7 @@ define('Xml', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends MiniQuery.Xml*/
+    module.exports = exports = { /**@lends Xml*/
 
         /**
         * 跨浏览器解析 XML 数据(字符串)或者一个等价结构的 Object 对象成一个 XMLDocument 对象。

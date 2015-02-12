@@ -73,7 +73,7 @@ define('Base64', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends MiniQuery.Base64*/
+    module.exports = exports = { /**@lends Base64*/
 
         encode: function (str) {
 

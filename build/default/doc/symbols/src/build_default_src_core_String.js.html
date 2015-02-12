@@ -1,0 +1,650 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	span{font-family: Courier;}
+	.KEYW {color: blue;}
+	.COMM {color: green; }
+	.NUMB {color: red;}
+	.STRN {color: #A31515;}
+	.REGX {color: #339;}
+	.PUNC {color: #800080;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="TOKN">﻿</span><span class="WHIT">
+<span class='line'>  2</span> </span><span class="COMM">/**
+<span class='line'>  3</span> * 字符串工具类
+<span class='line'>  4</span> * @namespace
+<span class='line'>  5</span> */</span><span class="WHIT">
+<span class='line'>  6</span> </span><span class="NAME">define</span><span class="PUNC">(</span><span class="STRN">'core/String'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">require</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">module</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">exports</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>  7</span> 
+<span class='line'>  8</span> </span><span class="WHIT">    </span><span class="NAME">module.exports</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">exports</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">/**@lends String */</span><span class="WHIT">
+<span class='line'>  9</span> 
+<span class='line'> 10</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'> 11</span>         * 用指定的值去填充一个字符串。
+<span class='line'> 12</span>         * 当不指定字符串的填充标记时，则默认为 {}。
+<span class='line'> 13</span>         * @param {String} string 要进行格式填充的字符串模板。
+<span class='line'> 14</span>         * @param {Object} obj 要填充的键值对的对象。
+<span class='line'> 15</span>         * @return 返回一个用值去填充后的字符串。
+<span class='line'> 16</span>         * @example
+<span class='line'> 17</span>             $String.format('{id}{type}', {id: 1, type: 'app'});
+<span class='line'> 18</span>             $String.format('{2}{0}{1}', 'a', 'b', 'c');
+<span class='line'> 19</span>         */</span><span class="WHIT">
+<span class='line'> 20</span> </span><span class="WHIT">        </span><span class="NAME">format</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">arg2</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 21</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">s</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 22</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">replaceAll</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">exports.replaceAll</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 23</span> 
+<span class='line'> 24</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 25</span> </span><span class="WHIT">                </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">key</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="WHIT">                    </span><span class="NAME">s</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">replaceAll</span><span class="PUNC">(</span><span class="NAME">s</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">'{'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">key</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'}'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">obj</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 27</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 28</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 29</span> </span><span class="WHIT">            </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 30</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">args</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">slice.call</span><span class="PUNC">(</span><span class="NAME">arguments</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 31</span> </span><span class="WHIT">                </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">len</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">args.length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">len</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="PUNC">++</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 32</span> </span><span class="WHIT">                    </span><span class="NAME">s</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">replaceAll</span><span class="PUNC">(</span><span class="NAME">s</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">'{'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'}'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">args</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 33</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 34</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 35</span> 
+<span class='line'> 36</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">s</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 37</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 38</span> 
+<span class='line'> 39</span> 
+<span class='line'> 40</span> 
+<span class='line'> 41</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'> 42</span>         * 对字符串进行全局替换。
+<span class='line'> 43</span>         * @param {String} target 要进行替换的目标字符串。
+<span class='line'> 44</span>         * @param {String} src 要进行替换的子串，旧值。
+<span class='line'> 45</span>         * @param {String} dest 要进行替换的新子串，新值。
+<span class='line'> 46</span>         * @return {String} 返回一个替换后的字符串。
+<span class='line'> 47</span>         * @example
+<span class='line'> 48</span>             $String.replaceAll('abcdeabc', 'bc', 'BC') //结果为 aBCdeBC
+<span class='line'> 49</span>         */</span><span class="WHIT">
+<span class='line'> 50</span> </span><span class="WHIT">        </span><span class="NAME">replaceAll</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">src</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">dest</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 51</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">target.split</span><span class="PUNC">(</span><span class="NAME">src</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">join</span><span class="PUNC">(</span><span class="NAME">dest</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 52</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 53</span> 
+<span class='line'> 54</span> 
+<span class='line'> 55</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'> 56</span>         * 对字符串进行区间内的替换。
+<span class='line'> 57</span>         * 该方法会把整个区间替换成新的字符串，包括区间标记。
+<span class='line'> 58</span>         * @param {String} string 要进行替换的目标字符串。
+<span class='line'> 59</span>         * @param {String} startTag 区间的开始标记。
+<span class='line'> 60</span>         * @param {String} endTag 区间的结束标记
+<span class='line'> 61</span>         * @param {String} newString 要进行替换的新子串，新值。
+<span class='line'> 62</span>         * @return {String} 返回一个替换后的字符串。&lt;br />
+<span class='line'> 63</span>         *   当不存在开始标记或结束标记时，都会不进行任何处理而直接返回原字符串。
+<span class='line'> 64</span>         * @example
+<span class='line'> 65</span>             $String.replaceBetween('hello #--world--# this is #--good--#', '#--', '--#', 'javascript') 
+<span class='line'> 66</span>             //结果为 'hello javascript this is javascript'
+<span class='line'> 67</span>         */</span><span class="WHIT">
+<span class='line'> 68</span> </span><span class="WHIT">        </span><span class="NAME">replaceBetween</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">startTag</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">endTag</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">newString</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 69</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">startIndex</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.indexOf</span><span class="PUNC">(</span><span class="NAME">startTag</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 70</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">startIndex</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 71</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 72</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 73</span> 
+<span class='line'> 74</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">endIndex</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.indexOf</span><span class="PUNC">(</span><span class="NAME">endTag</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 75</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">endIndex</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 76</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 78</span> 
+<span class='line'> 79</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">prefix</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.slice</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">startIndex</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 80</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">suffix</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.slice</span><span class="PUNC">(</span><span class="NAME">endIndex</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">endTag.length</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 81</span> 
+<span class='line'> 82</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">prefix</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">newString</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">suffix</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 83</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 84</span> 
+<span class='line'> 85</span> 
+<span class='line'> 86</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'> 87</span>         * 移除指定的字符子串。
+<span class='line'> 88</span>         * @param {String} target 要进行替换的目标字符串。
+<span class='line'> 89</span>         * @param {String|Array} src 要进行移除的子串。
+<span class='line'> 90</span>             支持批量的形式，传一个数组。
+<span class='line'> 91</span>         * @return {String} 返回一个替换后的字符串。
+<span class='line'> 92</span>         * @example
+<span class='line'> 93</span>             $String.removeAll('hi js hi abc', 'hi') 
+<span class='line'> 94</span>             //结果为 ' js  abc'
+<span class='line'> 95</span>         */</span><span class="WHIT">
+<span class='line'> 96</span> </span><span class="WHIT">        </span><span class="NAME">removeAll</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">src</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 97</span> 
+<span class='line'> 98</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Object</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Object'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 99</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Array</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Array'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>100</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">replaceAll</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">exports.replaceAll</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>101</span> 
+<span class='line'>102</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">$Object.isArray</span><span class="PUNC">(</span><span class="NAME">src</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>103</span> </span><span class="WHIT">                </span><span class="NAME">$Array.each</span><span class="PUNC">(</span><span class="NAME">src</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>104</span> </span><span class="WHIT">                    </span><span class="NAME">target</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">replaceAll</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>105</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>106</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">target</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>108</span> 
+<span class='line'>109</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">replaceAll</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">src</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>110</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>111</span> 
+<span class='line'>112</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>113</span>         * 从当前 String 对象移除所有前导空白字符和尾部空白字符。
+<span class='line'>114</span>         * @param {String} 要进行操作的字符串。
+<span class='line'>115</span>         * @return {String} 返回一个新的字符串。
+<span class='line'>116</span>         * @expample
+<span class='line'>117</span>             $String.trim('  abc def mm  '); //结果为 'abc def mm'
+<span class='line'>118</span>         */</span><span class="WHIT">
+<span class='line'>119</span> </span><span class="WHIT">        </span><span class="NAME">trim</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>120</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.replace</span><span class="PUNC">(</span><span class="REGX">/(^\s*)|(\s*$)/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>121</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>122</span> 
+<span class='line'>123</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>124</span>         * 从当前 String 对象移除所有前导空白字符。
+<span class='line'>125</span>         * @param {String} 要进行操作的字符串。
+<span class='line'>126</span>         * @return {String} 返回一个新的字符串。
+<span class='line'>127</span>         * @expample
+<span class='line'>128</span>             $String.trimStart('  abc def mm '); //结果为 'abc def mm  '
+<span class='line'>129</span>         */</span><span class="WHIT">
+<span class='line'>130</span> </span><span class="WHIT">        </span><span class="NAME">trimStart</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>131</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.replace</span><span class="PUNC">(</span><span class="REGX">/(^\s*)/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>132</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>133</span> 
+<span class='line'>134</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>135</span>         * 从当前 String 对象移除所有尾部空白字符。
+<span class='line'>136</span>         * @param {String} 要进行操作的字符串。
+<span class='line'>137</span>         * @return {String} 返回一个新的字符串。
+<span class='line'>138</span>         * @expample
+<span class='line'>139</span>             $String.trimEnd('  abc def mm '); //结果为 '  abc def mm'
+<span class='line'>140</span>         */</span><span class="WHIT">
+<span class='line'>141</span> </span><span class="WHIT">        </span><span class="NAME">trimEnd</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>142</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.replace</span><span class="PUNC">(</span><span class="REGX">/(\s*$)/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>143</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>144</span> 
+<span class='line'>145</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>146</span>         * 右对齐此实例中的字符，在左边用指定的 Unicode 字符填充以达到指定的总长度。
+<span class='line'>147</span>         * 当指定的总长度小实际长度时，将从右边开始算起，做截断处理，以达到指定的总长度。
+<span class='line'>148</span>         * @param {String} string 要进行填充对齐的字符串。
+<span class='line'>149</span>         * @param {Number} totalWidth 填充后要达到的总长度。
+<span class='line'>150</span>         * @param {String} paddingChar 用来填充的模板字符串。
+<span class='line'>151</span>         * @return {String} 返回一个经过填充对齐后的新字符串。
+<span class='line'>152</span>         * @example
+<span class='line'>153</span>             $String.padLeft('1234', 6, '0'); //结果为 '001234'，右对齐，从左边填充 '0'
+<span class='line'>154</span>             $String.padLeft('1234', 2, '0'); //结果为 '34'，右对齐，从左边开始截断
+<span class='line'>155</span>         */</span><span class="WHIT">
+<span class='line'>156</span> </span><span class="WHIT">        </span><span class="NAME">padLeft</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">totalWidth</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">paddingChar</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>157</span> </span><span class="WHIT">            </span><span class="NAME">string</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//转成字符串</span><span class="WHIT">
+<span class='line'>158</span> 
+<span class='line'>159</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">len</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>160</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">totalWidth</span><span class="WHIT"> </span><span class="PUNC">&lt;=</span><span class="WHIT"> </span><span class="NAME">len</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">//需要的长度短于实际长度，做截断处理</span><span class="WHIT">
+<span class='line'>161</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.substr</span><span class="PUNC">(</span><span class="PUNC">-</span><span class="NAME">totalWidth</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//从后面算起</span><span class="WHIT">
+<span class='line'>162</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>163</span> 
+<span class='line'>164</span> </span><span class="WHIT">            </span><span class="NAME">paddingChar</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">paddingChar</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="STRN">' '</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>165</span> 
+<span class='line'>166</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">arr</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>167</span> </span><span class="WHIT">            </span><span class="NAME">arr.length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">totalWidth</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">len</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>168</span> 
+<span class='line'>169</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">arr.join</span><span class="PUNC">(</span><span class="NAME">paddingChar</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">string</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>170</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>171</span> 
+<span class='line'>172</span> 
+<span class='line'>173</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>174</span>         * 左对齐此字符串中的字符，在右边用指定的 Unicode 字符填充以达到指定的总长度。
+<span class='line'>175</span>         * 当指定的总长度小实际长度时，将从左边开始算起，做截断处理，以达到指定的总长度。
+<span class='line'>176</span>         * @param {String} string 要进行填充对齐的字符串。
+<span class='line'>177</span>         * @param {Number} totalWidth 填充后要达到的总长度。
+<span class='line'>178</span>         * @param {String} paddingChar 用来填充的模板字符串。
+<span class='line'>179</span>         * @return {String} 返回一个经过填充对齐后的新字符串。
+<span class='line'>180</span>         * @example
+<span class='line'>181</span>             $String.padLeft('1234', 6, '0'); //结果为 '123400'，左对齐，从右边填充 '0'
+<span class='line'>182</span>             $String.padLeft('1234', 2, '0'); //结果为 '12'，左对齐，从右边开始截断
+<span class='line'>183</span>         */</span><span class="WHIT">
+<span class='line'>184</span> </span><span class="WHIT">        </span><span class="NAME">padRight</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">totalWidth</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">paddingChar</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>185</span> </span><span class="WHIT">            </span><span class="NAME">string</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//转成字符串</span><span class="WHIT">
+<span class='line'>186</span> 
+<span class='line'>187</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">len</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>188</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">len</span><span class="WHIT"> </span><span class="PUNC">>=</span><span class="WHIT"> </span><span class="NAME">totalWidth</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>189</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.substring</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">totalWidth</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>190</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>191</span> 
+<span class='line'>192</span> </span><span class="WHIT">            </span><span class="NAME">paddingChar</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">paddingChar</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="STRN">' '</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>193</span> 
+<span class='line'>194</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">arr</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>195</span> </span><span class="WHIT">            </span><span class="NAME">arr.length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">totalWidth</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">len</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>196</span> 
+<span class='line'>197</span> 
+<span class='line'>198</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">arr.join</span><span class="PUNC">(</span><span class="NAME">paddingChar</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>199</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>200</span> 
+<span class='line'>201</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>202</span>         * 获取位于两个标记子串之间的子字符串。
+<span class='line'>203</span>         * @param {String} string 要进行获取的大串。
+<span class='line'>204</span>         * @param {String} beginTag 区间的开始标记。
+<span class='line'>205</span>         * @param {String} endTag 区间的结束标记。
+<span class='line'>206</span>         * @return {String} 返回一个子字符串。当获取不能结果时，统一返回空字符串。
+<span class='line'>207</span>         * @example
+<span class='line'>208</span>             $String.between('abc{!hello!} world', '{!', '!}'); //结果为 'hello' 
+<span class='line'>209</span>         */</span><span class="WHIT">
+<span class='line'>210</span> </span><span class="WHIT">        </span><span class="NAME">between</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">beginTag</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">endTag</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>211</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">startIndex</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.indexOf</span><span class="PUNC">(</span><span class="NAME">beginTag</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>212</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">startIndex</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>213</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>214</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>215</span> 
+<span class='line'>216</span> </span><span class="WHIT">            </span><span class="NAME">startIndex</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">beginTag.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>217</span> 
+<span class='line'>218</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">endIndex</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">string.indexOf</span><span class="PUNC">(</span><span class="NAME">endTag</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">startIndex</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>219</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">endIndex</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>220</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>221</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>222</span> 
+<span class='line'>223</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.substr</span><span class="PUNC">(</span><span class="NAME">startIndex</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">endIndex</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">startIndex</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>224</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>225</span> 
+<span class='line'>226</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>227</span>         * 产生指定格式或长度的随机字符串。
+<span class='line'>228</span>         * @param {string|int} [formater=12] 随机字符串的格式，或者长度（默认为12个字符）。
+<span class='line'>229</span>             格式中的每个随机字符用 'x' 来占位，如 'xxxx-1x2x-xx'
+<span class='line'>230</span>         * @return {string} 返回一个指定长度的随机字符串。
+<span class='line'>231</span>         * @example
+<span class='line'>232</span>             $String.random();      //返回一个 12 位的随机字符串
+<span class='line'>233</span>             $String.random(64);    //返回一个 64 位的随机字符串
+<span class='line'>234</span>             $String.random('xxxx-你好xx-xx'); //类似 'A3EA-你好B4-DC'
+<span class='line'>235</span>         */</span><span class="WHIT">
+<span class='line'>236</span> </span><span class="WHIT">        </span><span class="NAME">random</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">formater</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>237</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">formater</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">undefined</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>238</span> </span><span class="WHIT">                </span><span class="NAME">formater</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">12</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>239</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>240</span> 
+<span class='line'>241</span> </span><span class="WHIT">            </span><span class="COMM">//如果传入的是数字，则生成一个指定长度的格式字符串 'xxxxx...'</span><span class="WHIT">
+<span class='line'>242</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">formater</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'number'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>243</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">size</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">formater</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>244</span> </span><span class="WHIT">                </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">size</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>245</span> </span><span class="WHIT">                    </span><span class="NAME">size</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>246</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>247</span> </span><span class="WHIT">                </span><span class="NAME">formater</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>248</span> </span><span class="WHIT">                </span><span class="NAME">formater.length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">size</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>249</span> </span><span class="WHIT">                </span><span class="NAME">formater</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">formater.join</span><span class="PUNC">(</span><span class="STRN">'x'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>250</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>251</span> 
+<span class='line'>252</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">formater.replace</span><span class="PUNC">(</span><span class="REGX">/x/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">c</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>253</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">r</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">Math.random</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">16</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>254</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">r.toString</span><span class="PUNC">(</span><span class="NUMB">16</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>255</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">toUpperCase</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>256</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>257</span> 
+<span class='line'>258</span> </span><span class="WHIT">        </span><span class="COMM">//---------------判断部分 -----------------------------------------------------</span><span class="WHIT">
+<span class='line'>259</span> 
+<span class='line'>260</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>261</span>         * 确定一个字符串的开头是否与指定的字符串匹配。
+<span class='line'>262</span>         * @param {String} str 要进行判断的大字符串。
+<span class='line'>263</span>         * @param {String} dest 要进行判断的子字符串，即要检测的开头子串。
+<span class='line'>264</span>         * @param {boolean} [ignoreCase=false] 指示是否忽略大小写。默认不忽略。
+<span class='line'>265</span>         * @return {boolean} 返回一个bool值，如果大串中是以小串开头，则返回 true；否则返回 false。
+<span class='line'>266</span>         * @example
+<span class='line'>267</span>             $String.startsWith('abcdef', 'abc') //结果为 true。
+<span class='line'>268</span>             $String.startsWith('abcdef', 'Abc', true) //结果为 true。
+<span class='line'>269</span>         */</span><span class="WHIT">
+<span class='line'>270</span> </span><span class="WHIT">        </span><span class="NAME">startsWith</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">str</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">dest</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">ignoreCase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>271</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">ignoreCase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>272</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">src</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">str.substring</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">dest.length</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>273</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">src.toUpperCase</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">dest.toString</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">toUpperCase</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>274</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>275</span> 
+<span class='line'>276</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">str.indexOf</span><span class="PUNC">(</span><span class="NAME">dest</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>277</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>278</span> 
+<span class='line'>279</span> 
+<span class='line'>280</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>281</span>         * 确定一个字符串的末尾是否与指定的字符串匹配。
+<span class='line'>282</span>         * @param {String} str 要进行判断的大字符串。
+<span class='line'>283</span>         * @param {String} dest 要进行判断的子字符串，即要检测的末尾子串。
+<span class='line'>284</span>         * @param {boolean} [ignoreCase=false] 指示是否忽略大小写。默认不忽略。
+<span class='line'>285</span>         * @return {boolean} 返回一个bool值，如果大串中是以小串结尾，则返回 true；否则返回 false。
+<span class='line'>286</span>         * @example
+<span class='line'>287</span>             $String.endsWith('abcdef', 'def') //结果为 true。
+<span class='line'>288</span>             $String.endsWith('abcdef', 'DEF', true) //结果为 true。
+<span class='line'>289</span>         */</span><span class="WHIT">
+<span class='line'>290</span> </span><span class="WHIT">        </span><span class="NAME">endsWith</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">str</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">dest</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">ignoreCase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>291</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">len0</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">str.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>292</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">len1</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">dest.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>293</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">delta</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">len0</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">len1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>294</span> 
+<span class='line'>295</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">ignoreCase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>296</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">src</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">str.substring</span><span class="PUNC">(</span><span class="NAME">delta</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">len0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>297</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">src.toUpperCase</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">dest.toString</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">toUpperCase</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>298</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>299</span> 
+<span class='line'>300</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">str.lastIndexOf</span><span class="PUNC">(</span><span class="NAME">dest</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NAME">delta</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>301</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>302</span> 
+<span class='line'>303</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>304</span>         * 检测一个字符串是否包含指定的子字符串。
+<span class='line'>305</span>         * @param {String} src 要进行检测的大串。
+<span class='line'>306</span>         * @param {String} target 要进行检测模式子串。
+<span class='line'>307</span>         * @return {boolean} 返回一个 bool 值。如果大串中包含模式子串，则返回 true；否则返回 false。
+<span class='line'>308</span>         * @example
+<span class='line'>309</span>             $String.contains('javascript is ok', 'scr');    //true
+<span class='line'>310</span>             $String.contains('javascript is ok', 'iis');    //false
+<span class='line'>311</span>         */</span><span class="WHIT">
+<span class='line'>312</span> </span><span class="WHIT">        </span><span class="NAME">contains</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">src</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">useOr</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>313</span> 
+<span class='line'>314</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Object</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Object'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>315</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Array</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Array'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>316</span> 
+<span class='line'>317</span> </span><span class="WHIT">            </span><span class="NAME">src</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">src</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>318</span> 
+<span class='line'>319</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">$Object.isArray</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>320</span> 
+<span class='line'>321</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">existed</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>322</span> 
+<span class='line'>323</span> </span><span class="WHIT">                </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">useOr</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">// or 关系，只要有一个存在，则结果为 true</span><span class="WHIT">
+<span class='line'>324</span> </span><span class="WHIT">                    </span><span class="NAME">existed</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>325</span> </span><span class="WHIT">                    </span><span class="NAME">$Array.each</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>326</span> </span><span class="WHIT">                        </span><span class="NAME">existed</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">src.indexOf</span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">></span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>327</span> </span><span class="WHIT">                        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">existed</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>328</span> </span><span class="WHIT">                            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//break;</span><span class="WHIT">
+<span class='line'>329</span> </span><span class="WHIT">                        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>330</span> </span><span class="WHIT">                    </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>331</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>332</span> </span><span class="WHIT">                </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">// and 关系，只要有一个不存在，则结果为 false</span><span class="WHIT">
+<span class='line'>333</span> </span><span class="WHIT">                    </span><span class="NAME">existed</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>334</span> </span><span class="WHIT">                    </span><span class="NAME">$Array.each</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>335</span> </span><span class="WHIT">                        </span><span class="NAME">existed</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">src.indexOf</span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">></span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>336</span> </span><span class="WHIT">                        </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">existed</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>337</span> </span><span class="WHIT">                            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//break;</span><span class="WHIT">
+<span class='line'>338</span> </span><span class="WHIT">                        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>339</span> </span><span class="WHIT">                    </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>340</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>341</span> 
+<span class='line'>342</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">existed</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>343</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>344</span> 
+<span class='line'>345</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">src.indexOf</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">></span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>346</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>347</span> 
+<span class='line'>348</span> </span><span class="WHIT">        </span><span class="COMM">//---------------转换部分 -----------------------------------------------------</span><span class="WHIT">
+<span class='line'>349</span> 
+<span class='line'>350</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>351</span>         * 把一个字符串转成骆驼命名法。。
+<span class='line'>352</span>         * 如 'font-size' 转成 'fontSize'。
+<span class='line'>353</span>         * @param {String} string 要进行转换的字符串。
+<span class='line'>354</span>         * @return 返回一个骆驼命名法的新字符串。
+<span class='line'>355</span>         * @example
+<span class='line'>356</span>             $String.toCamelCase('background-item-color') //结果为 'backgroundItemColor'
+<span class='line'>357</span>         */</span><span class="WHIT">
+<span class='line'>358</span> </span><span class="WHIT">        </span><span class="NAME">toCamelCase</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>359</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">rmsPrefix</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="REGX">/^-ms-/</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>360</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">rdashAlpha</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="REGX">/-([a-z]|[0-9])/ig</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>361</span> 
+<span class='line'>362</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.replace</span><span class="PUNC">(</span><span class="NAME">rmsPrefix</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">'ms-'</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">replace</span><span class="PUNC">(</span><span class="NAME">rdashAlpha</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">all</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">letter</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>363</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">letter.toString</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">toUpperCase</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>364</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>365</span> 
+<span class='line'>366</span> </span><span class="WHIT">            </span><span class="COMM">/* 下面的是 mootool 的实现
+<span class='line'>367</span>             return string.replace(/-\D/g, function(match) {
+<span class='line'>368</span>                 return match.charAt(1).toUpperCase();
+<span class='line'>369</span>             });
+<span class='line'>370</span>             */</span><span class="WHIT">
+<span class='line'>371</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>372</span> 
+<span class='line'>373</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>374</span>         * 把一个字符串转成短线连接法。
+<span class='line'>375</span>         * 如 fontSize 转成 font-size
+<span class='line'>376</span>         * @param {String} string 要进行转换的字符串。
+<span class='line'>377</span>         * @return 返回一个用短线连接起来的新字符串。
+<span class='line'>378</span>         * @example
+<span class='line'>379</span>             $String.toHyphenate('backgroundItemColor') //结果为 'background-item-color'
+<span class='line'>380</span>         */</span><span class="WHIT">
+<span class='line'>381</span> </span><span class="WHIT">        </span><span class="NAME">toHyphenate</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>382</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">string.replace</span><span class="PUNC">(</span><span class="REGX">/[A-Z]/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">match</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>383</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="STRN">'-'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">match.charAt</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">toLowerCase</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>384</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>385</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>386</span> 
+<span class='line'>387</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>388</span>         * 把一个字符串转成 UTF8 编码。
+<span class='line'>389</span>         * @param {String} string 要进行编码的字符串。
+<span class='line'>390</span>         * @return {String} 返回一个 UTF8 编码的新字符串。
+<span class='line'>391</span>         * @example
+<span class='line'>392</span>             $String.toUtf8('你好'); //结果为 ''
+<span class='line'>393</span>         */</span><span class="WHIT">
+<span class='line'>394</span> </span><span class="WHIT">        </span><span class="NAME">toUtf8</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>395</span> 
+<span class='line'>396</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Array</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Array'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>397</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">a</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>398</span> 
+<span class='line'>399</span> </span><span class="WHIT">            </span><span class="NAME">$Array.each</span><span class="PUNC">(</span><span class="NAME">string.split</span><span class="PUNC">(</span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">ch</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>400</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">ch.charCodeAt</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>401</span> </span><span class="WHIT">                </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0x80</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>402</span> </span><span class="WHIT">                    </span><span class="NAME">a.push</span><span class="PUNC">(</span><span class="NAME">code</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>403</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>404</span> </span><span class="WHIT">                </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0x800</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>405</span> </span><span class="WHIT">                    </span><span class="NAME">a.push</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">&</span><span class="WHIT"> </span><span class="NUMB">0x7C0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">>></span><span class="WHIT"> </span><span class="NUMB">6</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0xC0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>406</span> </span><span class="WHIT">                    </span><span class="NAME">a.push</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">&</span><span class="WHIT"> </span><span class="NUMB">0x3F</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0x80</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>407</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>408</span> </span><span class="WHIT">                </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>409</span> </span><span class="WHIT">                    </span><span class="NAME">a.push</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">&</span><span class="WHIT"> </span><span class="NUMB">0xF000</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">>></span><span class="WHIT"> </span><span class="NUMB">12</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0xE0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>410</span> </span><span class="WHIT">                    </span><span class="NAME">a.push</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">&</span><span class="WHIT"> </span><span class="NUMB">0x0FC0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">>></span><span class="WHIT"> </span><span class="NUMB">6</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0x80</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>411</span> </span><span class="WHIT">                    </span><span class="NAME">a.push</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="PUNC">(</span><span class="NAME">code</span><span class="WHIT"> </span><span class="PUNC">&</span><span class="WHIT"> </span><span class="NUMB">0x3F</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0x80</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>412</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>413</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>414</span> 
+<span class='line'>415</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="STRN">'%'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">$Array.keep</span><span class="PUNC">(</span><span class="NAME">a</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>416</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">item.toString</span><span class="PUNC">(</span><span class="NUMB">16</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>417</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">join</span><span class="PUNC">(</span><span class="STRN">'%'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>418</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>419</span> 
+<span class='line'>420</span> 
+<span class='line'>421</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>422</span>         * 把一个字符串转成等价的值。
+<span class='line'>423</span>         * 主要是把字符串形式的 0|1|true|false|null|undefined|NaN 转成原来的数据值。
+<span class='line'>424</span>         * 当参数不是字符串或不是上述值之一时，则直接返回该参数，不作转换。
+<span class='line'>425</span>         * @param {Object} value 要进行转换的值，可以是任何类型。
+<span class='line'>426</span>         * @return {Object} 返回一个等价的值。
+<span class='line'>427</span>         * @example
+<span class='line'>428</span>             $String.toValue('NaN') //NaN
+<span class='line'>429</span>             $String.toValue('null') //null
+<span class='line'>430</span>             $String.toValue('true') //true
+<span class='line'>431</span>             $String.toValue('false') //false
+<span class='line'>432</span>             $String.toValue({}) //不作转换，直接原样返回
+<span class='line'>433</span>         */</span><span class="WHIT">
+<span class='line'>434</span> </span><span class="WHIT">        </span><span class="NAME">toValue</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>435</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">'string'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">//拦截非字符串类型的参数</span><span class="WHIT">
+<span class='line'>436</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>437</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>438</span> 
+<span class='line'>439</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">maps</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>440</span> </span><span class="WHIT">                </span><span class="COMM">//'0': 0,</span><span class="WHIT">
+<span class='line'>441</span> </span><span class="WHIT">                </span><span class="COMM">//'1': 1,</span><span class="WHIT">
+<span class='line'>442</span> </span><span class="WHIT">                </span><span class="STRN">'true'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>443</span> </span><span class="WHIT">                </span><span class="STRN">'false'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>444</span> </span><span class="WHIT">                </span><span class="STRN">'null'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>445</span> </span><span class="WHIT">                </span><span class="STRN">'undefined'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">undefined</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>446</span> </span><span class="WHIT">                </span><span class="STRN">'NaN'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">NaN</span><span class="WHIT">
+<span class='line'>447</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>448</span> 
+<span class='line'>449</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">value</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">maps</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">maps</span><span class="PUNC">[</span><span class="NAME">value</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>450</span> 
+<span class='line'>451</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>452</span> 
+<span class='line'>453</span> </span><span class="WHIT">        </span><span class="COMM">//---------------分裂和提取部分 -----------------------------------------------------</span><span class="WHIT">
+<span class='line'>454</span> 
+<span class='line'>455</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>456</span>         * 对一个字符串进行多层次分裂，返回一个多维数组。
+<span class='line'>457</span>         * @param {String} string 要进行分裂的字符串。
+<span class='line'>458</span>         * @param {Array} separators 分隔符列表数组。
+<span class='line'>459</span>         * @return {Array} 返回一个多维数组，该数组的维数，跟指定的分隔符 separators 的长度一致。
+<span class='line'>460</span>         * @example
+<span class='line'>461</span>             var string = 'a=1&b=2|a=100&b=200;a=111&b=222|a=10000&b=20000';
+<span class='line'>462</span>             var separators = [';', '|', '&', '='];
+<span class='line'>463</span>             var a = $String.split(string, separators);
+<span class='line'>464</span>             //结果 a 为
+<span class='line'>465</span>             a = 
+<span class='line'>466</span>             [                           // ';' 分裂的结果
+<span class='line'>467</span>                 [                       // '|'分裂的结果
+<span class='line'>468</span>                     [                   // '&'分裂的结果
+<span class='line'>469</span>                         ['a', '1'],     // '='分裂的结果
+<span class='line'>470</span>                         ['b', '2']
+<span class='line'>471</span>                     ],
+<span class='line'>472</span>                     [
+<span class='line'>473</span>                         ['a', '100'],
+<span class='line'>474</span>                         ['b', '200']
+<span class='line'>475</span>                     ]
+<span class='line'>476</span>                 ],
+<span class='line'>477</span>                 [
+<span class='line'>478</span>                     [
+<span class='line'>479</span>                         ['a', '111'],
+<span class='line'>480</span>                         ['b', '222']
+<span class='line'>481</span>                     ],
+<span class='line'>482</span>                     [
+<span class='line'>483</span>                         ['a', '10000'],
+<span class='line'>484</span>                         ['b', '20000']
+<span class='line'>485</span>                     ]
+<span class='line'>486</span>                 ]
+<span class='line'>487</span>             ];
+<span class='line'>488</span>         * 
+<span class='line'>489</span>         */</span><span class="WHIT">
+<span class='line'>490</span> </span><span class="WHIT">        </span><span class="NAME">split</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">separators</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>491</span> 
+<span class='line'>492</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Array</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Array'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>493</span> 
+<span class='line'>494</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">list</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">split</span><span class="PUNC">(</span><span class="NAME">separators</span><span class="PUNC">[</span><span class="NUMB">0</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>495</span> 
+<span class='line'>496</span> </span><span class="WHIT">            </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">len</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">separators.length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">len</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="PUNC">++</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>497</span> </span><span class="WHIT">                </span><span class="NAME">list</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">fn</span><span class="PUNC">(</span><span class="NAME">list</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">separators</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">i</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>498</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>499</span> 
+<span class='line'>500</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">list</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>501</span> 
+<span class='line'>502</span> 
+<span class='line'>503</span> </span><span class="WHIT">            </span><span class="COMM">//一个内部方法</span><span class="WHIT">
+<span class='line'>504</span> </span><span class="WHIT">            </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="NAME">fn</span><span class="PUNC">(</span><span class="NAME">list</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">separator</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">dimension</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>505</span> </span><span class="WHIT">                </span><span class="NAME">dimension</span><span class="PUNC">--</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>506</span> 
+<span class='line'>507</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">$Array.map</span><span class="PUNC">(</span><span class="NAME">list</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>508</span> 
+<span class='line'>509</span> </span><span class="WHIT">                    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">dimension</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT">
+<span class='line'>510</span> </span><span class="WHIT">                            </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">split</span><span class="PUNC">(</span><span class="NAME">separator</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>511</span> </span><span class="WHIT">                            </span><span class="NAME">fn</span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">separator</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">dimension</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//递归</span><span class="WHIT">
+<span class='line'>512</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>513</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>514</span> 
+<span class='line'>515</span> 
+<span class='line'>516</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>517</span> 
+<span class='line'>518</span> 
+<span class='line'>519</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>520</span>         * 用滑动窗口的方式创建分组，返回一个子串的数组。
+<span class='line'>521</span>         * @param {string|number} string 要进行分组的字符串。会调用 String(string) 转成字符串。
+<span class='line'>522</span>         * @param {number} windowSize 滑动窗口的大小。
+<span class='line'>523</span>         * @param {number} [stepSize=1] 滑动步长。默认为1。
+<span class='line'>524</span>         * @return {Array} 返回一个经过滑动窗口方式得到的子串数组。
+<span class='line'>525</span>         * @example
+<span class='line'>526</span>         *   $String.slide('012345678', 4, 3); //滑动窗口大小为4，滑动步长为3
+<span class='line'>527</span>             //得到 [ '0123', '3456', '678' ] //最后一组不足一组
+<span class='line'>528</span>         */</span><span class="WHIT">
+<span class='line'>529</span> </span><span class="WHIT">        </span><span class="NAME">slide</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">windowSize</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">stepSize</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>530</span> 
+<span class='line'>531</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Array</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Array'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>532</span> 
+<span class='line'>533</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">chars</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">String</span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">split</span><span class="PUNC">(</span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//按字符切成单个字符的数组</span><span class="WHIT">
+<span class='line'>534</span> </span><span class="WHIT">            </span><span class="NAME">chars</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">$Array.slide</span><span class="PUNC">(</span><span class="NAME">chars</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">windowSize</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">stepSize</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>535</span> 
+<span class='line'>536</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">$Array.keep</span><span class="PUNC">(</span><span class="NAME">chars</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">group</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>537</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">group.join</span><span class="PUNC">(</span><span class="STRN">''</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>538</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>539</span> 
+<span class='line'>540</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>541</span> 
+<span class='line'>542</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>543</span>         * 对一个字符串进行分段，返回一个分段后的子串数组。
+<span class='line'>544</span>         * @param {string|number} string 要进行分段的字符串。会调用 String(string) 转成字符串。
+<span class='line'>545</span>         * @param {number} size 分段的大小。
+<span class='line'>546</span>         * @return {Array} 返回一个分段后的子串数组。
+<span class='line'>547</span>         * @example
+<span class='line'>548</span>         *   $String.segment('0123456789', 3); //进行分段，每段大小为3
+<span class='line'>549</span>             //得到 [ '012', '345', '678', '9' ] //最后一组不足一组
+<span class='line'>550</span>         */</span><span class="WHIT">
+<span class='line'>551</span> </span><span class="WHIT">        </span><span class="NAME">segment</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">size</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>552</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">exports.slide</span><span class="PUNC">(</span><span class="NAME">string</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">size</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">size</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>553</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>554</span> 
+<span class='line'>555</span> 
+<span class='line'>556</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>557</span>         * 对一个字符串进行多层级模板解析，返回一个带有多个子名称的模板。
+<span class='line'>558</span>         * @param {string} text 要进行解析的模板字符串。
+<span class='line'>559</span>         * @param {Array} tags 多层级模板中使用的标记。
+<span class='line'>560</span>         * @return {Object} 返回一个带有多个子名称的模板。
+<span class='line'>561</span>         */</span><span class="WHIT">
+<span class='line'>562</span> </span><span class="WHIT">        </span><span class="NAME">getTemplates</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">text</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">tags</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>563</span> 
+<span class='line'>564</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">$Array</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'Array'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>565</span> 
+<span class='line'>566</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">item0</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">tags</span><span class="PUNC">[</span><span class="NUMB">0</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>567</span> 
+<span class='line'>568</span> </span><span class="WHIT">            </span><span class="COMM">//缓存一下，以提高 for 中的性能</span><span class="WHIT">
+<span class='line'>569</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">between</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">exports.between</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>570</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">replaceBetween</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">exports.replaceBetween</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>571</span> 
+<span class='line'>572</span> 
+<span class='line'>573</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">samples</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>574</span> 
+<span class='line'>575</span> </span><span class="WHIT">            </span><span class="COMM">//先处理最外层，把大字符串提取出来。 因为内层的可能在总字符串 text 中同名</span><span class="WHIT">
+<span class='line'>576</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">s</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">between</span><span class="PUNC">(</span><span class="NAME">text</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item0.begin</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item0.end</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>577</span> 
+<span class='line'>578</span> </span><span class="WHIT">            </span><span class="COMM">//倒序处理子模板。 注意: 最外层的不在里面处理</span><span class="WHIT">
+<span class='line'>579</span> </span><span class="WHIT">            </span><span class="NAME">$Array.each</span><span class="PUNC">(</span><span class="NAME">tags.slice</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">reverse</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>580</span> 
+<span class='line'>581</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">name</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">item.name</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">index</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>582</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">begin</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">item.begin</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>583</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">end</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">item.end</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>584</span> 
+<span class='line'>585</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">fn</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">item.fn</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>586</span> 
+<span class='line'>587</span> </span><span class="WHIT">                </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">sample</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">between</span><span class="PUNC">(</span><span class="NAME">s</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">begin</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">end</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>588</span> 
+<span class='line'>589</span> </span><span class="WHIT">                </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="STRN">'outer'</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">//指定了 outer</span><span class="WHIT">
+<span class='line'>590</span> </span><span class="WHIT">                    </span><span class="NAME">s</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">replaceBetween</span><span class="PUNC">(</span><span class="NAME">s</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">begin</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">end</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item.outer</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>591</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>592</span> 
+<span class='line'>593</span> </span><span class="WHIT">                </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">fn</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">//指定了处理函数</span><span class="WHIT">
+<span class='line'>594</span> </span><span class="WHIT">                    </span><span class="NAME">sample</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">fn</span><span class="PUNC">(</span><span class="NAME">sample</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>595</span> </span><span class="WHIT">                </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>596</span> 
+<span class='line'>597</span> </span><span class="WHIT">                </span><span class="NAME">samples</span><span class="PUNC">[</span><span class="NAME">name</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">sample</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>598</span> 
+<span class='line'>599</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>600</span> 
+<span class='line'>601</span> </span><span class="WHIT">            </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">fn</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">item0.fn</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>602</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">fn</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="COMM">//指定了处理函数</span><span class="WHIT">
+<span class='line'>603</span> </span><span class="WHIT">                </span><span class="NAME">s</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">fn</span><span class="PUNC">(</span><span class="NAME">s</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>604</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>605</span> 
+<span class='line'>606</span> </span><span class="WHIT">            </span><span class="NAME">samples</span><span class="PUNC">[</span><span class="NAME">item0.name</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">s</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="COMM">//所有的子模板处理完后，就是最外层的结果</span><span class="WHIT">
+<span class='line'>607</span> 
+<span class='line'>608</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">samples</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>609</span> 
+<span class='line'>610</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>611</span> 
+<span class='line'>612</span> </span><span class="WHIT">        </span><span class="COMM">/**
+<span class='line'>613</span>         * 获取一个字符串的字节长度。
+<span class='line'>614</span>         * 普通字符的字节长度为 1；中文等字符的字节长度为 2。
+<span class='line'>615</span>         * @param {string} s 要进行解析的字符串。
+<span class='line'>616</span>         * @return {Number} 返回参数字符串的字节长度。
+<span class='line'>617</span>         */</span><span class="WHIT">
+<span class='line'>618</span> </span><span class="WHIT">        </span><span class="NAME">getByteLength</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">s</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>619</span> </span><span class="WHIT">            </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">s</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>620</span> </span><span class="WHIT">                </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>621</span> </span><span class="WHIT">            </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>622</span> 
+<span class='line'>623</span> </span><span class="WHIT">            </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">s.toString</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">replace</span><span class="PUNC">(</span><span class="REGX">/[\u0100-\uffff]/g</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">'  '</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>624</span> </span><span class="WHIT">        </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>625</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>626</span> 
+<span class='line'>627</span> 
+<span class='line'>628</span> 
+<span class='line'>629</span> 
+<span class='line'>630</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>631</span> 
+<span class='line'>632</span> 
+<span class='line'>633</span> </span><span class="NAME">define</span><span class="PUNC">(</span><span class="STRN">'String'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">require</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">module</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">exports</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>634</span> </span><span class="WHIT">    </span><span class="NAME">module.exports</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">require</span><span class="PUNC">(</span><span class="STRN">'core/String'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>635</span> 
+<span class='line'>636</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>637</span> 
+<span class='line'>638</span> 
+<span class='line'>639</span> 
+<span class='line'>640</span> 
+<span class='line'>641</span> </span></pre></body></html>

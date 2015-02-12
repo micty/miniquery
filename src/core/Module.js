@@ -1,6 +1,7 @@
 
 /**
 * 内部的模块管理器
+* @inner
 */
 var Module = (function () {
 
@@ -8,7 +9,10 @@ var Module = (function () {
     var guid$meta = {};
 
 
-    //根据工厂函数反向查找对应的模块 id。
+    /**
+    * 根据工厂函数反向查找对应的模块 id。
+    * @inner
+    */
     function findId(id$module, factory) {
         for (var id in id$module) {
             if (id$module[id].factory === factory) {
@@ -21,6 +25,7 @@ var Module = (function () {
 
     /**
     * 构造器。
+    * @inner
     */
     function Module() {
 
@@ -37,7 +42,7 @@ var Module = (function () {
 
 
     //实例方法
-    Module.prototype = {
+    Module.prototype = { /**@lends Module.prototype*/
         constructor: Module,
 
         /**
@@ -126,7 +131,7 @@ var Module = (function () {
         
         /**
         * 设置或获取对外暴露的模块。
-        * 通过此方法，可以控制指定的模块是否可以通过 KERP.require(id) 来加载到。
+        * 通过此方法，可以控制指定的模块是否可以通过 MiniQuery.require(id) 来加载到。
         * @param {string|Object} id 模块的名称。
             当指定为一个 {} 时，则表示批量设置。
             当指定为一个字符串时，则单个设置。

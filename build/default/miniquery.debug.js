@@ -43,6 +43,7 @@
 
 /**
 * 内部的模块管理器
+* @inner
 */
 var Module = (function () {
 
@@ -168,7 +169,7 @@ var Module = (function () {
         
         /**
         * 设置或获取对外暴露的模块。
-        * 通过此方法，可以控制指定的模块是否可以通过 KERP.require(id) 来加载到。
+        * 通过此方法，可以控制指定的模块是否可以通过 MiniQuery.require(id) 来加载到。
         * @param {string|Object} id 模块的名称。
             当指定为一个 {} 时，则表示批量设置。
             当指定为一个字符串时，则单个设置。
@@ -245,9 +246,10 @@ var expose = mod.expose.bind(mod);
 
 
 /**
-* 内部用的一个 MiniQuery 容器
+* $ 工具集
 * @namespace
-* @inner
+* @name $
+* @private
 */
 define('$', function (require, module, exports) {
 
@@ -260,7 +262,7 @@ define('$', function (require, module, exports) {
 
 
 
-    module.exports = exports = {
+    module.exports = exports = {  /**@lends $*/
 
         expando: 'MiniQuery-' + Math.random().toString().slice(2),
 
@@ -337,6 +339,7 @@ define('$', function (require, module, exports) {
 /**
 * 数组工具
 * @namespace
+* @name Array
 */
 define('Array', function (require, module, exports) {
 
@@ -344,10 +347,12 @@ define('Array', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends MiniQuery.Array*/
+    module.exports = exports = { /**@lends Array*/
 
         /**
         * 把数组、类数组合并成一个真正的数组。
+        * @function
+        * @borrows $.concat
         */
         concat: $.concat,
 
@@ -1597,10 +1602,11 @@ define('Array', function (require, module, exports) {
 /**
 * Boolean 工具类
 * @namespace
+* @name Boolean
 */
 define('Boolean', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends MiniQuery.Boolean */
+    module.exports = exports = { /**@lends Boolean */
 
         /**
         * 解析指定的参数为 bool 值。
@@ -1701,7 +1707,8 @@ define('Boolean', function (require, module, exports) {
 
 /**
 * 日期时间工具
-* @class
+* @namespace
+* @name Date
 */
 define('Date', function (require, module, exports) {
 
@@ -1743,7 +1750,7 @@ define('Date', function (require, module, exports) {
     }
 
 
-    module.exports = exports = { /**@lends MiniQuery.Date */
+    module.exports = exports = { /**@lends Date */
 
         /**
         * 获取当前系统时间。
@@ -2048,10 +2055,11 @@ define('Date', function (require, module, exports) {
 /**
 * 数学工具类
 * @namespace
+* @name Math
 */
 define('Math', function (require, module, exports) {
 
-    module.exports = exports = {  /**@lends MiniQuery.Math*/
+    module.exports = exports = {  /**@lends Math*/
 
         /**
         * 产生指定闭区间的随机整数。
@@ -2153,13 +2161,14 @@ define('Math', function (require, module, exports) {
 /**
 * 对象工具
 * @namespace
+* @name Object
 */
 define('Object', function (require, module, exports) {
 
     var $ = require('$');
 
 
-    module.exports = exports = { /**@lends MiniQuery.Object */
+    module.exports = exports = { /**@lends Object */
 
         /**
         * 用一个或多个其他对象来扩展一个对象，返回被扩展的对象。
@@ -3885,11 +3894,12 @@ define('Object', function (require, module, exports) {
 
 /**
 * 字符串工具类
-* @class
+* @namespace
+* @name String
 */
 define('core/String', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends MiniQuery.String */
+    module.exports = exports = { /**@lends String */
 
         /**
         * 用指定的值去填充一个字符串。
@@ -4526,7 +4536,8 @@ define('String', function (require, module, exports) {
 
 /**
 * Emitter/Tree 模块。
-* @class
+* @namespace
+* @inner
 */
 define('Emitter/Tree', function (require, module, exports) {
 
@@ -4599,6 +4610,7 @@ define('Emitter/Tree', function (require, module, exports) {
 /**
 * 自定义多级事件类
 * @class
+* @name Emitter
 */
 define('Emitter', function (require, module, exports) {
 
@@ -4655,7 +4667,7 @@ define('Emitter', function (require, module, exports) {
             });
             return;
         }
- 
+
 
         //重载 bind(isOneOff, name0, name1, ..., nameN, fn) 的情况
         //尝试找到回调函数 fn 所在的位置
@@ -4682,8 +4694,8 @@ define('Emitter', function (require, module, exports) {
 
     /**
     * 构造器。
-    * @param {Object} [context] 事件处理函数中的 this 上下文对象。
-    * 如果不指定，则默认为 null。
+    * @param {Object} [context=null] 事件处理函数中的 this 上下文对象。
+    *   如果不指定，则默认为 null。
     */
     function Emitter(context) {
 
@@ -4700,7 +4712,7 @@ define('Emitter', function (require, module, exports) {
     }
 
     //实例方法
-    Emitter.prototype = {
+    Emitter.prototype = { /**@lends Emitter.prototype */
         constructor: Emitter,
 
         /**
@@ -4782,7 +4794,7 @@ define('Emitter', function (require, module, exports) {
                 });
             }
             else { //未指定处理函数，则清空列表
-                list.length = 0; 
+                list.length = 0;
             }
 
         },
@@ -4855,12 +4867,12 @@ define('Emitter', function (require, module, exports) {
             如果是则返回 true；否则返回 false。
         */
         has: function (name, fn) {
-            
+
             var meta = mapper.get(this);
             var all = meta.all;
 
             if (arguments.length == 0) { //未指定名称，则判断是否包含了任意类型的事件
-                return !$Object.isEmpty(all); 
+                return !$Object.isEmpty(all);
             }
 
             //多名称情况: fire(name0, name1, name2, ..., nameN, fn)
@@ -4899,27 +4911,15 @@ define('Emitter', function (require, module, exports) {
 
     };
 
-
     module.exports = Emitter;
 
-
 });
-
-
-
-
-
-
-
-
-
 
 /**
 * 映射器工具类。
 * 实现任意类型的两个变量的关联。
 * @class
-* @example
-    var mapper = new $.Mapper();
+* @name Mapper
 */
 define('Mapper', function (require, module, exports) {
 
@@ -4987,7 +4987,7 @@ define('Mapper', function (require, module, exports) {
     }
 
     //实例方法
-    Mapper.prototype = { /**@lends MiniQuery.Mapper# */
+    Mapper.prototype = { /**@lends Mapper# */
 
         constructor: Mapper,
         /**
@@ -5203,7 +5203,7 @@ define('Mapper', function (require, module, exports) {
 
 
     //静态方法
-    $.extend(Mapper, { /**@lends MiniQuery.Mapper */
+    $.extend(Mapper, { /**@lends Mapper */
 
         getGuidKey: function () {
             return guidKey;
@@ -5234,6 +5234,8 @@ define('Mapper', function (require, module, exports) {
 /**
 * 模块管理器类。
 * 主要提供给页面定义页面级别的私有模块。
+* @class
+* @name Module
 */
 define('Module', function (require, module, exports) {
 
@@ -5241,7 +5243,9 @@ define('Module', function (require, module, exports) {
 
     var mod = new Module(); //默认的、静态的
 
-    module.exports = $.extend(Module, { //提供静态的调用方式
+    //提供静态的调用方式
+    module.exports = $.extend(Module, { /**@lends Module*/
+        /**@static*/
         'define': mod.define.bind(mod),
         'require': mod.require.bind(mod),
     });
@@ -5253,10 +5257,11 @@ define('Module', function (require, module, exports) {
 /**
 * Url 工具类
 * @namespace
+* @name Url
 */
 define('excore/Url', function (require, module, exports) {
 
-    module.exports = exports =  {  /**@lends MiniQuery.Url */
+    module.exports = exports =  {  /**@lends Url */
 
         /**
         * 获取指定 Url 的查询字符串中指定的键所对应的值。
@@ -5679,6 +5684,7 @@ define('Url', function (require, module, exports) {
 /**
 * Cookie/Expires 工具
 * @namespace
+* @inner
 */
 define('Cookie/Expires', function (require, module, exports) {
 
@@ -5698,7 +5704,7 @@ define('Cookie/Expires', function (require, module, exports) {
     };
 
 
-    module.exports = exports = {
+    module.exports = exports = { /**@lends Cookie/Expires*/
 
         /**
         * 解析字符串描述的 expires 字段
@@ -5732,6 +5738,7 @@ define('Cookie/Expires', function (require, module, exports) {
 /**
 * Cookie 工具
 * @namespace
+* @name Cookie
 */
 define('Cookie', function (require, module, exports) {
 
@@ -5743,7 +5750,7 @@ define('Cookie', function (require, module, exports) {
     };
 
 
-    module.exports = exports = { /**@lends MiniQuery.Cookie*/
+    module.exports = exports = { /**@lends Cookie*/
 
         /**
         * 把一个 cookie 字符串解析成等价的 Object 对象。
@@ -6048,6 +6055,7 @@ define('Cookie', function (require, module, exports) {
 /**
 * 本地存储工具类
 * @namespace
+* @name LocalStorage
 */
 define('LocalStorage', function (require, module, exports) {
 
@@ -6064,7 +6072,7 @@ define('LocalStorage', function (require, module, exports) {
 
 
 
-    module.exports = exports = {
+    module.exports = exports = { /**@lends LocalStorage*/
 
         set: function (key, value) {
 
@@ -6132,6 +6140,7 @@ define('LocalStorage', function (require, module, exports) {
 /**
 * 会话存储工具类
 * @namespace
+* @name SessionStorage
 */
 define('SessionStorage', function (require, module, exports) {
 
@@ -6146,7 +6155,7 @@ define('SessionStorage', function (require, module, exports) {
     all = JSON.parse(all) || {};
 
 
-    module.exports = exports = {
+    module.exports = exports = { /**@lends SessionStorage*/
 
         set: function (key, value) {
 
@@ -6216,6 +6225,7 @@ define('SessionStorage', function (require, module, exports) {
 /**
 * Script 脚本工具
 * @namespace
+* @name Script
 */
 define('Script', function (require, module, exports) {
 
@@ -6332,11 +6342,10 @@ define('Script', function (require, module, exports) {
     }
 
     
-    module.exports = exports = { /**@lends MiniQuery.Script*/
+    module.exports = exports = { /**@lends Script*/
 
         /**
         * 跨浏览器动态加载 JS 文件，并在加载完成后执行指定的回调函数。
-        * @memberOf MiniQuery.Script
         * @param {string|Array} params.url 
             要加载的 JS 文件的 url 地址，如果要批量加载，则为一个地址数组。
         * @param {string} [params.charset="utf-8"] 
@@ -6481,7 +6490,6 @@ define('Script', function (require, module, exports) {
 
         /**
         * 用 document.write 的方式加载 JS 文件。
-        * @memberOf MiniQuery.Script
         * @param {string|Array} params.url 
             要加载的 JS 文件的 url 地址，如果要批量加载，则为一个地址数组。
         * @param {string} [params.charset="utf-8"] 
@@ -6545,6 +6553,11 @@ define('Script', function (require, module, exports) {
 
 
 
+/**
+* Url 工具类
+* @namespace
+* @name Url
+*/
 define('browser/Url', function (require, module, exports) {
 
 
@@ -6562,7 +6575,7 @@ define('browser/Url', function (require, module, exports) {
 
 
 
-    module.exports = exports = {  /**@lends MiniQuery.Url */
+    module.exports = exports = {  /**@lends Url */
 
         /**
         * 获取指定窗口的查询字符串中指定的键所对应的值。
@@ -6837,11 +6850,16 @@ define('Url', function (require, module, exports) {
 });
 
 
+/**
+* MiniQuery
+* @namespace
+* @name MiniQuery
+*/
 define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');
 
-    module.exports = exports = {
+    module.exports = exports = { /**@lends MiniQuery*/
 
         'Array': require('Array'),
         'Boolean': require('Boolean'),

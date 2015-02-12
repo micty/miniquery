@@ -1,31 +1,21 @@
+﻿
+@rem 该批处理文件由 Grunt 工具生成
 
-
+set name={name}
 
 set tmpl=msdn
-
-cd jsdoc_toolkit-2.4.0
-
-
-
 set root=..\..
 set build=%root%\build
-set doc=%root%\doc
-set src=%build%\src
+set bin=%root%\bin
 
-set A=%src%\core\*.js
-set B=%src%\excore\*.js
-set C=%src%\browser\*.js
-set D=%src%\current\*.js
-set Z=%src%\MiniQuery.js
+set home=%build%\%name%
+set doc=%home%\doc
+set src=%home%\src
 
-java -jar jsrun.jar app\run.js -a -D="noGlobal:true" -t=templates\%tmpl% %A% %B% %C% %D% %Z% -d=%doc%
+cd %bin%/jsdoc_toolkit-2.4.0
 
-cd ..
+java -jar jsrun.jar app\run.js -a -D="noGlobal:true" -t=templates\%tmpl% -d=%doc% ^
+{list}
 
 
-
-
-
-
-
-
+cd %home%

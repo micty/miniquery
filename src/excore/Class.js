@@ -8,7 +8,7 @@ define('Class', function (require, module, exports) {
 
     var $ = require('$');
 
-    module.exports = exports = { /**@lends MiniQuery.Class*/
+    module.exports = exports = { /**@lends Class*/
 
         /**
         * 用工厂模式创建一个类。

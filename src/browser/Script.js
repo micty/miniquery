@@ -2,6 +2,7 @@
 /**
 * Script 脚本工具
 * @namespace
+* @name Script
 */
 define('Script', function (require, module, exports) {
 
@@ -50,6 +51,7 @@ define('Script', function (require, module, exports) {
 
             if (script.readyState) { //IE
 
+                /**@ignore*/
                 script.onreadystatechange = function () {
 
                     var readyState = script.readyState;
@@ -118,11 +120,10 @@ define('Script', function (require, module, exports) {
     }
 
     
-    module.exports = exports = { /**@lends MiniQuery.Script*/
+    module.exports = exports = { /**@lends Script*/
 
         /**
         * 跨浏览器动态加载 JS 文件，并在加载完成后执行指定的回调函数。
-        * @memberOf MiniQuery.Script
         * @param {string|Array} params.url 
             要加载的 JS 文件的 url 地址，如果要批量加载，则为一个地址数组。
         * @param {string} [params.charset="utf-8"] 
@@ -267,7 +268,6 @@ define('Script', function (require, module, exports) {
 
         /**
         * 用 document.write 的方式加载 JS 文件。
-        * @memberOf MiniQuery.Script
         * @param {string|Array} params.url 
             要加载的 JS 文件的 url 地址，如果要批量加载，则为一个地址数组。
         * @param {string} [params.charset="utf-8"] 

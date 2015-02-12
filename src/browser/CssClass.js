@@ -1,18 +1,12 @@
 ﻿
 /**
-* CSS 类工具
-* @class
+* CssClass 工具
+* @namespace
+* @name CssClass
 */
-
 define('CssClass', function (require, module, exports) {
 
-    exports = function (node) {
-        var prototype = require('CssClass.prototype');
-        return new prototype.init(node);
-    };
-
-
-    module.exports = $.extend(exports, { /**@lends MiniQuery.CssClass*/
+    module.exports = exports = { /**@lends CssClass*/
 
         /**
         * 获取某个 DOM 元素的 class 类名；
@@ -105,7 +99,7 @@ define('CssClass', function (require, module, exports) {
             node.className = list.join(' ');
             return this;
         }
-    });
+    };
 
 });
 

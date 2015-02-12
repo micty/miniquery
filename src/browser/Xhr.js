@@ -2,12 +2,13 @@
 /**
 * XMLHttpRequest 类工具
 * @namespace
+* @name Xhr
 */
 define('Xhr', function (require, module, exports) {
 
 
 
-    module.exports = exports = {  /**@lends MiniQuery.Xhr*/
+    module.exports = exports = {  /**@lends Xhr*/
 
         /**
         * 跨浏览器创建一个 XMLHttpRequest 对象。

@@ -1,11 +1,12 @@
 ﻿
 /**
 * 字符串工具类
-* @class
+* @namespace
+* @name String
 */
 define('browser/String', function (require, module, exports) {
 
-    module.exports = exports = {
+    module.exports = exports = { /**@lends String*/
         /**
         * 用做过滤直接放到HTML里的
         * @return {String}

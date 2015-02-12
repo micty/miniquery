@@ -2,6 +2,7 @@
 /**
 * 回调列表类
 * @class
+* @name Callbacks
 */
 define('Callbacks', function (require, module, exports) {
 
@@ -25,7 +26,7 @@ define('Callbacks', function (require, module, exports) {
     }
 
 
-    Callbacks.prototype = { /**@lends MiniQuery.Callbacks#*/
+    Callbacks.prototype = { /**@lends Callbacks#*/
 
         constructor: Callbacks,
 

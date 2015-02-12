@@ -3,11 +3,9 @@
 /**
 * Style 样式类工具
 * @namespace
+* @name Style
 */
-
 define('Style', function (require, module, exports) {
-
-
 
     var iframe;
     var iframeDoc;
@@ -114,7 +112,7 @@ define('Style', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@exports as MiniQuery.Style */
+    module.exports = exports = { /**@lends Style */
 
         /**
         * 跨浏览器动态加载 JS 文件，并在加载完成后执行指定的回调函数。

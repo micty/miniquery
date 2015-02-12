@@ -1,9 +1,14 @@
 ﻿
+/**
+* MiniQuery
+* @namespace
+* @name MiniQuery
+*/
 define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');
 
-    module.exports = exports = {
+    module.exports = exports = { /**@lends MiniQuery*/
 
         'Array': require('Array'),
         'Boolean': require('Boolean'),
@@ -13,6 +18,10 @@ define('MiniQuery', function (require, module, exports) {
         'Object': require('Object'),
         'String': require('String'),
 
+        /**
+        * @borrows $.require
+        * @function
+        */
         require: $.require,
 
 
