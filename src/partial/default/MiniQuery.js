@@ -13,18 +13,19 @@ define('MiniQuery', function (require, module, exports) {
         'Array': require('Array'),
         'Boolean': require('Boolean'),
         'Date': require('Date'),
-        'Function': require('Function'),
         'Math': require('Math'),
         'Object': require('Object'),
         'String': require('String'),
 
         /**
-        * @borrows $.require
+        * 加载内部公开的模块。
         * @function
+        * @param {string} id 模块的名称(id)
+        * @return {Object} 返回模块的导出对象。
+        * @example
+        *   var Mapper = MiniQuery.require('Mapper');    
         */
         require: $.require,
-
-
 
         /**
         * 以安全的方式给 MiniQuery 使用一个新的命名空间。
@@ -53,10 +54,5 @@ define('MiniQuery', function (require, module, exports) {
 
         },
 
-        
-
     };
-
-
-
 });

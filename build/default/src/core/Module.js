@@ -1,7 +1,7 @@
 
 /**
-* 内部的模块管理器
-* @inner
+* 模块管理器类
+* @class
 */
 var Module = (function () {
 
@@ -9,7 +9,10 @@ var Module = (function () {
     var guid$meta = {};
 
 
-    //根据工厂函数反向查找对应的模块 id。
+    /**
+    * 根据工厂函数反向查找对应的模块 id。
+    * @inner
+    */
     function findId(id$module, factory) {
         for (var id in id$module) {
             if (id$module[id].factory === factory) {
@@ -22,6 +25,7 @@ var Module = (function () {
 
     /**
     * 构造器。
+    * @inner
     */
     function Module() {
 
@@ -38,7 +42,7 @@ var Module = (function () {
 
 
     //实例方法
-    Module.prototype = {
+    Module.prototype = { /**@lends Module.prototype*/
         constructor: Module,
 
         /**

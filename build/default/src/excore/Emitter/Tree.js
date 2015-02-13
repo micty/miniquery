@@ -2,15 +2,15 @@
 /**
 * Emitter/Tree 模块。
 * @namespace
-* @inner
 */
 define('Emitter/Tree', function (require, module, exports) {
 
     var $Array = require('Array');
 
+    
+    module.exports = exports = { 
 
-    module.exports = exports = {
-
+        /**@inner*/
         add: function (name$node, names, item) {
 
             var lastIndex = names.length - 1;
@@ -36,6 +36,7 @@ define('Emitter/Tree', function (require, module, exports) {
 
         },
 
+        /**@inner*/
         getNode: function (name$node, names) {
 
             var lastIndex = names.length - 1;
@@ -52,7 +53,7 @@ define('Emitter/Tree', function (require, module, exports) {
             }
 
         },
-
+        /**@inner*/
         getList: function (name$node, names) {
             var node = exports.getNode(name$node, names);
             return node ? node.list : null;

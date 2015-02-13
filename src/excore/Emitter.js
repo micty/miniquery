@@ -81,6 +81,82 @@ define('Emitter', function (require, module, exports) {
     }
 
 
+    //触发事件。
+    //实例的私有方法，必须用 fire.apply(this, []) 的方式来调用。
+    function fire(config) {
+
+        var names = config.names;
+        if (!names || names.length == 0) {
+            throw new Error('必须至少指定一个事件名称。');
+        }
+
+        var meta = mapper.get(this);
+        var all = meta.all;
+
+        var list = Tree.getList(all, names);
+        if (!list || list.length == 0) {
+            return [];
+        }
+
+
+        function stop(list) {
+
+            if (!('stop' in config)) {
+                stop = function () {
+                    return false;
+                };
+                return false;
+            }
+
+            var fn = config.stop;
+            if (typeof fn == 'function') {
+                stop = fn;
+                return fn(list) === true;
+            }
+
+            stop = function (list) { 
+                return list.slice(-1)[0] === fn; //取最后一个值进行判断
+            };
+
+            return list.slice(-1)[0] === fn;
+        }
+
+
+        //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
+        //而此处又要去移除那些一次性的回调（即只执行一次的），
+        //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
+        //以原来的回调列表为准去查询要移除的项的确切位置。
+
+        var items = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化。
+        var returns = [];
+        var len = items.length;
+        var context = meta.context || null;
+        var args = config.args || [];
+
+        for (var i = 0; i < len; i++) {
+            var item = items[i];
+
+            if (item.isOneOff) { //只需执行一次的
+                var index = $Array.indexOf(list, item); //找到该项在回调列表中的索引位置
+                if (index >= 0) {
+                    list.splice(index, 1); //直接从原数组删除
+                }
+            }
+
+            var value = item.fn.apply(context, args); //让 fn 内的 this 指向 obj
+            returns.push(value);
+
+            //返回值符合设定的停止值，则停止后续的调用
+            if (stop(returns) === true) {
+                break;
+            }
+        }
+
+        return returns;
+
+    }
+
+
 
 
 
@@ -192,16 +268,34 @@ define('Emitter', function (require, module, exports) {
         },
 
         /**
+        * 已重载。
         * 触发指定名称的事件，并可向事件处理函数传递一些参数。
-        * @param {string} name 要触发的事件名称。
-        * @param {Array} [params] 要向事件处理函数传递的参数数组。
+        * 如果指定了 stop 字段，则当事件处理函数返回指定的值时将停止调用后面的处理函数。
+        * @param {Object} config 配置对象。
+        * @param {Array} config.names 事件名称列表。
+        * @param {Array} config.args 要传递给事件处理函数的参数数据。
+        * @param config.stop 当事件处理函数的返回值满足一定时，将停止调用后面的处理函数。
+            当 stop 为函数时，则需要在 stop 函数内明确返回 true 才停止。
+            否则，事件处理的返回值跟 stop 完全相等时才停步。
         * @return {Array} 返回所有事件处理函数的返回值所组成的一个数组。
-        */
-        fire: function (name, params) {
+        * @example
+            var emitter = new Emitter();
+            emitter.on('click', 'name', function (a, b) {
+                console.log(a, b);
+            });
+            emitter.fire('click', 'name', [100, 200]);
 
-            var meta = mapper.get(this);
-            var all = meta.all;
-            var context = meta.context;
+            emitter.fire({
+                names: ['click', 'name'],
+                args: [100, 200],
+                stop: 100,
+            });
+        */
+        fire: function (config) {
+
+            if (typeof config == 'object') { //重载 fire({...})
+                return fire.apply(this, [config]);
+            }
 
             //多名称情况: fire(name0, name1, name2, ..., nameN, params)
             var args = $.toArray(arguments);
@@ -214,39 +308,11 @@ define('Emitter', function (require, module, exports) {
             if (index < 0) {
                 index = args.length;
             }
-
-            params = args[index] || [];
-
-            var names = args.slice(0, index);
-            var list = Tree.getList(all, names);
-            var returns = [];
-
-            if (!list || list.length == 0) {
-                return returns;
-            }
-
-            //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
-            //而此处又要去移除那些一次性的回调（即只执行一次的），
-            //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
-            //以原来的回调列表为准去查询要移除的项的确切位置。
-
-            var items = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化。
-
-            $Array.each(items, function (item, index) {
-
-                if (item.isOneOff) { //只需执行一次的
-                    var index = $Array.indexOf(list, item); //找到该项在回调列表中的索引位置
-                    if (index >= 0) {
-                        list.splice(index, 1); //直接从原数组删除
-                    }
-                }
-
-                var value = item.fn.apply(context, params); //让 fn 内的 this 指向 obj
-                returns.push(value);
-
-            });
-
-            return returns;
+           
+            return fire.apply(this, [{
+                'names': args.slice(0, index),
+                'args': args[index]
+            }]);
 
         },
 
@@ -303,6 +369,7 @@ define('Emitter', function (require, module, exports) {
 
     };
 
+    
     module.exports = Emitter;
 
 });

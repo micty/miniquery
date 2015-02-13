@@ -5,7 +5,6 @@ expose({
     'Array': true,
     'Boolean': true,
     'Date': true,
-    'Function': true,
     'Math': true,
     'Object': true,
     'String': true,

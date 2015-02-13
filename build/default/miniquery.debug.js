@@ -42,8 +42,8 @@
 
 
 /**
-* 内部的模块管理器
-* @inner
+* 模块管理器类
+* @class
 */
 var Module = (function () {
 
@@ -51,7 +51,10 @@ var Module = (function () {
     var guid$meta = {};
 
 
-    //根据工厂函数反向查找对应的模块 id。
+    /**
+    * 根据工厂函数反向查找对应的模块 id。
+    * @inner
+    */
     function findId(id$module, factory) {
         for (var id in id$module) {
             if (id$module[id].factory === factory) {
@@ -64,6 +67,7 @@ var Module = (function () {
 
     /**
     * 构造器。
+    * @inner
     */
     function Module() {
 
@@ -80,7 +84,7 @@ var Module = (function () {
 
 
     //实例方法
-    Module.prototype = {
+    Module.prototype = { /**@lends Module.prototype*/
         constructor: Module,
 
         /**
@@ -249,7 +253,6 @@ var expose = mod.expose.bind(mod);
 * $ 工具集
 * @namespace
 * @name $
-* @private
 */
 define('$', function (require, module, exports) {
 
@@ -326,7 +329,12 @@ define('$', function (require, module, exports) {
             return a;
         },
 
-
+        /**
+        * 加载指定名称的模块。
+        * 该方法只能加载设置了为公开的模块，当加载的模块设置了私有，则得到 null。
+        * @param {string} id 模块的名称(id)。
+        * @return 返回模块的导出对象。
+        */
         require: function (id) {
             return expose(id) ? require(id) : null;
         },
@@ -3325,15 +3333,22 @@ define('Object', function (require, module, exports) {
             obj.sayHi();
         */
         create: function (obj) {
+            
             //下面使用了惰性载入函数的技巧，即在第一次调用时检测了浏览器的能力并重写了接口
-            var fn = typeof Object.create === 'function' ? Object.create : function (obj) {
-                function F() {
-                }
+            
+            var fn = Object.create;
 
-                F.prototype = obj;
-                F.prototype.constructor = F;
+            if (typeof fn != 'function') {
+                /**@inner*/
+                fn = function (obj) {
+                    function F() {
+                    }
 
-                return new F();
+                    F.prototype = obj;
+                    F.prototype.constructor = F;
+
+                    return new F();
+                };
             }
 
             exports.create = fn;
@@ -4537,15 +4552,15 @@ define('String', function (require, module, exports) {
 /**
 * Emitter/Tree 模块。
 * @namespace
-* @inner
 */
 define('Emitter/Tree', function (require, module, exports) {
 
     var $Array = require('Array');
 
+    
+    module.exports = exports = { 
 
-    module.exports = exports = {
-
+        /**@inner*/
         add: function (name$node, names, item) {
 
             var lastIndex = names.length - 1;
@@ -4571,6 +4586,7 @@ define('Emitter/Tree', function (require, module, exports) {
 
         },
 
+        /**@inner*/
         getNode: function (name$node, names) {
 
             var lastIndex = names.length - 1;
@@ -4587,7 +4603,7 @@ define('Emitter/Tree', function (require, module, exports) {
             }
 
         },
-
+        /**@inner*/
         getList: function (name$node, names) {
             var node = exports.getNode(name$node, names);
             return node ? node.list : null;
@@ -4686,6 +4702,82 @@ define('Emitter', function (require, module, exports) {
             'fn': fn,
             'isOneOff': isOneOff,
         });
+    }
+
+
+    //触发事件。
+    //实例的私有方法，必须用 fire.apply(this, []) 的方式来调用。
+    function fire(config) {
+
+        var names = config.names;
+        if (!names || names.length == 0) {
+            throw new Error('必须至少指定一个事件名称。');
+        }
+
+        var meta = mapper.get(this);
+        var all = meta.all;
+
+        var list = Tree.getList(all, names);
+        if (!list || list.length == 0) {
+            return [];
+        }
+
+
+        function stop(list) {
+
+            if (!('stop' in config)) {
+                stop = function () {
+                    return false;
+                };
+                return false;
+            }
+
+            var fn = config.stop;
+            if (typeof fn == 'function') {
+                stop = fn;
+                return fn(list) === true;
+            }
+
+            stop = function (list) { 
+                return list.slice(-1)[0] === fn; //取最后一个值进行判断
+            };
+
+            return list.slice(-1)[0] === fn;
+        }
+
+
+        //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
+        //而此处又要去移除那些一次性的回调（即只执行一次的），
+        //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
+        //以原来的回调列表为准去查询要移除的项的确切位置。
+
+        var items = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化。
+        var returns = [];
+        var len = items.length;
+        var context = meta.context || null;
+        var args = config.args || [];
+
+        for (var i = 0; i < len; i++) {
+            var item = items[i];
+
+            if (item.isOneOff) { //只需执行一次的
+                var index = $Array.indexOf(list, item); //找到该项在回调列表中的索引位置
+                if (index >= 0) {
+                    list.splice(index, 1); //直接从原数组删除
+                }
+            }
+
+            var value = item.fn.apply(context, args); //让 fn 内的 this 指向 obj
+            returns.push(value);
+
+            //返回值符合设定的停止值，则停止后续的调用
+            if (stop(returns) === true) {
+                break;
+            }
+        }
+
+        return returns;
+
     }
 
 
@@ -4800,16 +4892,34 @@ define('Emitter', function (require, module, exports) {
         },
 
         /**
+        * 已重载。
         * 触发指定名称的事件，并可向事件处理函数传递一些参数。
-        * @param {string} name 要触发的事件名称。
-        * @param {Array} [params] 要向事件处理函数传递的参数数组。
+        * 如果指定了 stop 字段，则当事件处理函数返回指定的值时将停止调用后面的处理函数。
+        * @param {Object} config 配置对象。
+        * @param {Array} config.names 事件名称列表。
+        * @param {Array} config.args 要传递给事件处理函数的参数数据。
+        * @param config.stop 当事件处理函数的返回值满足一定时，将停止调用后面的处理函数。
+            当 stop 为函数时，则需要在 stop 函数内明确返回 true 才停止。
+            否则，事件处理的返回值跟 stop 完全相等时才停步。
         * @return {Array} 返回所有事件处理函数的返回值所组成的一个数组。
-        */
-        fire: function (name, params) {
+        * @example
+            var emitter = new Emitter();
+            emitter.on('click', 'name', function (a, b) {
+                console.log(a, b);
+            });
+            emitter.fire('click', 'name', [100, 200]);
 
-            var meta = mapper.get(this);
-            var all = meta.all;
-            var context = meta.context;
+            emitter.fire({
+                names: ['click', 'name'],
+                args: [100, 200],
+                stop: 100,
+            });
+        */
+        fire: function (config) {
+
+            if (typeof config == 'object') { //重载 fire({...})
+                return fire.apply(this, [config]);
+            }
 
             //多名称情况: fire(name0, name1, name2, ..., nameN, params)
             var args = $.toArray(arguments);
@@ -4822,39 +4932,11 @@ define('Emitter', function (require, module, exports) {
             if (index < 0) {
                 index = args.length;
             }
-
-            params = args[index] || [];
-
-            var names = args.slice(0, index);
-            var list = Tree.getList(all, names);
-            var returns = [];
-
-            if (!list || list.length == 0) {
-                return returns;
-            }
-
-            //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
-            //而此处又要去移除那些一次性的回调（即只执行一次的），
-            //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
-            //以原来的回调列表为准去查询要移除的项的确切位置。
-
-            var items = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化。
-
-            $Array.each(items, function (item, index) {
-
-                if (item.isOneOff) { //只需执行一次的
-                    var index = $Array.indexOf(list, item); //找到该项在回调列表中的索引位置
-                    if (index >= 0) {
-                        list.splice(index, 1); //直接从原数组删除
-                    }
-                }
-
-                var value = item.fn.apply(context, params); //让 fn 内的 this 指向 obj
-                returns.push(value);
-
-            });
-
-            return returns;
+           
+            return fire.apply(this, [{
+                'names': args.slice(0, index),
+                'args': args[index]
+            }]);
 
         },
 
@@ -4911,6 +4993,7 @@ define('Emitter', function (require, module, exports) {
 
     };
 
+    
     module.exports = Emitter;
 
 });
@@ -4991,7 +5074,7 @@ define('Mapper', function (require, module, exports) {
 
         constructor: Mapper,
         /**
-        * 设置一对映射关系。
+        * 根据给定的键和值设置成一对映射关系。
         * @param key 映射关系的键，可以是任何类型。
         * @param value 映射关系要关联的值，可是任何类型。
         * @return 返回第二个参数 value。
@@ -5064,7 +5147,7 @@ define('Mapper', function (require, module, exports) {
 
 
         /**
-        * 获取一对映射关系所关联的值。<br />
+        * 根据给定的键去获取其关联的值。
         * 注意：根据映射关系的键查找所关联的值时，对键使用的是全等比较，即区分数据类型。
         * @param key 映射关系的键，可以是任何类型。
         * @return 返回映射关系所关联的值。
@@ -5079,6 +5162,7 @@ define('Mapper', function (require, module, exports) {
             
             var myFn = mapper.get(obj); //获取到之前关联的 fn
             myFn(100, 200);
+            console.log(fn === myFn);
         */
         get: function (key) {
 
@@ -5205,18 +5289,35 @@ define('Mapper', function (require, module, exports) {
     //静态方法
     $.extend(Mapper, { /**@lends Mapper */
 
+        /**
+        * 获取运行时确定的随机 guid 值所使用的 key。
+        * @return {string} 返回guid 值所使用的 key。
+        */
         getGuidKey: function () {
             return guidKey;
         },
 
+        /**
+        * 给指定的对象设置一个 guid 值。
+        * @param {Object} 要设置的对象，只要是引用类型即可。
+        * @param {string} [guid] 要设置的 guid 值。
+        *   当不指定时，则分配一个默认的随机字符串。(以 'default-' 开头 )
+        * @return {string} 返回设置后的 guid 值。
+        */
         setGuid: function (obj, guid) {
             if (guid === undefined) {
                 guid = 'default-' + $String.random();
             }
 
             obj[guidKey] = guid;
+            return guid;
         },
 
+        /**
+        * 获取指定的对象的 guid 值。
+        * @param {Object} 要获取的对象，只要是引用类型即可。
+        * @return {string} 返回该对象的 guid 值。
+        */
         getGuid: function (obj) {
             return obj[guidKey];
         },
@@ -5234,20 +5335,27 @@ define('Mapper', function (require, module, exports) {
 /**
 * 模块管理器类。
 * 主要提供给页面定义页面级别的私有模块。
-* @class
-* @name Module
 */
-define('Module', function (require, module, exports) {
+define('ModuleA', function (require, module, exports) {
 
     var $ = require('$');
+    var mod = new Module();
 
-    var mod = new Module(); //默认的、静态的
 
-    //提供静态的调用方式
-    module.exports = $.extend(Module, { /**@lends Module*/
-        /**@static*/
-        'define': mod.define.bind(mod),
-        'require': mod.require.bind(mod),
+    module.exports = $.extend(Module, /**@lends Module*/ {
+        /**
+        * 静态方法。
+        * @function
+        * @memberOf Module
+        */
+        define: mod.define.bind(mod),
+
+        /**
+        * 静态方法。
+        * @function
+        * @memberOf Module
+        */
+        require: mod.require.bind(mod)
     });
 
 });
@@ -5684,7 +5792,6 @@ define('Url', function (require, module, exports) {
 /**
 * Cookie/Expires 工具
 * @namespace
-* @inner
 */
 define('Cookie/Expires', function (require, module, exports) {
 
@@ -5703,11 +5810,11 @@ define('Cookie/Expires', function (require, module, exports) {
         ms: 'Millisecond'
     };
 
-
-    module.exports = exports = { /**@lends Cookie/Expires*/
+    module.exports = exports = { 
 
         /**
         * 解析字符串描述的 expires 字段
+        * @inner
         */
         parse: function (s) {
 
@@ -6274,6 +6381,7 @@ define('Script', function (require, module, exports) {
 
             if (script.readyState) { //IE
 
+                /**@ignore*/
                 script.onreadystatechange = function () {
 
                     var readyState = script.readyState;
@@ -6556,7 +6664,7 @@ define('Script', function (require, module, exports) {
 /**
 * Url 工具类
 * @namespace
-* @name Url
+* @inner
 */
 define('browser/Url', function (require, module, exports) {
 
@@ -6574,8 +6682,10 @@ define('browser/Url', function (require, module, exports) {
     var hashchangeEventName = '__hashchange-' + $String.random();
 
 
-
-    module.exports = exports = {  /**@lends Url */
+    
+    module.exports = exports =
+    /**@inner*/
+    {
 
         /**
         * 获取指定窗口的查询字符串中指定的键所对应的值。
@@ -6780,6 +6890,7 @@ define('browser/Url', function (require, module, exports) {
 
             // window 所对应的窗口首次绑定 hashchange
             if ('onhashchange' in window) {
+                /**@inner*/
                 window.onhashchange = function () {
                     var oldHash = hash;
                     hash = exports.getHash(window, '');
@@ -6864,14 +6975,19 @@ define('MiniQuery', function (require, module, exports) {
         'Array': require('Array'),
         'Boolean': require('Boolean'),
         'Date': require('Date'),
-        'Function': require('Function'),
         'Math': require('Math'),
         'Object': require('Object'),
         'String': require('String'),
 
+        /**
+        * 加载内部公开的模块。
+        * @function
+        * @param {string} id 模块的名称(id)
+        * @return {Object} 返回模块的导出对象。
+        * @example
+        *   var Mapper = MiniQuery.require('Mapper');    
+        */
         require: $.require,
-
-
 
         /**
         * 以安全的方式给 MiniQuery 使用一个新的命名空间。
@@ -6900,12 +7016,7 @@ define('MiniQuery', function (require, module, exports) {
 
         },
 
-        
-
     };
-
-
-
 });
 
 
@@ -6914,7 +7025,6 @@ expose({
     'Array': true,
     'Boolean': true,
     'Date': true,
-    'Function': true,
     'Math': true,
     'Object': true,
     'String': true,

@@ -53,6 +53,15 @@ emitter.on('click', function () {
     debugger;
 });
 
+emitter.on('click', function () {
+    debugger;
+    return 100;
+});
+
+emitter.on('click', function () {
+    debugger;
+});
+
 emitter.on('click', 'delete', 'by-id', function () {
     debugger;
 });
@@ -76,10 +85,14 @@ emitter.on('dblclick', 'add', function () {
 });
 
 
+
 //线性化
 emitter.fire('click', 'delete', 'by-id', [1000]);
 emitter.fire('click', 'delete');
-emitter.fire('click');
+emitter.fire({
+    names: ['click'],
+    stop: 100
+});
 
 emitter.fire('dblclick', 'add', 'test', 'id', [123]);
 emitter.fire('dblclick', 'add', [123]);

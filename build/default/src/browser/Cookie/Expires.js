@@ -2,7 +2,6 @@
 /**
 * Cookie/Expires 工具
 * @namespace
-* @inner
 */
 define('Cookie/Expires', function (require, module, exports) {
 
@@ -21,11 +20,11 @@ define('Cookie/Expires', function (require, module, exports) {
         ms: 'Millisecond'
     };
 
-
-    module.exports = exports = { /**@lends Cookie/Expires*/
+    module.exports = exports = { 
 
         /**
         * 解析字符串描述的 expires 字段
+        * @inner
         */
         parse: function (s) {
 

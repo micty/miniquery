@@ -2,7 +2,7 @@
 /**
 * Url 工具类
 * @namespace
-* @name Url
+* @inner
 */
 define('browser/Url', function (require, module, exports) {
 
@@ -20,8 +20,10 @@ define('browser/Url', function (require, module, exports) {
     var hashchangeEventName = '__hashchange-' + $String.random();
 
 
-
-    module.exports = exports = {  /**@lends Url */
+    
+    module.exports = exports =
+    /**@inner*/
+    {
 
         /**
         * 获取指定窗口的查询字符串中指定的键所对应的值。
@@ -226,6 +228,7 @@ define('browser/Url', function (require, module, exports) {
 
             // window 所对应的窗口首次绑定 hashchange
             if ('onhashchange' in window) {
+                /**@inner*/
                 window.onhashchange = function () {
                     var oldHash = hash;
                     hash = exports.getHash(window, '');

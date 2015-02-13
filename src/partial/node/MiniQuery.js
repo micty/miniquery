@@ -1,29 +1,31 @@
 ﻿
-
-
-
+/**
+* MiniQuery
+* @namespace
+* @name MiniQuery
+*/
 define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');
 
-    module.exports = exports = {
+    module.exports = exports =/**@lends MiniQuery*/ {
 
         'Array': require('Array'),
         'Boolean': require('Boolean'),
         'Date': require('Date'),
-        'Function': require('Function'),
         'Math': require('Math'),
         'Object': require('Object'),
         'String': require('String'),
 
-        'Event': require('Event'),
-        'Mapper': require('Mapper'),
-        'Url': require('Url'),
-
+        /**
+        * 加载内部公开的模块。
+        * @function
+        * @param {string} id 模块的名称(id)
+        * @return {Object} 返回模块的导出对象。
+        * @example
+        *   var Mapper = MiniQuery.require('Mapper');    
+        */
         require: $.require,
 
     };
-
-
-
 });

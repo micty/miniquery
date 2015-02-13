@@ -23,7 +23,6 @@ module.exports = function (grunt) {
                     'Array.js',
                     'Boolean.js',
                     'Date.js',
-                    //'Function.js',
                     'Math.js',
                     'Object.js',
                     'String.js',
@@ -70,9 +69,6 @@ module.exports = function (grunt) {
             },
         ]
     });
-
-    console.dir(list);
-
 
 
     /*

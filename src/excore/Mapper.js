@@ -75,7 +75,7 @@ define('Mapper', function (require, module, exports) {
 
         constructor: Mapper,
         /**
-        * 设置一对映射关系。
+        * 根据给定的键和值设置成一对映射关系。
         * @param key 映射关系的键，可以是任何类型。
         * @param value 映射关系要关联的值，可是任何类型。
         * @return 返回第二个参数 value。
@@ -148,7 +148,7 @@ define('Mapper', function (require, module, exports) {
 
 
         /**
-        * 获取一对映射关系所关联的值。<br />
+        * 根据给定的键去获取其关联的值。
         * 注意：根据映射关系的键查找所关联的值时，对键使用的是全等比较，即区分数据类型。
         * @param key 映射关系的键，可以是任何类型。
         * @return 返回映射关系所关联的值。
@@ -163,6 +163,7 @@ define('Mapper', function (require, module, exports) {
             
             var myFn = mapper.get(obj); //获取到之前关联的 fn
             myFn(100, 200);
+            console.log(fn === myFn);
         */
         get: function (key) {
 
@@ -289,18 +290,35 @@ define('Mapper', function (require, module, exports) {
     //静态方法
     $.extend(Mapper, { /**@lends Mapper */
 
+        /**
+        * 获取运行时确定的随机 guid 值所使用的 key。
+        * @return {string} 返回guid 值所使用的 key。
+        */
         getGuidKey: function () {
             return guidKey;
         },
 
+        /**
+        * 给指定的对象设置一个 guid 值。
+        * @param {Object} 要设置的对象，只要是引用类型即可。
+        * @param {string} [guid] 要设置的 guid 值。
+        *   当不指定时，则分配一个默认的随机字符串。(以 'default-' 开头 )
+        * @return {string} 返回设置后的 guid 值。
+        */
         setGuid: function (obj, guid) {
             if (guid === undefined) {
                 guid = 'default-' + $String.random();
             }
 
             obj[guidKey] = guid;
+            return guid;
         },
 
+        /**
+        * 获取指定的对象的 guid 值。
+        * @param {Object} 要获取的对象，只要是引用类型即可。
+        * @return {string} 返回该对象的 guid 值。
+        */
         getGuid: function (obj) {
             return obj[guidKey];
         },

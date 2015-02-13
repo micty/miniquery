@@ -1,7 +1,7 @@
 
 /**
-* 内部的模块管理器
-* @inner
+* 模块管理器类
+* @class
 */
 var Module = (function () {
 

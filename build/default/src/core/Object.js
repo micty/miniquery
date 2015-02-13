@@ -1166,15 +1166,22 @@ define('Object', function (require, module, exports) {
             obj.sayHi();
         */
         create: function (obj) {
+            
             //下面使用了惰性载入函数的技巧，即在第一次调用时检测了浏览器的能力并重写了接口
-            var fn = typeof Object.create === 'function' ? Object.create : function (obj) {
-                function F() {
-                }
+            
+            var fn = Object.create;
 
-                F.prototype = obj;
-                F.prototype.constructor = F;
+            if (typeof fn != 'function') {
+                /**@inner*/
+                fn = function (obj) {
+                    function F() {
+                    }
 
-                return new F();
+                    F.prototype = obj;
+                    F.prototype.constructor = F;
+
+                    return new F();
+                };
             }
 
             exports.create = fn;

@@ -3,7 +3,6 @@
 * $ 工具集
 * @namespace
 * @name $
-* @private
 */
 define('$', function (require, module, exports) {
 
@@ -80,7 +79,12 @@ define('$', function (require, module, exports) {
             return a;
         },
 
-
+        /**
+        * 加载指定名称的模块。
+        * 该方法只能加载设置了为公开的模块，当加载的模块设置了私有，则得到 null。
+        * @param {string} id 模块的名称(id)。
+        * @return 返回模块的导出对象。
+        */
         require: function (id) {
             return expose(id) ? require(id) : null;
         },

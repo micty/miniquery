@@ -3,8 +3,8 @@
 
 /** Called automatically by JsDoc Toolkit. */
 function publish(symbolSet) {
-    publish.conf =
-    {
+
+    publish.conf = {
         // trailing slash expected for dirs
         ext: ".html",
 

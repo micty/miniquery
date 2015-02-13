@@ -51,6 +51,7 @@ define('Script', function (require, module, exports) {
 
             if (script.readyState) { //IE
 
+                /**@ignore*/
                 script.onreadystatechange = function () {
 
                     var readyState = script.readyState;
