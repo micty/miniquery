@@ -9,7 +9,7 @@ define('Object', function (require, module, exports) {
     var $ = require('$');
 
 
-    module.exports = exports = { /**@lends Object */
+    module.exports = exports = /**@lends Object */ {
 
         /**
         * 用一个或多个其他对象来扩展一个对象，返回被扩展的对象。

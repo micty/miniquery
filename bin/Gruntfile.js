@@ -6,7 +6,6 @@ module.exports = function (grunt) {
 
     'use strict';
 
-    var Paths = require('./lib/Paths');
     var Tasks = require('./lib/Tasks');
     var pkg = grunt.file.readJSON('package.json');
 

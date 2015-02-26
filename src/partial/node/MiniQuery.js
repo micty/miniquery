@@ -8,7 +8,7 @@ define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');
 
-    module.exports = exports =/**@lends MiniQuery*/ {
+    module.exports = exports = /**@lends MiniQuery*/ {
 
         'Array': require('Array'),
         'Boolean': require('Boolean'),

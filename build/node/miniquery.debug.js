@@ -5,6 +5,7 @@
 */
 ;( function (
     global, 
+    module,
     Array, 
     Boolean,
     Date,
@@ -67,7 +68,8 @@ var Module = (function () {
 
 
     //实例方法
-    Module.prototype = { /**@lends Module.prototype*/
+    
+    Module.prototype = /**@lends Module#*/ {
         constructor: Module,
 
         /**
@@ -248,7 +250,7 @@ define('$', function (require, module, exports) {
 
 
 
-    module.exports = exports = {  /**@lends $*/
+    module.exports = exports = /**@lends $*/ {
 
         expando: 'MiniQuery-' + Math.random().toString().slice(2),
 
@@ -338,7 +340,7 @@ define('Array', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends Array*/
+    module.exports = exports = /**@lends Array*/ {
 
         /**
         * 把数组、类数组合并成一个真正的数组。
@@ -719,12 +721,11 @@ define('Array', function (require, module, exports) {
         * 检索特定的元素在数组中第一次出现的索引位置。
         * 注意，该方法用的是全等的比较操作。
         * @param {Array} array 要进行检索的数组。
-        * @param {任意类型} item 要进行检索的项。
+        * @param item 要进行检索的项。
         * @return 返回一个整数，表示检索项在数组第一次出现的索引位置。
         *   如果不存在该元素，则返回 -1。
         * @example
             $Array.indexOf(['a', '10', 10, 'b'], 10); //使用的是全等比较，结果为 2
-            
         */
         indexOf: function (array, item) {
             if (typeof array.indexOf == 'function') { //内置方法
@@ -1597,7 +1598,7 @@ define('Array', function (require, module, exports) {
 */
 define('Boolean', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends Boolean */
+    module.exports = exports = /**@lends Boolean */ {
 
         /**
         * 解析指定的参数为 bool 值。
@@ -1741,7 +1742,7 @@ define('Date', function (require, module, exports) {
     }
 
 
-    module.exports = exports = { /**@lends Date */
+    module.exports = exports = /**@lends Date */ {
 
         /**
         * 获取当前系统时间。
@@ -2050,7 +2051,7 @@ define('Date', function (require, module, exports) {
 */
 define('Math', function (require, module, exports) {
 
-    module.exports = exports = {  /**@lends Math*/
+    module.exports = exports = /**@lends Math*/ {
 
         /**
         * 产生指定闭区间的随机整数。
@@ -2159,7 +2160,7 @@ define('Object', function (require, module, exports) {
     var $ = require('$');
 
 
-    module.exports = exports = { /**@lends Object */
+    module.exports = exports = /**@lends Object */ {
 
         /**
         * 用一个或多个其他对象来扩展一个对象，返回被扩展的对象。
@@ -3897,7 +3898,7 @@ define('Object', function (require, module, exports) {
 */
 define('core/String', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends String */
+    module.exports = exports = /**@lends String */ {
 
         /**
         * 用指定的值去填充一个字符串。
@@ -4541,9 +4542,8 @@ define('Emitter/Tree', function (require, module, exports) {
     var $Array = require('Array');
 
     
-    module.exports = exports = { 
+    module.exports = exports = /**@lends Emitter/Tree*/{ 
 
-        /**@inner*/
         add: function (name$node, names, item) {
 
             var lastIndex = names.length - 1;
@@ -4569,7 +4569,6 @@ define('Emitter/Tree', function (require, module, exports) {
 
         },
 
-        /**@inner*/
         getNode: function (name$node, names) {
 
             var lastIndex = names.length - 1;
@@ -4586,7 +4585,7 @@ define('Emitter/Tree', function (require, module, exports) {
             }
 
         },
-        /**@inner*/
+
         getList: function (name$node, names) {
             var node = exports.getNode(name$node, names);
             return node ? node.list : null;
@@ -4688,6 +4687,82 @@ define('Emitter', function (require, module, exports) {
     }
 
 
+    //触发事件。
+    //实例的私有方法，必须用 fire.apply(this, []) 的方式来调用。
+    function fire(config) {
+
+        var names = config.names;
+        if (!names || names.length == 0) {
+            throw new Error('必须至少指定一个事件名称。');
+        }
+
+        var meta = mapper.get(this);
+        var all = meta.all;
+
+        var list = Tree.getList(all, names);
+        if (!list || list.length == 0) {
+            return [];
+        }
+
+
+        function stop(list) {
+
+            if (!('stop' in config)) {
+                stop = function () {
+                    return false;
+                };
+                return false;
+            }
+
+            var fn = config.stop;
+            if (typeof fn == 'function') {
+                stop = fn;
+                return fn(list) === true;
+            }
+
+            stop = function (list) { 
+                return list.slice(-1)[0] === fn; //取最后一个值进行判断
+            };
+
+            return list.slice(-1)[0] === fn;
+        }
+
+
+        //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
+        //而此处又要去移除那些一次性的回调（即只执行一次的），
+        //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
+        //以原来的回调列表为准去查询要移除的项的确切位置。
+
+        var items = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化。
+        var returns = [];
+        var len = items.length;
+        var context = meta.context || null;
+        var args = config.args || [];
+
+        for (var i = 0; i < len; i++) {
+            var item = items[i];
+
+            if (item.isOneOff) { //只需执行一次的
+                var index = $Array.indexOf(list, item); //找到该项在回调列表中的索引位置
+                if (index >= 0) {
+                    list.splice(index, 1); //直接从原数组删除
+                }
+            }
+
+            var value = item.fn.apply(context, args); //让 fn 内的 this 指向 obj
+            returns.push(value);
+
+            //返回值符合设定的停止值，则停止后续的调用
+            if (stop(returns) === true) {
+                break;
+            }
+        }
+
+        return returns;
+
+    }
+
+
 
 
 
@@ -4711,7 +4786,7 @@ define('Emitter', function (require, module, exports) {
     }
 
     //实例方法
-    Emitter.prototype = { /**@lends Emitter.prototype */
+    Emitter.prototype = /**@lends Emitter.prototype */ {
         constructor: Emitter,
 
         /**
@@ -4720,13 +4795,15 @@ define('Emitter', function (require, module, exports) {
         * @param {function} fn 事件处理函数。 
             在处理函数内部， this 指向构造器参数 context 对象。
         * @example
+            var emitter = new Emitter();
+            emitter.on('click', function () {
+
+            });
         */
         on: function (name, fn) {
-
             var args = $.toArray(arguments);
             args = [false].concat(args);
             bind.apply(this, args);
-
         },
 
         /**
@@ -4734,7 +4811,6 @@ define('Emitter', function (require, module, exports) {
         * @param {string} name 要绑定的事件名称。
         * @param {function} fn 事件处理函数。 
             在处理函数内部， this 指向构造器参数 context 对象。
-        * @example
         */
         one: function (name, fn) {
             var args = $.toArray(arguments);
@@ -4799,16 +4875,34 @@ define('Emitter', function (require, module, exports) {
         },
 
         /**
+        * 已重载。
         * 触发指定名称的事件，并可向事件处理函数传递一些参数。
-        * @param {string} name 要触发的事件名称。
-        * @param {Array} [params] 要向事件处理函数传递的参数数组。
+        * 如果指定了 stop 字段，则当事件处理函数返回指定的值时将停止调用后面的处理函数。
+        * @param {Object} config 配置对象。
+        * @param {Array} config.names 事件名称列表。
+        * @param {Array} config.args 要传递给事件处理函数的参数数据。
+        * @param config.stop 当事件处理函数的返回值满足一定时，将停止调用后面的处理函数。
+            当 stop 为函数时，则需要在 stop 函数内明确返回 true 才停止。
+            否则，事件处理的返回值跟 stop 完全相等时才停步。
         * @return {Array} 返回所有事件处理函数的返回值所组成的一个数组。
-        */
-        fire: function (name, params) {
+        * @example
+            var emitter = new Emitter();
+            emitter.on('click', 'name', function (a, b) {
+                console.log(a, b);
+            });
+            emitter.fire('click', 'name', [100, 200]);
 
-            var meta = mapper.get(this);
-            var all = meta.all;
-            var context = meta.context;
+            emitter.fire({
+                names: ['click', 'name'],
+                args: [100, 200],
+                stop: 100,
+            });
+        */
+        fire: function (config) {
+
+            if (typeof config == 'object') { //重载 fire({...})
+                return fire.apply(this, [config]);
+            }
 
             //多名称情况: fire(name0, name1, name2, ..., nameN, params)
             var args = $.toArray(arguments);
@@ -4821,39 +4915,11 @@ define('Emitter', function (require, module, exports) {
             if (index < 0) {
                 index = args.length;
             }
-
-            params = args[index] || [];
-
-            var names = args.slice(0, index);
-            var list = Tree.getList(all, names);
-            var returns = [];
-
-            if (!list || list.length == 0) {
-                return returns;
-            }
-
-            //这里要特别注意，在执行回调的过程中，回调函数里有可能会去修改回调列表，
-            //而此处又要去移除那些一次性的回调（即只执行一次的），
-            //为了避免破坏回调函数里的修改结果，这里要边移除边执行回调，而且每次都要
-            //以原来的回调列表为准去查询要移除的项的确切位置。
-
-            var items = list.slice(0); //复制一份，因为回调列表可能会在执行回调过程发生变化。
-
-            $Array.each(items, function (item, index) {
-
-                if (item.isOneOff) { //只需执行一次的
-                    var index = $Array.indexOf(list, item); //找到该项在回调列表中的索引位置
-                    if (index >= 0) {
-                        list.splice(index, 1); //直接从原数组删除
-                    }
-                }
-
-                var value = item.fn.apply(context, params); //让 fn 内的 this 指向 obj
-                returns.push(value);
-
-            });
-
-            return returns;
+           
+            return fire.apply(this, [{
+                'names': args.slice(0, index),
+                'args': args[index]
+            }]);
 
         },
 
@@ -4910,6 +4976,7 @@ define('Emitter', function (require, module, exports) {
 
     };
 
+    
     module.exports = Emitter;
 
 });
@@ -4986,7 +5053,7 @@ define('Mapper', function (require, module, exports) {
     }
 
     //实例方法
-    Mapper.prototype = { /**@lends Mapper# */
+    Mapper.prototype = /**@lends Mapper# */ {
 
         constructor: Mapper,
         /**
@@ -5203,7 +5270,7 @@ define('Mapper', function (require, module, exports) {
 
 
     //静态方法
-    $.extend(Mapper, { /**@lends Mapper */
+    $.extend(Mapper, /**@lends Mapper */ {
 
         /**
         * 获取运行时确定的随机 guid 值所使用的 key。
@@ -5285,7 +5352,7 @@ define('ModuleA', function (require, module, exports) {
 */
 define('excore/Url', function (require, module, exports) {
 
-    module.exports = exports =  {  /**@lends Url */
+    module.exports = exports = /**@lends Url */ {
 
         /**
         * 获取指定 Url 的查询字符串中指定的键所对应的值。
@@ -5714,7 +5781,7 @@ define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');
 
-    module.exports = exports =/**@lends MiniQuery*/ {
+    module.exports = exports = /**@lends MiniQuery*/ {
 
         'Array': require('Array'),
         'Boolean': require('Boolean'),
@@ -5724,8 +5791,12 @@ define('MiniQuery', function (require, module, exports) {
         'String': require('String'),
 
         /**
-        * @borrows $.require
+        * 加载内部公开的模块。
         * @function
+        * @param {string} id 模块的名称(id)
+        * @return {Object} 返回模块的导出对象。
+        * @example
+        *   var Mapper = MiniQuery.require('Mapper');    
         */
         require: $.require,
 
@@ -5753,6 +5824,7 @@ module.exports = require('MiniQuery');
 
 })(
     global, // 在 Node 中，全局对象是 global；其他环境是 this
+    module, // Node 中独有的
     Array,
     Boolean,
     Date,

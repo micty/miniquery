@@ -6,7 +6,7 @@
 */
 define('excore/Url', function (require, module, exports) {
 
-    module.exports = exports =  {  /**@lends Url */
+    module.exports = exports = /**@lends Url */ {
 
         /**
         * 获取指定 Url 的查询字符串中指定的键所对应的值。

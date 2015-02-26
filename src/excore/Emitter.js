@@ -180,7 +180,7 @@ define('Emitter', function (require, module, exports) {
     }
 
     //实例方法
-    Emitter.prototype = { /**@lends Emitter.prototype */
+    Emitter.prototype = /**@lends Emitter.prototype */ {
         constructor: Emitter,
 
         /**
@@ -189,13 +189,15 @@ define('Emitter', function (require, module, exports) {
         * @param {function} fn 事件处理函数。 
             在处理函数内部， this 指向构造器参数 context 对象。
         * @example
+            var emitter = new Emitter();
+            emitter.on('click', function () {
+
+            });
         */
         on: function (name, fn) {
-
             var args = $.toArray(arguments);
             args = [false].concat(args);
             bind.apply(this, args);
-
         },
 
         /**
@@ -203,7 +205,6 @@ define('Emitter', function (require, module, exports) {
         * @param {string} name 要绑定的事件名称。
         * @param {function} fn 事件处理函数。 
             在处理函数内部， this 指向构造器参数 context 对象。
-        * @example
         */
         one: function (name, fn) {
             var args = $.toArray(arguments);

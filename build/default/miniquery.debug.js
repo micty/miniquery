@@ -84,7 +84,8 @@ var Module = (function () {
 
 
     //实例方法
-    Module.prototype = { /**@lends Module.prototype*/
+    
+    Module.prototype = /**@lends Module#*/ {
         constructor: Module,
 
         /**
@@ -265,7 +266,7 @@ define('$', function (require, module, exports) {
 
 
 
-    module.exports = exports = {  /**@lends $*/
+    module.exports = exports = /**@lends $*/ {
 
         expando: 'MiniQuery-' + Math.random().toString().slice(2),
 
@@ -355,7 +356,7 @@ define('Array', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends Array*/
+    module.exports = exports = /**@lends Array*/ {
 
         /**
         * 把数组、类数组合并成一个真正的数组。
@@ -736,12 +737,11 @@ define('Array', function (require, module, exports) {
         * 检索特定的元素在数组中第一次出现的索引位置。
         * 注意，该方法用的是全等的比较操作。
         * @param {Array} array 要进行检索的数组。
-        * @param {任意类型} item 要进行检索的项。
+        * @param item 要进行检索的项。
         * @return 返回一个整数，表示检索项在数组第一次出现的索引位置。
         *   如果不存在该元素，则返回 -1。
         * @example
             $Array.indexOf(['a', '10', 10, 'b'], 10); //使用的是全等比较，结果为 2
-            
         */
         indexOf: function (array, item) {
             if (typeof array.indexOf == 'function') { //内置方法
@@ -1614,7 +1614,7 @@ define('Array', function (require, module, exports) {
 */
 define('Boolean', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends Boolean */
+    module.exports = exports = /**@lends Boolean */ {
 
         /**
         * 解析指定的参数为 bool 值。
@@ -1758,7 +1758,7 @@ define('Date', function (require, module, exports) {
     }
 
 
-    module.exports = exports = { /**@lends Date */
+    module.exports = exports = /**@lends Date */ {
 
         /**
         * 获取当前系统时间。
@@ -2067,7 +2067,7 @@ define('Date', function (require, module, exports) {
 */
 define('Math', function (require, module, exports) {
 
-    module.exports = exports = {  /**@lends Math*/
+    module.exports = exports = /**@lends Math*/ {
 
         /**
         * 产生指定闭区间的随机整数。
@@ -2176,7 +2176,7 @@ define('Object', function (require, module, exports) {
     var $ = require('$');
 
 
-    module.exports = exports = { /**@lends Object */
+    module.exports = exports = /**@lends Object */ {
 
         /**
         * 用一个或多个其他对象来扩展一个对象，返回被扩展的对象。
@@ -3914,7 +3914,7 @@ define('Object', function (require, module, exports) {
 */
 define('core/String', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends String */
+    module.exports = exports = /**@lends String */ {
 
         /**
         * 用指定的值去填充一个字符串。
@@ -4558,9 +4558,8 @@ define('Emitter/Tree', function (require, module, exports) {
     var $Array = require('Array');
 
     
-    module.exports = exports = { 
+    module.exports = exports = /**@lends Emitter/Tree*/{ 
 
-        /**@inner*/
         add: function (name$node, names, item) {
 
             var lastIndex = names.length - 1;
@@ -4586,7 +4585,6 @@ define('Emitter/Tree', function (require, module, exports) {
 
         },
 
-        /**@inner*/
         getNode: function (name$node, names) {
 
             var lastIndex = names.length - 1;
@@ -4603,7 +4601,7 @@ define('Emitter/Tree', function (require, module, exports) {
             }
 
         },
-        /**@inner*/
+
         getList: function (name$node, names) {
             var node = exports.getNode(name$node, names);
             return node ? node.list : null;
@@ -4804,7 +4802,7 @@ define('Emitter', function (require, module, exports) {
     }
 
     //实例方法
-    Emitter.prototype = { /**@lends Emitter.prototype */
+    Emitter.prototype = /**@lends Emitter.prototype */ {
         constructor: Emitter,
 
         /**
@@ -4813,13 +4811,15 @@ define('Emitter', function (require, module, exports) {
         * @param {function} fn 事件处理函数。 
             在处理函数内部， this 指向构造器参数 context 对象。
         * @example
+            var emitter = new Emitter();
+            emitter.on('click', function () {
+
+            });
         */
         on: function (name, fn) {
-
             var args = $.toArray(arguments);
             args = [false].concat(args);
             bind.apply(this, args);
-
         },
 
         /**
@@ -4827,7 +4827,6 @@ define('Emitter', function (require, module, exports) {
         * @param {string} name 要绑定的事件名称。
         * @param {function} fn 事件处理函数。 
             在处理函数内部， this 指向构造器参数 context 对象。
-        * @example
         */
         one: function (name, fn) {
             var args = $.toArray(arguments);
@@ -5070,7 +5069,7 @@ define('Mapper', function (require, module, exports) {
     }
 
     //实例方法
-    Mapper.prototype = { /**@lends Mapper# */
+    Mapper.prototype = /**@lends Mapper# */ {
 
         constructor: Mapper,
         /**
@@ -5287,7 +5286,7 @@ define('Mapper', function (require, module, exports) {
 
 
     //静态方法
-    $.extend(Mapper, { /**@lends Mapper */
+    $.extend(Mapper, /**@lends Mapper */ {
 
         /**
         * 获取运行时确定的随机 guid 值所使用的 key。
@@ -5369,7 +5368,7 @@ define('ModuleA', function (require, module, exports) {
 */
 define('excore/Url', function (require, module, exports) {
 
-    module.exports = exports =  {  /**@lends Url */
+    module.exports = exports = /**@lends Url */ {
 
         /**
         * 获取指定 Url 的查询字符串中指定的键所对应的值。
@@ -5810,7 +5809,7 @@ define('Cookie/Expires', function (require, module, exports) {
         ms: 'Millisecond'
     };
 
-    module.exports = exports = { 
+    module.exports = exports = /**@lends Cookie/Expires*/ { 
 
         /**
         * 解析字符串描述的 expires 字段
@@ -5857,7 +5856,7 @@ define('Cookie', function (require, module, exports) {
     };
 
 
-    module.exports = exports = { /**@lends Cookie*/
+    module.exports = exports = /**@lends Cookie*/ {
 
         /**
         * 把一个 cookie 字符串解析成等价的 Object 对象。
@@ -6166,21 +6165,26 @@ define('Cookie', function (require, module, exports) {
 */
 define('LocalStorage', function (require, module, exports) {
 
-    var localStorage = window.localStorage;
+    var storage = window.localStorage;
 
-    if (!localStorage) { //不支持
+    if (!storage) { //不支持
         return null; //须显式的返回 null，以告诉 require 加载器已加载过
     }
 
 
     var id = '__MiniQuery.LocalStorage__';
-    var all = localStorage.getItem(id) || null;
+    var all = storage.getItem(id) || null;
     all = JSON.parse(all) || {};
 
 
 
-    module.exports = exports = { /**@lends LocalStorage*/
+    module.exports = exports = /**@lends LocalStorage*/ {
 
+        /**
+        * 设置一对键值。
+        * @param {string} key 要进行设置的键名称。
+        * @param value 要进行设置的值，可以是任何类型。
+        */
         set: function (key, value) {
 
             if (key in all && all[key] === value) { //已存在
@@ -6190,36 +6194,61 @@ define('LocalStorage', function (require, module, exports) {
             all[key] = value;
 
             var json = JSON.stringify(all);
-            localStorage.setItem(id, json);
+            storage.setItem(id, json);
 
         },
 
+        /**
+        * 根据给定的键获取关联的值。
+        * @param {string} key 要进行获取的键名称。
+        * @return 返回该键所关联的值。
+        */
         get: function (key) {
             return all[key];
         },
 
+        /**
+        * 移除给定的键所关联的项。
+        * @param {string} key 要进行移除的键名称。
+        */
         remove: function (key) {
             delete all[key];
             var json = JSON.stringify(all);
-            localStorage.setItem(id, json);
+            storage.setItem(id, json);
         },
 
+        /**
+        * 清空所有项。
+        */
         clear: function () {
             all = {};
             var json = JSON.stringify(all);
-            localStorage.setItem(id, json);
+            storage.setItem(id, json);
         },
 
+        /**
+        * 对每一项进行迭代，并调用传入的回调函数。
+        * @param {function} fn 迭代调用的回调函数。
+            该函数会接收到两个参数: 
+            key: 当前键的名称。
+            value: 当前键所关联的值。
+        */
         each: function (fn) {
             for (var key in all) {
                 fn(key, all[key]);
             }
         },
 
+        /**
+        * 获取所有的项的总个数。
+        */
         length: function () {
             return exports.keys().length;
         },
 
+        /**
+        * 获取所有的项的键数组。
+        */
         keys: function () {
             if (typeof Object.keys == 'function') {
                 return Object.keys(all);
@@ -6233,7 +6262,11 @@ define('LocalStorage', function (require, module, exports) {
             return a;
         },
 
-        key: function (index) {
+        /**
+        * 获取所有的项的键数组指定中的项。
+        * @param {number} index 键所对应的索引值。
+        */
+        key: function key(index) {
             return exports.keys()[index];
         }
     };
@@ -6251,19 +6284,24 @@ define('LocalStorage', function (require, module, exports) {
 */
 define('SessionStorage', function (require, module, exports) {
 
-    var sessionStorage = window.sessionStorage;
+    var storage = window.sessionStorage;
 
-    if (!sessionStorage) { //不支持
+    if (!storage) { //不支持
         return null; //须显式的返回 null，以告诉 require 加载器已加载过
     }
 
     var id = '__MiniQuery.SessionStorage__';
-    var all = sessionStorage.getItem(id) || null;
+    var all = storage.getItem(id) || null;
     all = JSON.parse(all) || {};
 
 
-    module.exports = exports = { /**@lends SessionStorage*/
+    module.exports = exports = /**@lends SessionStorage*/ {
 
+        /**
+        * 设置一对键值。
+        * @param {string} key 要进行设置的键名称。
+        * @param value 要进行设置的值，可以是任何类型。
+        */
         set: function (key, value) {
 
             if (key in all && all[key] === value) { //已存在
@@ -6273,36 +6311,61 @@ define('SessionStorage', function (require, module, exports) {
             all[key] = value;
 
             var json = JSON.stringify(all);
-            sessionStorage.setItem(id, json);
+            storage.setItem(id, json);
 
         },
 
+        /**
+        * 根据给定的键获取关联的值。
+        * @param {string} key 要进行获取的键名称。
+        * @return 返回该键所关联的值。
+        */
         get: function (key) {
             return all[key];
         },
 
+        /**
+        * 移除给定的键所关联的项。
+        * @param {string} key 要进行移除的键名称。
+        */
         remove: function (key) {
             delete all[key];
             var json = JSON.stringify(all);
-            sessionStorage.setItem(id, json);
+            storage.setItem(id, json);
         },
 
+        /**
+        * 清空所有项。
+        */
         clear: function () {
             all = {};
             var json = JSON.stringify(all);
-            sessionStorage.setItem(id, json);
+            storage.setItem(id, json);
         },
 
+        /**
+        * 对每一项进行迭代，并调用传入的回调函数。
+        * @param {function} fn 迭代调用的回调函数。
+            该函数会接收到两个参数: 
+            key: 当前键的名称。
+            value: 当前键所关联的值。
+        */
         each: function (fn) {
             for (var key in all) {
                 fn(key, all[key]);
             }
         },
 
+        /**
+        * 获取所有的项的总个数。
+        */
         length: function () {
             return exports.keys().length;
         },
 
+        /**
+        * 获取所有的项的键数组。
+        */
         keys: function () {
             if (typeof Object.keys == 'function') {
                 return Object.keys(all);
@@ -6316,6 +6379,10 @@ define('SessionStorage', function (require, module, exports) {
             return a;
         },
 
+        /**
+        * 获取所有的项的键数组指定中的项。
+        * @param {number} index 键所对应的索引值。
+        */
         key: function key(index) {
             return exports.keys()[index];
         }
@@ -6450,7 +6517,7 @@ define('Script', function (require, module, exports) {
     }
 
     
-    module.exports = exports = { /**@lends Script*/
+    module.exports = exports = /**@lends Script*/ {
 
         /**
         * 跨浏览器动态加载 JS 文件，并在加载完成后执行指定的回调函数。
@@ -6664,7 +6731,7 @@ define('Script', function (require, module, exports) {
 /**
 * Url 工具类
 * @namespace
-* @inner
+* @name Url
 */
 define('browser/Url', function (require, module, exports) {
 
@@ -6683,9 +6750,7 @@ define('browser/Url', function (require, module, exports) {
 
 
     
-    module.exports = exports =
-    /**@inner*/
-    {
+    module.exports = exports = /**@lends Url*/ {
 
         /**
         * 获取指定窗口的查询字符串中指定的键所对应的值。
@@ -6699,7 +6764,6 @@ define('browser/Url', function (require, module, exports) {
         * @retun {string|Object|undefined} 返回一个查询字符串值。
             当不指定参数 key 时，则获取全部查询字符串，返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部查询字符串，返回一个 string 类型值。
-        * @example
         */
         getQueryString: function (window, key, ignoreCase) {
 
@@ -6723,7 +6787,6 @@ define('browser/Url', function (require, module, exports) {
             当传入一个 Object 对象时，会对键值对进行递归组合编码成查询字符串。
         * @param {string} [value] 要添加的查询字符串的值。
         * @retun {string} 返回组装后的新的 Url。
-        * @example
         */
         setQueryString: function (window, key, value) {
 
@@ -6756,7 +6819,6 @@ define('browser/Url', function (require, module, exports) {
             如果要忽略 key 的大小写，请指定为 true；否则不指定或指定为 false。
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的查询字符串，则返回 true；否则返回 false。
-        * @example
         */
         hasQueryString: function (window, key, ignoreCase) {
 
@@ -6782,7 +6844,6 @@ define('browser/Url', function (require, module, exports) {
             当不指定参数 key 时，则获取全部哈希值，对其进行 unescape 解码，
             然后返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部哈希(不解码)，返回一个 string 类型值。
-        * @example
         */
         getHash: function (window, key, ignoreCase) {
 
@@ -6805,7 +6866,6 @@ define('browser/Url', function (require, module, exports) {
             当传入的是一个 string|number|boolean 类型，并且不传入第三个参数， 则直接用 escape 进行编码来设置哈希。
         * @param {string} [value] 要添加的哈希的值。
         * @retun {string} 返回组装后的新的 Url。
-        * @example
         */
         setHash: function (window, key, value) {
 
@@ -6840,7 +6900,6 @@ define('browser/Url', function (require, module, exports) {
             如果要忽略 key 的大小写，请指定为 true；否则不指定或指定为 false。
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的哈希，则返回 true；否则返回 false。
-        * @example
         */
         hasHash: function (window, key, ignoreCase) {
 
@@ -6970,7 +7029,7 @@ define('MiniQuery', function (require, module, exports) {
 
     var $ = require('$');
 
-    module.exports = exports = { /**@lends MiniQuery*/
+    module.exports = exports = /**@lends MiniQuery*/ {
 
         'Array': require('Array'),
         'Boolean': require('Boolean'),

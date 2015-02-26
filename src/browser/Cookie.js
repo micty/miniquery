@@ -14,7 +14,7 @@ define('Cookie', function (require, module, exports) {
     };
 
 
-    module.exports = exports = { /**@lends Cookie*/
+    module.exports = exports = /**@lends Cookie*/ {
 
         /**
         * 把一个 cookie 字符串解析成等价的 Object 对象。

@@ -44,7 +44,7 @@ define('Date', function (require, module, exports) {
     }
 
 
-    module.exports = exports = { /**@lends Date */
+    module.exports = exports = /**@lends Date */ {
 
         /**
         * 获取当前系统时间。

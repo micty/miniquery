@@ -192,7 +192,7 @@ define('DataTypeXML', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends MiniQuery.DataTypeXML*/
+    module.exports = exports = /**@lendsDataTypeXML*/ {
 
         /**
         * 把一个 XMLDocument 对象或一个 XML 节点或一个 Object 对象解析成等价的 XML 字符串。

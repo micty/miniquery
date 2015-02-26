@@ -6,7 +6,7 @@
 */
 define('CssClass', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends CssClass*/
+    module.exports = exports = /**@lends CssClass*/ {
 
         /**
         * 获取某个 DOM 元素的 class 类名；

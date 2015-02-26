@@ -171,7 +171,7 @@ define('States', function (require, module, exports) {
 
 
 
-    $.extend(States.prototype, { /**@lends MiniQuery.States#*/
+    $.extend(States.prototype, /**@lends States#*/ {
 
         /**
         * 把当前状态转换到指定的状态。

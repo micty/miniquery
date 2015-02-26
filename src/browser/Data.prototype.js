@@ -20,7 +20,7 @@ define('Data.prototype', function (require, module, exports) {
 
     module.exports =
     init.prototype =
-    Data.prototype = { /**@inner*/
+    Data.prototype = /**@inner*/ {
 
         constructor: Data,
         init: init,

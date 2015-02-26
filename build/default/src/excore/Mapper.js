@@ -71,7 +71,7 @@ define('Mapper', function (require, module, exports) {
     }
 
     //实例方法
-    Mapper.prototype = { /**@lends Mapper# */
+    Mapper.prototype = /**@lends Mapper# */ {
 
         constructor: Mapper,
         /**
@@ -288,7 +288,7 @@ define('Mapper', function (require, module, exports) {
 
 
     //静态方法
-    $.extend(Mapper, { /**@lends Mapper */
+    $.extend(Mapper, /**@lends Mapper */ {
 
         /**
         * 获取运行时确定的随机 guid 值所使用的 key。

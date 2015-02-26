@@ -6,12 +6,12 @@ module.exports = function (grunt) {
     'use strict';
 
     var $ = require('../lib/MiniQuery');
-    var Paths = require('../lib/Paths');
+    var LinearPath = require('../lib/LinearPath');
     var Tasks = require('../lib/Tasks');
 
     var name = 'default';
 
-    var list = Paths.linear({
+    var list = LinearPath.linearize({
         dir: '<%=dir.src%>',
         files: [
             'partial/' + name + '/begin.js',
@@ -78,7 +78,7 @@ module.exports = function (grunt) {
 
         var home = '<%=dir.build%>' + name;
 
-        var files = Paths.linear({
+        var files = LinearPath.linearize({
             dir: home,
             files: [
                 'miniquery.debug.js',
@@ -87,8 +87,17 @@ module.exports = function (grunt) {
             ]
         });
 
+        //Tasks.run('jsdoc', name, {
+        //    src: list.slice(1, -2),
+        //    options: {
+        //        destination: 'doc'
+        //    }
+        //});
+
+        //return;
+
         Tasks.run('clean', name, {
-            src: files,
+            src: home,
             options: {
                 force: true //允许删除当前工作目录外的其他文件
             }
@@ -119,6 +128,7 @@ module.exports = function (grunt) {
             }
         });
 
+
         //生成 jsdoc.bat 到 build/{home} 目录
         Tasks.run('copy', name + '/jsdoc', {
             src: './jsdoc.bat',
@@ -135,6 +145,8 @@ module.exports = function (grunt) {
                 },
             }
         });
+
+        
 
 
 

@@ -15,7 +15,7 @@ define('$', function (require, module, exports) {
 
 
 
-    module.exports = exports = {  /**@lends $*/
+    module.exports = exports = /**@lends $*/ {
 
         expando: 'MiniQuery-' + Math.random().toString().slice(2),
 

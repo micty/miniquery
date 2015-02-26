@@ -6,7 +6,7 @@
 */
 define('Boolean', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends Boolean */
+    module.exports = exports = /**@lends Boolean */ {
 
         /**
         * 解析指定的参数为 bool 值。

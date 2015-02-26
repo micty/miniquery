@@ -2,7 +2,7 @@
 /**
 * Url 工具类
 * @namespace
-* @inner
+* @name Url
 */
 define('browser/Url', function (require, module, exports) {
 
@@ -21,9 +21,7 @@ define('browser/Url', function (require, module, exports) {
 
 
     
-    module.exports = exports =
-    /**@inner*/
-    {
+    module.exports = exports = /**@lends Url*/ {
 
         /**
         * 获取指定窗口的查询字符串中指定的键所对应的值。
@@ -37,7 +35,6 @@ define('browser/Url', function (require, module, exports) {
         * @retun {string|Object|undefined} 返回一个查询字符串值。
             当不指定参数 key 时，则获取全部查询字符串，返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部查询字符串，返回一个 string 类型值。
-        * @example
         */
         getQueryString: function (window, key, ignoreCase) {
 
@@ -61,7 +58,6 @@ define('browser/Url', function (require, module, exports) {
             当传入一个 Object 对象时，会对键值对进行递归组合编码成查询字符串。
         * @param {string} [value] 要添加的查询字符串的值。
         * @retun {string} 返回组装后的新的 Url。
-        * @example
         */
         setQueryString: function (window, key, value) {
 
@@ -94,7 +90,6 @@ define('browser/Url', function (require, module, exports) {
             如果要忽略 key 的大小写，请指定为 true；否则不指定或指定为 false。
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的查询字符串，则返回 true；否则返回 false。
-        * @example
         */
         hasQueryString: function (window, key, ignoreCase) {
 
@@ -120,7 +115,6 @@ define('browser/Url', function (require, module, exports) {
             当不指定参数 key 时，则获取全部哈希值，对其进行 unescape 解码，
             然后返回一个等价的 Object 对象。
             当指定参数 key 为一个空字符串，则获取全部哈希(不解码)，返回一个 string 类型值。
-        * @example
         */
         getHash: function (window, key, ignoreCase) {
 
@@ -143,7 +137,6 @@ define('browser/Url', function (require, module, exports) {
             当传入的是一个 string|number|boolean 类型，并且不传入第三个参数， 则直接用 escape 进行编码来设置哈希。
         * @param {string} [value] 要添加的哈希的值。
         * @retun {string} 返回组装后的新的 Url。
-        * @example
         */
         setHash: function (window, key, value) {
 
@@ -178,7 +171,6 @@ define('browser/Url', function (require, module, exports) {
             如果要忽略 key 的大小写，请指定为 true；否则不指定或指定为 false。
             当指定为 true 时，将优先检索完全匹配的键所对应的项；若没找到然后再忽略大小写去检索。
         * @retun {boolean} 如果 url 中包含该名称的哈希，则返回 true；否则返回 false。
-        * @example
         */
         hasHash: function (window, key, ignoreCase) {
 

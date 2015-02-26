@@ -8,7 +8,7 @@ define('Plugin', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends MiniQuery.Plugin*/
+    module.exports = exports = /**@lends Plugin*/ {
 
         /**
         * 判断浏览器是否包含指定名称的插件。

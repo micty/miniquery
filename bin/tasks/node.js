@@ -6,12 +6,12 @@ module.exports = function (grunt) {
     'use strict';
 
     var $ = require('../lib/MiniQuery');
-    var Paths = require('../lib/Paths');
+    var LinearPath = require('../lib/LinearPath');
     var Tasks = require('../lib/Tasks');
 
     var name = 'node';
 
-    var list = Paths.linear({
+    var list = LinearPath.linearize({
         dir: '<%=dir.src%>',
         files: [
             'partial/' + name + '/begin.js',
@@ -61,7 +61,7 @@ module.exports = function (grunt) {
 
         var home = '<%=dir.build%>' + name;
 
-        var files = Paths.linear({
+        var files = LinearPath.linearize({
             dir: home,
             files: [
                 'miniquery.debug.js',

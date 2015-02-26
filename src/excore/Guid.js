@@ -18,7 +18,7 @@ define('Guid', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends MiniQuery.Guid */
+    module.exports = exports = /**@lends Guid*/ {
 
         /**
         * 获取指定分组的下一个计数器。

@@ -42,7 +42,8 @@ var Module = (function () {
 
 
     //实例方法
-    Module.prototype = { /**@lends Module.prototype*/
+    
+    Module.prototype = /**@lends Module#*/ {
         constructor: Module,
 
         /**

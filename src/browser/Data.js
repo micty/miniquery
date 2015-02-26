@@ -30,7 +30,7 @@ define('Data', function (require, module, exports) {
 
 
     //静态成员
-    module.exports = $.extend(exports, { /**@lends MiniQuery.Data*/
+    module.exports = $.extend(exports, /**@lends Data*/ {
 
         /**
         * 给某个节点设置指定键值的数据。

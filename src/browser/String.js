@@ -6,7 +6,7 @@
 */
 define('browser/String', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends String*/
+    module.exports = exports = /**@lends String*/ {
         /**
         * 用做过滤直接放到HTML里的
         * @return {String}

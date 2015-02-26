@@ -5,7 +5,7 @@ module.exports = function (grunt) {
 
     'use strict';
 
-    var Paths = require('../lib/Paths');
+    var LinearPath = require('../lib/LinearPath');
     var Tasks = require('../lib/Tasks');
 
 
@@ -14,7 +14,7 @@ module.exports = function (grunt) {
     */
     grunt.registerTask('kiserp', function (level) {
 
-        var files = Paths.linear({
+        var files = LinearPath.linearize({
             dir: '<%=dir.build%>kiserp',
             files: [
                 'miniquery.debug.js',
@@ -43,7 +43,7 @@ module.exports = function (grunt) {
                     '*/'
             },
 
-            src: Paths.linear({
+            src: LinearPath.linearize({
                 dir: '<%=dir.src%>',
                 files: [
                     'partial/kiserp/begin.js',

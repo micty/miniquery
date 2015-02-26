@@ -1,6 +1,7 @@
 ﻿
 ;( function (
     global, 
+    module,
     Array, 
     Boolean,
     Date,

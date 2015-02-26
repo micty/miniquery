@@ -112,7 +112,7 @@ define('Style', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends Style */
+    module.exports = exports = /**@lends Style */ {
 
         /**
         * 跨浏览器动态加载 JS 文件，并在加载完成后执行指定的回调函数。

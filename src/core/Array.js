@@ -10,7 +10,7 @@ define('Array', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends Array*/
+    module.exports = exports = /**@lends Array*/ {
 
         /**
         * 把数组、类数组合并成一个真正的数组。
@@ -391,12 +391,11 @@ define('Array', function (require, module, exports) {
         * 检索特定的元素在数组中第一次出现的索引位置。
         * 注意，该方法用的是全等的比较操作。
         * @param {Array} array 要进行检索的数组。
-        * @param {任意类型} item 要进行检索的项。
+        * @param item 要进行检索的项。
         * @return 返回一个整数，表示检索项在数组第一次出现的索引位置。
         *   如果不存在该元素，则返回 -1。
         * @example
             $Array.indexOf(['a', '10', 10, 'b'], 10); //使用的是全等比较，结果为 2
-            
         */
         indexOf: function (array, item) {
             if (typeof array.indexOf == 'function') { //内置方法

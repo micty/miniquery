@@ -6,7 +6,7 @@
 */
 define('core/String', function (require, module, exports) {
 
-    module.exports = exports = { /**@lends String */
+    module.exports = exports = /**@lends String */ {
 
         /**
         * 用指定的值去填充一个字符串。

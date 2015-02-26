@@ -26,7 +26,7 @@ define('Callbacks', function (require, module, exports) {
     }
 
 
-    Callbacks.prototype = { /**@lends Callbacks#*/
+    Callbacks.prototype = /**@lends Callbacks#*/ {
 
         constructor: Callbacks,
 

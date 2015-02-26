@@ -7,7 +7,7 @@
 define('Function', function (require, module, exports) {
 
 
-    module.exports = exports = { /**@lends Function*/
+    module.exports = exports = /**@lends Function*/ {
 
         /**
         * 定义一个通用的空函数。

@@ -8,7 +8,7 @@ define('Xhr', function (require, module, exports) {
 
 
 
-    module.exports = exports = {  /**@lends Xhr*/
+    module.exports = exports = /**@lends Xhr*/ {
 
         /**
         * 跨浏览器创建一个 XMLHttpRequest 对象。

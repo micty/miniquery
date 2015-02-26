@@ -168,7 +168,7 @@ define('Xml', function (require, module, exports) {
 
 
 
-    module.exports = exports = { /**@lends Xml*/
+    module.exports = exports = /**@lends Xml*/ {
 
         /**
         * 跨浏览器解析 XML 数据(字符串)或者一个等价结构的 Object 对象成一个 XMLDocument 对象。
