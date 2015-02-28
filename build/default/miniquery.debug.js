@@ -5335,7 +5335,7 @@ define('Mapper', function (require, module, exports) {
 * 模块管理器类。
 * 主要提供给页面定义页面级别的私有模块。
 */
-define('ModuleA', function (require, module, exports) {
+define('Module', function (require, module, exports) {
 
     var $ = require('$');
     var mod = new Module();
