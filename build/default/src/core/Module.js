@@ -10,20 +10,6 @@ var Module = (function () {
 
 
     /**
-    * 根据工厂函数反向查找对应的模块 id。
-    * @inner
-    */
-    function findId(id$module, factory) {
-        for (var id in id$module) {
-            if (id$module[id].factory === factory) {
-                return id;
-            }
-        }
-    }
-
-
-
-    /**
     * 构造器。
     * @inner
     */
@@ -81,7 +67,7 @@ var Module = (function () {
             var id$module = meta.id$module;
 
             if (id.indexOf('/') == 0) { //以 '/' 开头，如　'/API'
-                var parentId = findId(id$module, arguments.callee.caller); //如 'List'
+                var parentId = this.findId(arguments.callee.caller); //如 'List'
                 if (!parentId) {
                     throw new Error('require 时如果指定了以 "/" 开头的短名称，则必须用在 define 的函数体内');
                 }
@@ -127,6 +113,24 @@ var Module = (function () {
             module.exports = exports;
             return exports;
 
+        },
+
+        /**
+        * 根据工厂函数反向查找对应的模块 id。
+        */
+        findId: function (factory) {
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+
+            var id$module = meta.id$module;
+           
+            for (var id in id$module) {
+                var module = id$module[id];
+                if (module.factory === factory) {
+                    return id;
+                }
+            }
         },
 
         

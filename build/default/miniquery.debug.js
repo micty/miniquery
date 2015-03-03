@@ -52,20 +52,6 @@ var Module = (function () {
 
 
     /**
-    * 根据工厂函数反向查找对应的模块 id。
-    * @inner
-    */
-    function findId(id$module, factory) {
-        for (var id in id$module) {
-            if (id$module[id].factory === factory) {
-                return id;
-            }
-        }
-    }
-
-
-
-    /**
     * 构造器。
     * @inner
     */
@@ -123,7 +109,7 @@ var Module = (function () {
             var id$module = meta.id$module;
 
             if (id.indexOf('/') == 0) { //以 '/' 开头，如　'/API'
-                var parentId = findId(id$module, arguments.callee.caller); //如 'List'
+                var parentId = this.findId(arguments.callee.caller); //如 'List'
                 if (!parentId) {
                     throw new Error('require 时如果指定了以 "/" 开头的短名称，则必须用在 define 的函数体内');
                 }
@@ -169,6 +155,24 @@ var Module = (function () {
             module.exports = exports;
             return exports;
 
+        },
+
+        /**
+        * 根据工厂函数反向查找对应的模块 id。
+        */
+        findId: function (factory) {
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+
+            var id$module = meta.id$module;
+           
+            for (var id in id$module) {
+                var module = id$module[id];
+                if (module.factory === factory) {
+                    return id;
+                }
+            }
         },
 
         
@@ -5332,8 +5336,8 @@ define('Mapper', function (require, module, exports) {
 
 
 /**
-* 模块管理器类。
-* 主要提供给页面定义页面级别的私有模块。
+* 对外提供的模块管理器类。
+* 主要提供给上层框架/业务进一步定义属于自己的命名空间的模块。
 */
 define('Module', function (require, module, exports) {
 
@@ -5341,7 +5345,8 @@ define('Module', function (require, module, exports) {
     var mod = new Module();
 
 
-    module.exports = $.extend(Module, /**@lends Module*/ {
+    $.extend(Module, /**@lends Module*/ {
+
         /**
         * 静态方法。
         * @function
@@ -5356,6 +5361,9 @@ define('Module', function (require, module, exports) {
         */
         require: mod.require.bind(mod)
     });
+
+
+    module.exports = exports = Module;
 
 });
 
