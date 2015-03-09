@@ -6745,17 +6745,11 @@ define('browser/Url', function (require, module, exports) {
 
 
     var $ = require('$');
-    var $String = require('String');
-    var Mapper = require('Mapper');
     var Url = require('excore/Url');
 
-    //用来记录 window 是否已绑定了 hashchange 事件 
-    var mapper = new Mapper();
-
-    //避免意外绑定到 window 中同名的事件。 
-    //也可阻止用户手动去触发该事件，因为外部无法得知该事件名。
-    var hashchangeEventName = '__hashchange-' + $String.random();
-
+    
+    var mapper = null;  //用来记录 window 是否已绑定了 hashchange 事件 
+    var emitter = null; //记录回调列表。
 
     
     module.exports = exports = /**@lends Url*/ {
@@ -6939,16 +6933,24 @@ define('browser/Url', function (require, module, exports) {
         */
         hashchange: function (window, fn, immediate) {
 
-            var Event = require('Event');
+            if (!emitter) { //首次绑定
+                var Emitter = require('Emitter');
+                emitter = new Emitter();
+            }
 
-            Event.bind(window, hashchangeEventName, fn);
+            emitter.on('change', fn);
 
             var location = window.location;
             var hash = exports.getHash(window, '');
 
-
             if (hash && immediate) { //如果有 hash，并且指定了要立即触发，则立即触发
-                fn.call(window, hash, null); //不要用 trigger，因为可能会影响之前绑定的
+                fn.call(window, hash, null); //不要用 fire，因为可能会影响之前绑定的
+            }
+
+
+            if (!mapper) { //首次绑定
+                var Mapper = require('Mapper');
+                mapper = new Mapper();
             }
 
             if (mapper.get(window)) { // window 所对应的窗口已绑定 hashchange
@@ -6961,7 +6963,7 @@ define('browser/Url', function (require, module, exports) {
                 window.onhashchange = function () {
                     var oldHash = hash;
                     hash = exports.getHash(window, '');
-                    Event.trigger(window, hashchangeEventName, [hash, oldHash]);
+                    emitter.fire('change', [hash, oldHash]);
                 };
             }
             else {
@@ -6969,7 +6971,7 @@ define('browser/Url', function (require, module, exports) {
                     var oldHash = hash;
                     hash = exports.getHash(window, '');
                     if (hash != oldHash) {
-                        Event.trigger(window, hashchangeEventName, [hash, oldHash]);
+                        emitter.fire('change', [hash, oldHash]);
                     }
                 }, 200);
             }
