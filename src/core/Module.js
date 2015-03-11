@@ -8,18 +8,28 @@ var Module = (function () {
     var guidKey = '__guid__';
     var guid$meta = {};
 
-
     /**
     * 构造器。
     * @inner
     */
-    function Module() {
+    function Module(config) {
 
         var guid = Math.random().toString().slice(2);
         this[guidKey] = guid;
 
+        config = config || {
+            seperator: '/',
+            shortcut: true,
+        };
+
+        
+
         var meta = {
-            id$module: {},
+            'id$module': {},
+
+            'seperator': config.seperator,
+            'shortcut': config.shortcut,
+            'crossover': config.crossover,
         };
 
         guid$meta[guid] = meta;
@@ -63,17 +73,26 @@ var Module = (function () {
 
             var guid = this[guidKey];
             var meta = guid$meta[guid];
-
             var id$module = meta.id$module;
 
-            if (id.indexOf('/') == 0) { //以 '/' 开头，如　'/API'
+            var crossover = meta.crossover;
+            var seperator = meta.seperator;
+
+            //如 'List/API' 或 '/List/API'
+            if (!crossover && id.lastIndexOf(seperator) > 0) { 
+                throw new Error('配置已经设定了不允许跨级加载模块。');
+            }
+
+            //指定了允许使用短名称，并且以分隔符开头，如 '/' 开头，如　'/API'
+            if (meta.shortcut && id.indexOf(seperator) == 0) { 
                 var parentId = this.findId(arguments.callee.caller); //如 'List'
                 if (!parentId) {
-                    throw new Error('require 时如果指定了以 "/" 开头的短名称，则必须用在 define 的函数体内');
+                    throw new Error('require 时如果指定了以 "' + seperator + '" 开头的短名称，则必须用在 define 的函数体内');
                 }
 
                 id = parentId + id; //完整名称，如 'List/API'
             }
+
 
 
             var module = id$module[id];
@@ -205,8 +224,14 @@ var Module = (function () {
 
 })();
 
+//内部模块管理器
+var mod = new Module({
+    seperator: '/',
+    crossover: true,
+    shortcut: true,
+});
+
 //提供快捷方式
-var mod = new Module();
 var define = mod.define.bind(mod);
 var require = mod.require.bind(mod);
 var expose = mod.expose.bind(mod);

@@ -6,7 +6,11 @@
 define('Module', function (require, module, exports) {
 
     var $ = require('$');
-    var mod = new Module();
+    var mod = new Module({
+        seperator: '/',
+        crossover: true,
+        shortcut: true,
+    });
 
 
     $.extend(Module, /**@lends Module*/ {
