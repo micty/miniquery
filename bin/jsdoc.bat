@@ -2,13 +2,16 @@
 @rem 该批处理文件由 Grunt 工具生成
 
 set name={name}
+set version={version}
 
 set tmpl=msdn
+
+cd ..
 set root=..\..
 set build=%root%\build
 set bin=%root%\bin
 
-set home=%build%\%name%
+set home=%build%\%name%\%version%
 set doc=%home%\doc
 set src=%home%\src
 

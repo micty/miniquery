@@ -3,6 +3,7 @@
 * $ 工具集
 * @namespace
 * @name $
+* @inner
 */
 define('$', function (require, module, exports) {
 

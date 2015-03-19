@@ -8,6 +8,7 @@ module.exports = function (grunt) {
     var $ = require('../lib/MiniQuery');
     var LinearPath = require('../lib/LinearPath');
     var Tasks = require('../lib/Tasks');
+    var Banner = require('../lib/Banner');
 
     var name = 'default';
 
@@ -76,7 +77,7 @@ module.exports = function (grunt) {
     */
     grunt.registerTask(name, function (level) {
 
-        var home = '<%=dir.build%>' + name;
+        var home = '<%=dir.build%>' + name + '/<%=pkg.version%>';
 
         var files = LinearPath.linearize({
             dir: home,
@@ -112,11 +113,7 @@ module.exports = function (grunt) {
             dest: files[0],
             src: list,
             options: {
-                banner: '\n' +
-                    '/*!\n' +
-                    '* <%=pkg.description%> for ' + name + '\n' +
-                    '* version: <%=pkg.version%>\n' +
-                    '*/'
+                banner: Banner.get(name, list),
             },
         });
 
@@ -135,11 +132,15 @@ module.exports = function (grunt) {
             dest: home + '/jsdoc.bat',
             options: {
                 process: function (s) {
+                    var pkg = grunt.file.readJSON('package.json');
+
                     return $.String.format(s, {
                         'name': name,
+                        'version': pkg.version,
                         'list': $.Array.keep(list.slice(1, -2), function (item, index) {
-                            item = item.replace('<%=dir.src%>', '%root%/src');
+                            item = item.replace('<%=dir.src%>', '%src%');
                             return item;
+
                         }).join(' ^\r\n'),
                     });
                 },

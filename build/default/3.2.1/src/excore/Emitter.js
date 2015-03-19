@@ -367,6 +367,14 @@ define('Emitter', function (require, module, exports) {
 
         },
 
+        /**
+        * 销毁本实例对象。
+        */
+        destroy: function () {
+            this.off();
+            mapper.remove(this);
+        },
+
 
     };
 

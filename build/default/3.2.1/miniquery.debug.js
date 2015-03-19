@@ -1,7 +1,32 @@
-
-/*!
-* MiniQuery JavaScript Library for default
-* version: 3.2.0
+/*
+* MiniQuery - MiniQuery JavaScript Library
+* for: default 
+* version: 3.2.1
+* build: 2015-03-19 14:52:02
+* files: 23(21)
+*    partial/default/begin.js
+*    core/Module.js
+*    core/$.js
+*    core/Array.js
+*    core/Boolean.js
+*    core/Date.js
+*    core/Math.js
+*    core/Object.js
+*    core/String.js
+*    excore/Emitter/Tree.js
+*    excore/Emitter.js
+*    excore/Mapper.js
+*    excore/Module.js
+*    excore/Url.js
+*    browser/Cookie/Expires.js
+*    browser/Cookie.js
+*    browser/LocalStorage.js
+*    browser/SessionStorage.js
+*    browser/Script.js
+*    browser/Url.js
+*    partial/default/MiniQuery.js
+*    partial/default/expose.js
+*    partial/default/end.js
 */
 ;( function (
     global, 
@@ -283,6 +308,7 @@ var expose = mod.expose.bind(mod);
 * $ 工具集
 * @namespace
 * @name $
+* @inner
 */
 define('$', function (require, module, exports) {
 
@@ -5018,6 +5044,14 @@ define('Emitter', function (require, module, exports) {
 
         },
 
+        /**
+        * 销毁本实例对象。
+        */
+        destroy: function () {
+            this.off();
+            mapper.remove(this);
+        },
+
 
     };
 
@@ -7113,6 +7147,11 @@ define('MiniQuery', function (require, module, exports) {
             }
 
         },
+
+        /**
+        * 版本号
+        */
+        version: '3.2.1',
 
     };
 });

@@ -54,5 +54,10 @@ define('MiniQuery', function (require, module, exports) {
 
         },
 
+        /**
+        * 版本号
+        */
+        version: '3.2.1',
+
     };
 });

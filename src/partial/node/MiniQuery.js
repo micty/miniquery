@@ -26,6 +26,7 @@ define('MiniQuery', function (require, module, exports) {
         *   var Mapper = MiniQuery.require('Mapper');    
         */
         require: $.require,
+        version: '3.2.1',
 
     };
 });
