@@ -147,6 +147,15 @@ module.exports = function (grunt) {
             }
         });
 
+        //for test
+        //生成 approve-cmd 目录
+        Tasks.run('copy', name + '/approve-cmd', {
+            files: LinearPath.pair(home, 'E:/Kingdee/approve-cmd/htdocs/f', [
+                'miniquery.debug.js',
+                'miniquery.min.js',
+            ]),
+
+        });
         
 
 

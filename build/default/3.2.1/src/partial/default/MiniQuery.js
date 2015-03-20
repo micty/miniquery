@@ -10,6 +10,11 @@ define('MiniQuery', function (require, module, exports) {
 
     module.exports = exports = /**@lends MiniQuery*/ {
 
+        /**
+        * 版本号
+        */
+        version: '3.2.1',
+
         'Array': require('Array'),
         'Boolean': require('Boolean'),
         'Date': require('Date'),
@@ -54,10 +59,7 @@ define('MiniQuery', function (require, module, exports) {
 
         },
 
-        /**
-        * 版本号
-        */
-        version: '3.2.1',
+        
 
     };
 });

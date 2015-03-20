@@ -246,7 +246,7 @@ define('Cookie', function (require, module, exports) {
             var cookie = name + '=' + value + '; ';
 
             if (expires) {
-                var Expires = require('/Expires');
+                var Expires = require(module, 'Expires');
                 expires = Expires.parse(expires);
                 cookie += 'expires=' + expires.toGMTString() + '; '; //不推荐使用 toGMTString 方法
             }

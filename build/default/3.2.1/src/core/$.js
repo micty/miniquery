@@ -8,13 +8,7 @@
 define('$', function (require, module, exports) {
 
     var slice = [].slice;
-
-    //兼容性写法
-    var toArray = slice.call.bind ? slice.call.bind(slice) : function ($arguments) {
-        return slice.call($arguments, 0);
-    };
-
-
+    var toArray = slice.call.bind(slice);
 
     module.exports = exports = /**@lends $*/ {
 

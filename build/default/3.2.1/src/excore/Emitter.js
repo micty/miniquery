@@ -12,7 +12,7 @@ define('Emitter', function (require, module, exports) {
     var $String = require('String');
     var Mapper = require('Mapper');
 
-    var Tree = require('/Tree'); //完整名称为 Emitter/Tree
+    var Tree = require(module, 'Tree'); //完整名称为 Emitter/Tree
 
     var mapper = new Mapper();
 

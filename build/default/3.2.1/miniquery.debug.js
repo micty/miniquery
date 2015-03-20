@@ -2,7 +2,7 @@
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
 * version: 3.2.1
-* build: 2015-03-19 14:52:02
+* build: 2015-03-20 18:28:26
 * files: 23(21)
 *    partial/default/begin.js
 *    core/Module.js
@@ -65,6 +65,24 @@
 ) {
 
 
+//兼容
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function (thisArg) {
+        // this 指向的是要绑定的函数。
+        if (typeof this !== "function") {
+            throw new TypeError("Function.prototype.bind - 要绑定的对象只能是函数。");
+        }
+
+        var params = [].slice.call(arguments, 1);
+        var self = this;
+
+        return function () {
+            var args = [].slice.call(arguments, 0);
+            args = params.concat(args);
+            return self.apply(thisArg, args);
+        };
+    };
+}
 
 /**
 * 模块管理器类
@@ -74,6 +92,7 @@ var Module = (function () {
 
     var guidKey = '__guid__';
     var guid$meta = {};
+
 
     /**
     * 构造器。
@@ -89,11 +108,9 @@ var Module = (function () {
             shortcut: true,
         };
 
-        
-
         var meta = {
             'id$module': {},
-
+            'token$id': {},
             'seperator': config.seperator,
             'shortcut': config.shortcut,
             'crossover': config.crossover,
@@ -103,9 +120,7 @@ var Module = (function () {
 
     }
 
-
     //实例方法
-    
     Module.prototype = /**@lends Module#*/ {
         constructor: Module,
 
@@ -120,19 +135,25 @@ var Module = (function () {
             var meta = guid$meta[guid];
 
             var id$module = meta.id$module;
+            var token$id = meta.token$id;
+
+            var token = Math.random().toString().slice(2);
 
             id$module[id] = {
+                token: token,
                 factory: factory,
                 exports: null,      //这个值在 require 后可能会给改写
                 required: false,    //指示是否已经 require 过
                 exposed: false,     //默认对外不可见
             };
 
-        },
+            token$id[token] = id;
 
+        },
 
         /**
         * 加载指定的模块。
+        * 已重载 require(moudle, id)，用于加载 module 的直接下级子模块。
         * @param {string} id 模块的名称。
         * @return 返回指定的模块。
         */
@@ -142,6 +163,24 @@ var Module = (function () {
             var meta = guid$meta[guid];
             var id$module = meta.id$module;
 
+            var module = null;
+
+            if (typeof id == 'object') { // 重载 require(module, id)
+                module = id;
+
+                if (!module) {
+                    throw new Error('当作为 require(module, id) 调用时，第一个参数 module 不能为空。');
+                }
+
+                var token = module.token;
+                var parentId = meta.token$id[token];
+                if (!parentId) {
+                    throw new Error('不存在 token 为 "' + token + '" 的模块');
+                }
+
+                id = arguments[1];
+            }
+
             var crossover = meta.crossover;
             var seperator = meta.seperator;
 
@@ -150,19 +189,12 @@ var Module = (function () {
                 throw new Error('配置已经设定了不允许跨级加载模块。');
             }
 
-            //指定了允许使用短名称，并且以分隔符开头，如 '/' 开头，如　'/API'
-            if (meta.shortcut && id.indexOf(seperator) == 0) { 
-                var parentId = this.findId(arguments.callee.caller); //如 'List'
-                if (!parentId) {
-                    throw new Error('require 时如果指定了以 "' + seperator + '" 开头的短名称，则必须用在 define 的函数体内');
-                }
-
-                id = parentId + id; //完整名称，如 'List/API'
+            if (module) {
+                id = [parentId, id].join(seperator);
             }
 
 
-
-            var module = id$module[id];
+            module = id$module[id];
             if (!module) { //不存在该模块
                 return;
             }
@@ -188,6 +220,7 @@ var Module = (function () {
             var exports = {};
             var mod = {
                 id: id,
+                token: module.token,
                 exports: exports,
             };
 
@@ -199,24 +232,6 @@ var Module = (function () {
             module.exports = exports;
             return exports;
 
-        },
-
-        /**
-        * 根据工厂函数反向查找对应的模块 id。
-        */
-        findId: function (factory) {
-
-            var guid = this[guidKey];
-            var meta = guid$meta[guid];
-
-            var id$module = meta.id$module;
-           
-            for (var id in id$module) {
-                var module = id$module[id];
-                if (module.factory === factory) {
-                    return id;
-                }
-            }
         },
 
         
@@ -284,10 +299,7 @@ var Module = (function () {
         },
     };
 
-
-
     return Module;
-
 
 })();
 
@@ -313,13 +325,7 @@ var expose = mod.expose.bind(mod);
 define('$', function (require, module, exports) {
 
     var slice = [].slice;
-
-    //兼容性写法
-    var toArray = slice.call.bind ? slice.call.bind(slice) : function ($arguments) {
-        return slice.call($arguments, 0);
-    };
-
-
+    var toArray = slice.call.bind(slice);
 
     module.exports = exports = /**@lends $*/ {
 
@@ -4689,7 +4695,7 @@ define('Emitter', function (require, module, exports) {
     var $String = require('String');
     var Mapper = require('Mapper');
 
-    var Tree = require('/Tree'); //完整名称为 Emitter/Tree
+    var Tree = require(module, 'Tree'); //完整名称为 Emitter/Tree
 
     var mapper = new Mapper();
 
@@ -6159,7 +6165,7 @@ define('Cookie', function (require, module, exports) {
             var cookie = name + '=' + value + '; ';
 
             if (expires) {
-                var Expires = require('/Expires');
+                var Expires = require(module, 'Expires');
                 expires = Expires.parse(expires);
                 cookie += 'expires=' + expires.toGMTString() + '; '; //不推荐使用 toGMTString 方法
             }
@@ -7104,6 +7110,11 @@ define('MiniQuery', function (require, module, exports) {
 
     module.exports = exports = /**@lends MiniQuery*/ {
 
+        /**
+        * 版本号
+        */
+        version: '3.2.1',
+
         'Array': require('Array'),
         'Boolean': require('Boolean'),
         'Date': require('Date'),
@@ -7148,10 +7159,7 @@ define('MiniQuery', function (require, module, exports) {
 
         },
 
-        /**
-        * 版本号
-        */
-        version: '3.2.1',
+        
 
     };
 });
@@ -7198,7 +7206,7 @@ expose({
 
 
 })(
-    this,  // 在浏览器环境中，全局对象是 this
+    window,  // 在浏览器环境中，全局对象是 this
 
     top,
     parent,

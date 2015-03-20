@@ -17,7 +17,7 @@
 
 
 })(
-    this,  // 在浏览器环境中，全局对象是 this
+    window,  // 在浏览器环境中，全局对象是 this
 
     top,
     parent,

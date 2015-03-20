@@ -8,6 +8,7 @@ var Module = (function () {
     var guidKey = '__guid__';
     var guid$meta = {};
 
+
     /**
     * 构造器。
     * @inner
@@ -22,11 +23,9 @@ var Module = (function () {
             shortcut: true,
         };
 
-        
-
         var meta = {
             'id$module': {},
-
+            'token$id': {},
             'seperator': config.seperator,
             'shortcut': config.shortcut,
             'crossover': config.crossover,
@@ -36,9 +35,7 @@ var Module = (function () {
 
     }
 
-
     //实例方法
-    
     Module.prototype = /**@lends Module#*/ {
         constructor: Module,
 
@@ -53,19 +50,25 @@ var Module = (function () {
             var meta = guid$meta[guid];
 
             var id$module = meta.id$module;
+            var token$id = meta.token$id;
+
+            var token = Math.random().toString().slice(2);
 
             id$module[id] = {
+                token: token,
                 factory: factory,
                 exports: null,      //这个值在 require 后可能会给改写
                 required: false,    //指示是否已经 require 过
                 exposed: false,     //默认对外不可见
             };
 
-        },
+            token$id[token] = id;
 
+        },
 
         /**
         * 加载指定的模块。
+        * 已重载 require(moudle, id)，用于加载 module 的直接下级子模块。
         * @param {string} id 模块的名称。
         * @return 返回指定的模块。
         */
@@ -75,6 +78,24 @@ var Module = (function () {
             var meta = guid$meta[guid];
             var id$module = meta.id$module;
 
+            var module = null;
+
+            if (typeof id == 'object') { // 重载 require(module, id)
+                module = id;
+
+                if (!module) {
+                    throw new Error('当作为 require(module, id) 调用时，第一个参数 module 不能为空。');
+                }
+
+                var token = module.token;
+                var parentId = meta.token$id[token];
+                if (!parentId) {
+                    throw new Error('不存在 token 为 "' + token + '" 的模块');
+                }
+
+                id = arguments[1];
+            }
+
             var crossover = meta.crossover;
             var seperator = meta.seperator;
 
@@ -83,19 +104,12 @@ var Module = (function () {
                 throw new Error('配置已经设定了不允许跨级加载模块。');
             }
 
-            //指定了允许使用短名称，并且以分隔符开头，如 '/' 开头，如　'/API'
-            if (meta.shortcut && id.indexOf(seperator) == 0) { 
-                var parentId = this.findId(arguments.callee.caller); //如 'List'
-                if (!parentId) {
-                    throw new Error('require 时如果指定了以 "' + seperator + '" 开头的短名称，则必须用在 define 的函数体内');
-                }
-
-                id = parentId + id; //完整名称，如 'List/API'
+            if (module) {
+                id = [parentId, id].join(seperator);
             }
 
 
-
-            var module = id$module[id];
+            module = id$module[id];
             if (!module) { //不存在该模块
                 return;
             }
@@ -121,6 +135,7 @@ var Module = (function () {
             var exports = {};
             var mod = {
                 id: id,
+                token: module.token,
                 exports: exports,
             };
 
@@ -132,24 +147,6 @@ var Module = (function () {
             module.exports = exports;
             return exports;
 
-        },
-
-        /**
-        * 根据工厂函数反向查找对应的模块 id。
-        */
-        findId: function (factory) {
-
-            var guid = this[guidKey];
-            var meta = guid$meta[guid];
-
-            var id$module = meta.id$module;
-           
-            for (var id in id$module) {
-                var module = id$module[id];
-                if (module.factory === factory) {
-                    return id;
-                }
-            }
         },
 
         
@@ -217,10 +214,7 @@ var Module = (function () {
         },
     };
 
-
-
     return Module;
-
 
 })();
 
