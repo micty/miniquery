@@ -7,26 +7,18 @@ MiniQuery 使用自己的命名空间和通用模块定义方式对模块进行管理。
 
 
 ###更新历史
-3.2.1 给 Emitter 模块增加 destroy 方法。
+
+#### 3.2.1 [2015.03.17]
+- 1.给 Emitter 模块增加 destroy 方法。
+
+#### 3.3.0  [2015.03.20]
+- 1.把 Module 的 require 方法，由原来的以 require('/xxx') 加载短名称模块的方式改成 require(module, name) 的方式。
+通过给 module 加一个随机的 token 字段以标识是 define 中的 module 对象。
+- 2.给 begin.js 增加 Function.prototype.bind 的兼容性代码。
+
+#### 3.3.1 [2015.03.23]
+- 1.优化 require(module, name) 中识别参数 module 的方式，通过判断全等来识别。
+- 2.把 Function.prototype.bind 的兼容性代码单独成一个文件。
 
 
 
-####目录结构
-
-- 1.构建工具
-    bin 目录包含了构建工具和脚本，直接运行 ``build.bat`` 即可进行构建。
-    
-- 2.构建的输出目录
-    build
-        release 存放构建生成的库文件，包含 debug 和 min 两个版本
-        src 构建过程中产生的临时目录，用于存放要构建的 js 文件
-    sdk 构建最终生成的库文件，包含 debug 和 min 两个版本
-    doc 文档目录
-    
-- 3.构建需要的运行环境
-    1.需要安装 Java 运行环境
-    2.需要设置环境变量
-    
-- 4.测试用例
-    test 目录包含测试用例，直接打开 index.html 即可看到测试结果。
-    test\index.html 依赖 sdk\miniquery.debug.js 文件

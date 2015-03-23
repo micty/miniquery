@@ -56,7 +56,7 @@ var Module = (function () {
                 exports: null,      //这个值在 require 后可能会给改写
                 required: false,    //指示是否已经 require 过
                 exposed: false,     //默认对外不可见
-                module: null,       //用于检测在 define 中加载下级模块，即 require(module, id) 时用到
+                module: null,       
             };
 
 
@@ -97,7 +97,6 @@ var Module = (function () {
 
                 id = arguments[1];
             }
-
 
             var crossover = meta.crossover;
             var seperator = meta.seperator;

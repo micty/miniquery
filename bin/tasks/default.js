@@ -17,6 +17,12 @@ module.exports = function (grunt) {
         files: [
             'partial/' + name + '/begin.js',
             {
+                dir: 'compatible',
+                files: [
+                    'Function.prototype.js',
+                ],
+            },
+            {
                 dir: 'core',
                 files: [
                     'Module.js',
