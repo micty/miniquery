@@ -20,13 +20,11 @@ var Module = (function () {
 
         config = config || {
             seperator: '/',
-            shortcut: true,
         };
 
         var meta = {
             'id$module': {},
             'seperator': config.seperator,
-            'shortcut': config.shortcut,
             'crossover': config.crossover,
         };
 
@@ -226,7 +224,6 @@ var Module = (function () {
 var mod = new Module({
     seperator: '/',
     crossover: true,
-    shortcut: true,
 });
 
 //提供快捷方式

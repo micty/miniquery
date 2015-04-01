@@ -31,6 +31,7 @@ module.exports = function (grunt) {
                     'Boolean.js',
                     'Date.js',
                     'Math.js',
+                    'MiniQuery.js',
                     'Object.js',
                     'String.js',
                 ]
@@ -69,7 +70,6 @@ module.exports = function (grunt) {
             {
                 dir: 'partial/' + name,
                 files: [
-                    'MiniQuery.js',
                     'expose.js',
                     'end.js',
                 ]

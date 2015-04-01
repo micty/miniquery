@@ -103,7 +103,8 @@ define('Function', function (require, module, exports) {
                 timeoutId = setTimeout(fn, delay);
             }
 
-        }
+        },
+
 
 
     };

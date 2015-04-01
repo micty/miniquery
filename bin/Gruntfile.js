@@ -25,6 +25,7 @@ module.exports = function (grunt) {
     require('./tasks/node.js')(grunt);
     require('./tasks/default.js')(grunt);
     require('./tasks/kiserp.js')(grunt);
+    require('./tasks/jsdoc.js')(grunt);
 
     
 
