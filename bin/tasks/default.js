@@ -42,7 +42,8 @@ module.exports = function (grunt) {
                     {
                         dir: 'Emitter',
                         files: [
-                            'Tree.js'
+                            'Helper.js',
+                            'Tree.js',
                         ],
                     },
                     'Emitter.js',
@@ -157,6 +158,16 @@ module.exports = function (grunt) {
         //生成 approve-cmd 目录
         Tasks.run('copy', name + '/approve-cmd', {
             files: LinearPath.pair(home, 'E:/Kingdee/approve-cmd/htdocs/f', [
+                'miniquery.debug.js',
+                'miniquery.min.js',
+            ]),
+
+        });
+
+
+        //生成到 vCRM 目录
+        Tasks.run('copy', name + '/vCRM', {
+            files: LinearPath.pair(home, 'E:/Kingdee/vCRM/htdocs/f', [
                 'miniquery.debug.js',
                 'miniquery.min.js',
             ]),

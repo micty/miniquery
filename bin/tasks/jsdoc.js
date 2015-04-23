@@ -42,7 +42,8 @@ module.exports = function (grunt) {
                     {
                         dir: 'Emitter',
                         files: [
-                            'Tree.js'
+                            'Helper.js',
+                            'Tree.js',
                         ],
                     },
                     'Emitter.js',
