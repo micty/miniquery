@@ -20,6 +20,7 @@ module.exports = function (grunt) {
                 dir: 'compatible',
                 files: [
                     'Function.prototype.js',
+                    'Object.js',
                 ],
             },
             {

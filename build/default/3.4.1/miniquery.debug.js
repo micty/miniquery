@@ -1,11 +1,12 @@
 /*
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
-* version: 3.4.0
-* build: 2015-04-24 17:46:01
-* files: 25(23)
+* version: 3.4.1
+* build: 2015-04-24 18:04:42
+* files: 26(24)
 *    partial/default/begin.js
 *    compatible/Function.prototype.js
+*    compatible/Object.js
 *    core/Module.js
 *    core/$.js
 *    core/Array.js
@@ -84,6 +85,29 @@ if (!Function.prototype.bind) {
             args = params.concat(args);
             return self.apply(thisArg, args);
         };
+    };
+}
+
+//兼容
+if (!Object.keys) {
+
+    Object.keys = function (obj) {
+
+        if (obj == null) { // null 或 undefined
+            throw new Error('Cannot convert undefined or null to object');
+        }
+
+        var a = [];
+
+        if (!obj) {
+            return a;
+        }
+
+        for (var key in obj) {
+            a.push(key);
+        }
+
+        return a;
     };
 }
 
@@ -243,10 +267,12 @@ var Module = (function () {
         
         /**
         * 设置或获取对外暴露的模块。
+        * 已重载 get(id)、set(id, exposed) 三种方法。
         * 通过此方法，可以控制指定的模块是否可以通过 MiniQuery.require(id) 来加载到。
         * @param {string|Object} id 模块的名称。
             当指定为一个 {} 时，则表示批量设置。
             当指定为一个字符串时，则单个设置。
+            
         * @param {boolean} [exposed] 模块是否对外暴露。
             当参数 id 为字符串时，且不指定该参数时，表示获取操作，
             即获取指定 id 的模块是否对外暴露。
@@ -297,22 +323,42 @@ var Module = (function () {
                 return get(id); 
             }
 
-            if (len == 0) { //重载 expose(); 获取暴露的模块 id 列表
-                return (function (id$module) {
-                    var ids = [];
-
-                    for (var id in id$module) {
-                        var module = id$module[id];
-                        if (module.exposed) {
-                            ids.push(id);
-                        }
-                    }
-
-                    return ids;
-
-                })(id$module);
-            }
             
+        },
+
+        /**
+        * 获取所有设置为暴露的模块 id 列表。
+        * @return {Array} 返回设置为暴露的模块 id 数组。
+        */
+        exposes: function () {
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+            var id$module = meta.id$module;
+
+            var a = [];
+
+            for (var id in id$module) {
+                var module = id$module[id];
+                if (module.exposed) {
+                    a.push(id);
+                }
+            }
+
+            return a;
+
+        },
+
+        /**
+        * 获取所有的模块 id 列表。
+        * @return {Array} 返回已经定义的模块 id 数组。
+        */
+        modules: function () {
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+            var id$module = meta.id$module;
+
+            return Object.keys(id$module);
         },
 
         /**

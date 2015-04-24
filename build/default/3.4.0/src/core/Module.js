@@ -9,6 +9,7 @@ var Module = (function () {
     var guid$meta = {};
 
 
+
     /**
     * 构造器。
     * @inner
@@ -188,7 +189,7 @@ var Module = (function () {
             }
 
             //set 操作
-            if (typeof id == 'object') { // expose({ })，批量 set
+            if (typeof id == 'object') { //重载 expose({...}); 批量 set
                 var id$exposed = id;
                 for (var id in id$exposed) {
                     var exposed = id$exposed[id];
@@ -197,13 +198,33 @@ var Module = (function () {
                 return;
             }
 
-            if (arguments.length == 2) { // expose('', true|false)，单个 set
+            var len = arguments.length;
+
+            if (len == 2) { //重载 expose('', true|false); 单个 set
                 set(id, exposed);
                 return;
             }
 
-            //get 操作
-            return get(id);
+            if (len == 1) { //重载 expose(id);
+                return get(id); 
+            }
+
+            if (len == 0) { //重载 expose(); 获取暴露的模块 id 列表
+                return (function (id$module) {
+                    var ids = [];
+
+                    for (var id in id$module) {
+                        var module = id$module[id];
+                        if (module.exposed) {
+                            ids.push(id);
+                        }
+                    }
+
+                    return ids;
+
+                })(id$module);
+            }
+            
         },
 
         /**
