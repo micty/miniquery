@@ -1733,6 +1733,26 @@ define('Object', function (require, module, exports) {
         },
 
 
+        /**
+        * 
+        */
+        path: function (obj, keys, value) {
+
+            var $Array = require('Array');
+
+            $Array.each(keys, function (key, index) {
+                obj = obj[key];
+
+                if (!obj) {
+                    obj = obj[key] = {};
+                }
+
+
+
+            });
+        },
+
+
     };
 
 });
