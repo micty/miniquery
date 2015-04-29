@@ -2,7 +2,7 @@
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
 * version: 3.4.1
-* build: 2015-04-24 18:04:42
+* build: 2015-04-29 10:25:55
 * files: 26(24)
 *    partial/default/begin.js
 *    compatible/Function.prototype.js
@@ -121,6 +121,19 @@ var Module = (function () {
     var guid$meta = {};
 
 
+    function getType(obj) {
+        if (!obj) { //NaN|false|null|undefined|0|''
+            return obj;
+        }
+
+        var type = typeof obj;
+        if (type == 'string' || type == 'number' || type == 'boolean') {
+            return obj;
+        }
+
+        return ({}).toString.call(obj);
+    }
+
 
     /**
     * 构造器。
@@ -168,6 +181,7 @@ var Module = (function () {
                 required: false,    //指示是否已经 require 过
                 exposed: false,     //默认对外不可见
                 module: null,       //用于检测在 define 中加载下级模块，即 require(module, id) 时用到
+                count: 0,
             };
 
 
@@ -228,14 +242,16 @@ var Module = (function () {
                 return;
             }
 
+            module.count++;
+
             if (module.required) { //已经 require 过了
                 return module.exports;
             }
 
 
             //首次 require
-
             module.required = true; //更改标志，指示已经 require 过一次
+            
 
             var factory = module.factory;
 
@@ -326,39 +342,32 @@ var Module = (function () {
             
         },
 
-        /**
-        * 获取所有设置为暴露的模块 id 列表。
-        * @return {Array} 返回设置为暴露的模块 id 数组。
-        */
-        exposes: function () {
-
-            var guid = this[guidKey];
-            var meta = guid$meta[guid];
-            var id$module = meta.id$module;
-
-            var a = [];
-
-            for (var id in id$module) {
-                var module = id$module[id];
-                if (module.exposed) {
-                    a.push(id);
-                }
-            }
-
-            return a;
-
-        },
 
         /**
-        * 获取所有的模块 id 列表。
-        * @return {Array} 返回已经定义的模块 id 数组。
+        * 获取所有的模块描述信息。
+        * @return {Object} 返回已经定义的模块描述信息对象。
         */
         modules: function () {
             var guid = this[guidKey];
             var meta = guid$meta[guid];
             var id$module = meta.id$module;
 
-            return Object.keys(id$module);
+            var obj = {};
+
+            for (var id in id$module) {
+                var module = id$module[id];
+
+                obj[id] = {
+                    'id': id,
+                    'required': module.required,
+                    'exposed': module.exposed,
+                    'count': module.count,
+                    'factory': getType(module.factory),
+                    'exports': getType(module.exports),
+                };
+            }
+
+            return obj;
         },
 
         /**
