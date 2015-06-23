@@ -18,7 +18,8 @@ set src=%home%\src
 cd %bin%/jsdoc_toolkit-2.4.0
 
 java -jar jsrun.jar app\run.js -a -D="noGlobal:true" -t=templates\%tmpl% -d=%doc% ^
-%src%/compatible/Function.prototype.js ^
+%src%/compatible/Date.js ^
+%src%/compatible/Function.js ^
 %src%/compatible/Object.js ^
 %src%/core/Module.js ^
 %src%/core/$.js ^

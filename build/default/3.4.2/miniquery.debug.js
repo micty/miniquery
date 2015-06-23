@@ -2,10 +2,11 @@
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
 * version: 3.4.2
-* build: 2015-05-05 17:31:34
-* files: 26(24)
+* build: 2015-06-23 14:40:48
+* files: 27(25)
 *    partial/default/begin.js
-*    compatible/Function.prototype.js
+*    compatible/Date.js
+*    compatible/Function.js
 *    compatible/Object.js
 *    core/Module.js
 *    core/$.js
@@ -68,6 +69,12 @@
 ) {
 
 
+
+if (!Date.now) {
+    Date.now = function now() {
+        return new Date().getTime();
+    };
+}
 
 //兼容
 if (!Function.prototype.bind) {
@@ -152,6 +159,7 @@ var Module = (function () {
             'id$module': {},
             'seperator': config.seperator,
             'crossover': config.crossover,
+            'repeated': config.repeated, //是否允许重复定义
         };
 
         guid$meta[guid] = meta;
@@ -173,6 +181,11 @@ var Module = (function () {
             var meta = guid$meta[guid];
 
             var id$module = meta.id$module;
+            var repeated = meta.repeated;
+
+            if (!repeated && id$module[id]) {
+                throw new Error('配置设定了不允许定义重复的模块: 已存在名为 "' + id + '" 的模块');
+            }
 
 
             id$module[id] = {
@@ -185,7 +198,7 @@ var Module = (function () {
                 'mod': null,        //用来存放 require 时产生的中间结果
             };
 
-
+            return this;
         },
 
         /**
@@ -226,12 +239,15 @@ var Module = (function () {
                 id = arguments[1];
             }
 
+            if (typeof id != 'string') {
+                throw new Error('参数 id 的类型必须为 string');
+            }
 
             var crossover = meta.crossover;
             var seperator = meta.seperator;
 
             //如 'List/API' 或 '/List/API'
-            if (!crossover && id.lastIndexOf(seperator) > 0) { 
+            if (!crossover && id.indexOf(seperator) >= 0) { 
                 throw new Error('配置已经设定了不允许跨级加载模块。');
             }
 
@@ -357,11 +373,15 @@ var Module = (function () {
             var guid = this[guidKey];
             var meta = guid$meta[guid];
             var id$module = meta.id$module;
+            var seperator = meta.seperator;
 
             var obj = {};
 
             for (var id in id$module) {
                 var module = id$module[id];
+
+                var ids = id.split(seperator).slice(0, -1);
+                var parentId = ids.length > 0 ? ids.join(seperator) : null;
 
                 obj[id] = {
                     'id': id,
@@ -370,10 +390,63 @@ var Module = (function () {
                     'count': module.count,
                     'factory': getType(module.factory),
                     'exports': getType(module.exports),
+                    'parentId': parentId,
                 };
             }
 
             return obj;
+        },
+
+        /**
+        * 获取所有的模块树形结构描述对象。
+        * @param [leafValue=""] 叶子结点所需要表示成的值。 默认为空字符串。
+        * @return {Object} 返回已经定义的模块的树形结构。
+        */
+        tree: function (leafValue) {
+
+            if (arguments.length == 0) {
+                leafValue = '';
+            }
+
+            var guid = this[guidKey];
+            var meta = guid$meta[guid];
+            var id$module = meta.id$module;
+            var seperator = meta.seperator;
+
+            var tree = {};
+
+            for (var id in id$module) {
+
+                var ids = id.split(seperator);
+                var len = ids.length;
+
+                if (len == 1 && !(id in tree)) { //不含有 seperator，顶级模块
+                    tree[id] = leafValue;
+                    continue;
+                }
+
+                var node = tree;
+
+                for (var i = 0; i < len; i++) {
+
+                    var key = ids[i];
+
+                    var obj = node[key];
+                    if (!obj) {
+                        if (i == len - 1) { //叶子结点
+                            node[key] = leafValue;
+                        }
+                        else {
+                            obj = node[key] = {};
+                        }
+                    }
+
+                    node = obj;
+                }
+            }
+
+
+            return tree;
         },
 
         /**
@@ -390,10 +463,12 @@ var Module = (function () {
 
 })();
 
+
 //内部模块管理器
 var mod = new Module({
     seperator: '/',
     crossover: true,
+    repeated: true,
 });
 
 //提供快捷方式
@@ -4212,7 +4287,8 @@ define('core/String', function (require, module, exports) {
                 return string;
             }
 
-            var endIndex = string.indexOf(endTag);
+            //从开始标记之后位置的开始算起
+            var endIndex = string.indexOf(endTag, startIndex + startTag.length);
             if (endIndex < 0) {
                 return string;
             }
@@ -5761,7 +5837,7 @@ define('Module', function (require, module, exports) {
     var mod = new Module({
         seperator: '/',
         crossover: true,
-        shortcut: true,
+        repeated: true, //允许重复定义
     });
 
 

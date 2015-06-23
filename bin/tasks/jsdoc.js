@@ -19,7 +19,9 @@ module.exports = function (grunt) {
             {
                 dir: 'compatible',
                 files: [
-                    'Function.prototype.js',
+                    'Date.js',
+                    'Function.js',
+                    'Object.js',
                 ],
             },
             {

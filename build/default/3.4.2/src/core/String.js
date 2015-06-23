@@ -72,7 +72,8 @@ define('core/String', function (require, module, exports) {
                 return string;
             }
 
-            var endIndex = string.indexOf(endTag);
+            //从开始标记之后位置的开始算起
+            var endIndex = string.indexOf(endTag, startIndex + startTag.length);
             if (endIndex < 0) {
                 return string;
             }

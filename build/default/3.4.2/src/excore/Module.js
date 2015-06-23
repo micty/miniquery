@@ -9,7 +9,7 @@ define('Module', function (require, module, exports) {
     var mod = new Module({
         seperator: '/',
         crossover: true,
-        shortcut: true,
+        repeated: true, //允许重复定义
     });
 
 
