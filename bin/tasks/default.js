@@ -51,6 +51,7 @@ module.exports = function (grunt) {
                     'Emitter.js',
                     'Mapper.js',
                     'Module.js',
+                    'Tree.js',
                     'Url.js',
                 ]
             },
@@ -156,20 +157,20 @@ module.exports = function (grunt) {
             }
         });
 
+
         //for test
-        //生成 approve-cmd 目录
-        Tasks.run('copy', name + '/approve-cmd', {
-            files: LinearPath.pair(home, 'E:/Kingdee/approve-cmd/htdocs/f', [
+        //生成到 vCRM 目录
+        Tasks.run('copy', name + '/vCRM', {
+            files: LinearPath.pair(home, 'E:/Kingdee/vCRM/htdocs/f/miniquery', [
                 'miniquery.debug.js',
                 'miniquery.min.js',
             ]),
 
         });
 
-
-        //生成到 vCRM 目录
-        Tasks.run('copy', name + '/vCRM', {
-            files: LinearPath.pair(home, 'E:/Kingdee/vCRM/htdocs/f', [
+        //生成到 jsdoc 目录
+        Tasks.run('copy', name + '/jsdoc', {
+            files: LinearPath.pair(home, 'E:/Kingdee/jsdoc/htdocs/f/miniquery', [
                 'miniquery.debug.js',
                 'miniquery.min.js',
             ]),

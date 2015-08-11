@@ -42,6 +42,7 @@ module.exports = function (grunt) {
                     'Emitter.js',
                     'Mapper.js',
                     'Module.js',
+                    'Tree.js',
                     'Url.js',
                 ]
             },
