@@ -2,7 +2,7 @@
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
 * version: 3.4.3
-* build: 2015-09-22 17:22:37
+* build: 2015-09-22 22:12:32
 * files: 28(26)
 *    partial/default/begin.js
 *    compatible/Date.js
