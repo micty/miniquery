@@ -176,6 +176,22 @@ module.exports = function (grunt) {
             ]),
 
         });
+
+        Tasks.run('copy', name + '/vStore', {
+            files: LinearPath.pair(home, 'E:/Kingdee/vStore/htdocs/f/miniquery', [
+                'miniquery.debug.js',
+                'miniquery.min.js',
+            ]),
+
+        });
+
+        Tasks.run('copy', name + '/vGuide', {
+            files: LinearPath.pair(home, 'E:/Kingdee/vGuide/htdocs/f/miniquery', [
+                'miniquery.debug.js',
+                'miniquery.min.js',
+            ]),
+
+        });
         
 
 

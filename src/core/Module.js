@@ -160,13 +160,20 @@ var Module = (function () {
                 return factory;
             }
 
+
             //factory 是个工厂函数
             var require = arguments.callee.bind(this); //引用自身，并且作为静态方法调用
             var exports = {};
+
             var mod = module.mod = { //传递一些额外的信息给 factory 函数，可能会用得到。
                 'id': id,
                 'exports': exports,
                 'parent': parentModule ? parentModule.mod : null,
+
+                //提供一个便捷方式，让原来的 require(module, id) 可以用 module.require(id)
+                'require': function (id) {
+                    return require(mod, id);
+                },
             };
 
 

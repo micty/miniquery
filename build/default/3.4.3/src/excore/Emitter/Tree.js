@@ -75,7 +75,7 @@ define('Emitter/Tree', function (require, module, exports) {
 
         },
 
-     
+
 
         /**
         * 清空全部数据。
@@ -133,7 +133,7 @@ define('Emitter/Tree', function (require, module, exports) {
 
 
         getList: function (names) {
-    
+
             var meta = mapper.get(this);
             var name$node = meta.name$node;
 
@@ -163,11 +163,11 @@ define('Emitter/Tree', function (require, module, exports) {
         },
 
 
-      
+
 
     };
 
-    
+
     return Tree;
 
 
