@@ -26,10 +26,6 @@ define('SessionStorage', function (require, module, exports) {
         */
         set: function (key, value) {
 
-            if (key in all && all[key] === value) { //已存在
-                return;
-            }
-
             all[key] = value;
 
             var json = JSON.stringify(all);

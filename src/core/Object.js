@@ -1746,8 +1746,6 @@ define('Object', function (require, module, exports) {
                     obj = obj[key] = {};
                 }
 
-
-
             });
         },
 

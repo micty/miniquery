@@ -158,7 +158,8 @@ module.exports = function (grunt) {
         });
 
 
-        //for test
+        //for test---------------------------------
+
         //生成到 vCRM 目录
         Tasks.run('copy', name + '/vCRM', {
             files: LinearPath.pair(home, 'E:/Kingdee/vCRM/htdocs/f/miniquery', [
@@ -193,7 +194,21 @@ module.exports = function (grunt) {
 
         });
         
+        Tasks.run('copy', name + '/house-admin', {
+            files: LinearPath.pair(home, 'E:/Kingdee/house/admin/htdocs/f/miniquery', [
+                'miniquery.debug.js',
+                'miniquery.min.js',
+            ]),
 
+        });
+
+        Tasks.run('copy', name + '/house-demo', {
+            files: LinearPath.pair(home, 'E:/Kingdee/house/demo/htdocs/f/miniquery', [
+                'miniquery.debug.js',
+                'miniquery.min.js',
+            ]),
+
+        });
 
 
     });

@@ -2,7 +2,7 @@
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
 * version: 3.4.3
-* build: 2015-09-22 17:22:37
+* build: 2015-10-22 11:03:25
 * files: 28(26)
 *    partial/default/begin.js
 *    compatible/Date.js
@@ -4208,8 +4208,6 @@ define('Object', function (require, module, exports) {
                     obj = obj[key] = {};
                 }
 
-
-
             });
         },
 
@@ -6927,10 +6925,6 @@ define('LocalStorage', function (require, module, exports) {
         */
         set: function (key, value) {
 
-            if (key in all && all[key] === value) { //已存在
-                return;
-            }
-
             all[key] = value;
 
             var json = JSON.stringify(all);
@@ -7043,10 +7037,6 @@ define('SessionStorage', function (require, module, exports) {
         * @param value 要进行设置的值，可以是任何类型。
         */
         set: function (key, value) {
-
-            if (key in all && all[key] === value) { //已存在
-                return;
-            }
 
             all[key] = value;
 
