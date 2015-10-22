@@ -2,7 +2,11 @@
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
 * version: 3.4.3
+<<<<<<< HEAD
 * build: 2015-10-22 11:03:25
+=======
+* build: 2015-09-22 22:12:32
+>>>>>>> bb1099622b9e22e94a795f2d96f81ca3907f94db
 * files: 28(26)
 *    partial/default/begin.js
 *    compatible/Date.js
