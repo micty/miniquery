@@ -2,11 +2,7 @@
 * MiniQuery - MiniQuery JavaScript Library
 * for: default 
 * version: 3.4.3
-<<<<<<< HEAD
-* build: 2015-10-22 11:03:25
-=======
-* build: 2015-09-22 22:12:32
->>>>>>> bb1099622b9e22e94a795f2d96f81ca3907f94db
+* build: 2015-10-26 17:24:29
 * files: 28(26)
 *    partial/default/begin.js
 *    compatible/Date.js
@@ -1300,6 +1296,7 @@ define('Array', function (require, module, exports) {
 
         /**
         * 对一个数组的所有元素进行求和。
+        * 已重载 sum(array, fn)、sum(array)、sum(array, ignoreNaN)、sum(array, ignoreNaN, key)。
         * @param {Array} array 要进行求和的数组。
         * @param {boolean} [ignoreNaN=false] 指示是否忽略掉值为 NaN 的项。
             如果要忽略掉值为 NaN 的项，请指定为 true；否则为 false 或不指定。
@@ -1321,6 +1318,26 @@ define('Array', function (require, module, exports) {
         */
         sum: function (array, ignoreNaN, key) {
             var sum = 0;
+
+            //重载 sum(array, fn);
+            if (typeof ignoreNaN == 'function') {
+                var fn = ignoreNaN;
+
+                exports.each(array, function (item, index) {
+
+                    var value = fn(item, index);
+
+                    if (typeof value != 'number') {
+                        throw new Error('第 ' + index + ' 个元素的返回值不是数字');
+                    }
+
+                    sum += value;
+                });
+
+                return sum;
+            }
+
+
 
             var hasKey = !(key === undefined);
 
