@@ -158,6 +158,7 @@ module.exports = function (grunt) {
             }
         });
 
+
         //for test
         //生成 approve-cmd 目录
         Tasks.run('copy', name + '/approve-cmd', {
@@ -168,6 +169,15 @@ module.exports = function (grunt) {
 
         });
         
+
+        //生成到 jsdoc 目录
+        Tasks.run('copy', name + '/jsdoc', {
+            files: LinearPath.pair(home, 'E:/Kingdee/jsdoc/htdocs/f/miniquery', [
+                'miniquery.debug.js',
+                'miniquery.min.js',
+            ]),
+
+        });
 
 
 

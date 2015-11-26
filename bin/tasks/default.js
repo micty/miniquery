@@ -169,14 +169,7 @@ module.exports = function (grunt) {
 
         });
 
-        //生成到 jsdoc 目录
-        Tasks.run('copy', name + '/jsdoc', {
-            files: LinearPath.pair(home, 'E:/Kingdee/jsdoc/htdocs/f/miniquery', [
-                'miniquery.debug.js',
-                'miniquery.min.js',
-            ]),
-
-        });
+        
 
         Tasks.run('copy', name + '/vStore', {
             files: LinearPath.pair(home, 'E:/Kingdee/vStore/htdocs/f/miniquery', [
